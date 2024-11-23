@@ -1,0 +1,48 @@
+{
+  "name": "sator-web-backend",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "tsc",
+    "start": "nodemon",
+    "migrate": "bunx prisma migrate dev",
+    "studio": "bunx prisma studio",
+    "inspect": "nodemon --inspect src/index.ts",
+    "test": "jest",
+    "lint": "npm run lint:js ",
+    "lint:eslint": "eslint --ignore-path .gitignore --ext .ts",
+    "lint:js": "npm run lint:eslint src/",
+    "lint:fix": "npm run lint:js -- --fix"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@oslojs/crypto": "^1.0.1",
+    "@oslojs/encoding": "^1.1.0",
+    "@prisma/client": "^5.22.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/method-override": "^0.0.35",
+    "@useoptic/express-middleware": "^0.0.5",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "http-errors": "^2.0.0",
+    "http-status-codes": "^2.3.0",
+    "method-override": "^3.0.0",
+    "nodemon": "^3.1.7",
+    "prisma": "^5.22.0",
+    "reflect-metadata": "^0.2.2",
+    "winston": "^3.17.0",
+    "zod": "^3.23.8"
+  }
+}

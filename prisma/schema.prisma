@@ -1,0 +1,41 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+model Admin {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  username          String    @unique @db.VarChar(20)
+  role              Role      @default(ADMIN)
+  profilePictureUrl String? // Optional URL for profile picture
+  lastLogin         DateTime? // Last login timestamp
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  sessions          Session[]
+}
+
+model Session {
+  id        String   @id
+  adminId   String
+  expiresAt DateTime
+
+  admin Admin @relation(references: [id], fields: [adminId], onDelete: Cascade)
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+}

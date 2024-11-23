@@ -1,0 +1,12 @@
+import type { Admin, Session } from "@prisma/client";
+import { z } from "zod";
+
+export type AdminSessionValidationResult =
+  | { session: Session; admin: Admin }
+  | { session: null; admin: null };
+
+export const ValidateSessionTokenSchema = z.object({
+  token: z.string().trim().min(1, { message: "Token Not Found" }),
+});
+
+export type ValidateSessionToken = z.infer<typeof ValidateSessionTokenSchema>;

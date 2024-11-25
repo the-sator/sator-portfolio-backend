@@ -9,4 +9,9 @@ export const ValidateSessionTokenSchema = z.object({
   token: z.string().trim().min(1, { message: "Token Not Found" }),
 });
 
+export const BaseModelSchema = z.object({
+  id: z.string().trim().min(1, { message: "Token Not Found" }),
+});
+
 export type ValidateSessionToken = z.infer<typeof ValidateSessionTokenSchema>;
+export type BaseModel = z.infer<typeof BaseModelSchema>;

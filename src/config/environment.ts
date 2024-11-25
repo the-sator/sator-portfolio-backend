@@ -41,4 +41,7 @@ export default {
   api: {
     prefix: "/api",
   },
+
+  encryptionCode: process.env.ENCRYPTION_KEY || "",
+  defaultOTPCode: process.env.DEFAULT_OTP_CODE || "",
 };

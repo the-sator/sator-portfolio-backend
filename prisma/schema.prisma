@@ -21,6 +21,7 @@ model Admin {
   username          String    @unique @db.VarChar(20)
   role              Role      @default(ADMIN)
   profilePictureUrl String? // Optional URL for profile picture
+  totp_key          Bytes?
   lastLogin         DateTime? // Last login timestamp
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -28,9 +29,10 @@ model Admin {
 }
 
 model Session {
-  id        String   @id
-  adminId   String
-  expiresAt DateTime
+  id                  String   @id
+  adminId             String
+  expiresAt           DateTime
+  two_factor_verified Boolean  @default(false)
 
   admin Admin @relation(references: [id], fields: [adminId], onDelete: Cascade)
 }

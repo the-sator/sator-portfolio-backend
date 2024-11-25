@@ -1,5 +1,5 @@
 import prisma from "@/loaders/prisma";
-import type { Session } from "@prisma/client";
+import type { Prisma, Session } from "@prisma/client";
 
 export class SessionRepository {
   public async findSessionById(sessionId: string) {
@@ -35,6 +35,20 @@ export class SessionRepository {
   public async createSession(session: Session) {
     await prisma.session.create({
       data: session,
+    });
+  }
+
+  public async updateTwoFactorVerified(
+    sessionId: string,
+    tx: Prisma.TransactionClient
+  ) {
+    await tx.session.update({
+      where: {
+        id: sessionId,
+      },
+      data: {
+        two_factor_verified: true,
+      },
     });
   }
 }

@@ -43,13 +43,18 @@ export class AdminAuth {
     return { session, admin };
   }
 
-  public async createSession(token: string, adminId: string): Promise<Session> {
+  public async createSession(
+    token: string,
+    adminId: string,
+    two_factor_verified: boolean
+  ): Promise<Session> {
     const sessionId = encodeHexLowerCase(
       sha256(new TextEncoder().encode(token))
     );
     const session: Session = {
       id: sessionId,
       adminId,
+      two_factor_verified: two_factor_verified,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     };
     await this.sessionRepository.createSession(session);

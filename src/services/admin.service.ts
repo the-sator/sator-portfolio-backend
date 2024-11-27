@@ -101,13 +101,13 @@ export class AdminService {
       session: {
         id: session.id,
         token: sessionToken,
-        expiredAt: session.expiresAt,
+        expiredAt: session.expires_at,
       },
     };
   }
 
   public async signout(payload: BaseModel) {
-    const result = await this.adminAuth.invalidateSession(payload.id);
+    const result = await this.adminAuth.invalidateSession(String(payload.id));
     return result;
   }
 

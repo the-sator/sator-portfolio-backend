@@ -37,6 +37,7 @@ export class AdminRepository {
         email: payload.email,
         password: payload.password,
         username: payload.username,
+        role_id: 1, //ADMIN By Defautl
       },
     });
   }

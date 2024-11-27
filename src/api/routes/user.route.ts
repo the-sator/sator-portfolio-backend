@@ -1,4 +1,4 @@
-import { Router, type NextFunction } from "express";
+import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
 import { validateData } from "@/utils/validator";
 import { CreateUserSchema } from "@/types/user.type";

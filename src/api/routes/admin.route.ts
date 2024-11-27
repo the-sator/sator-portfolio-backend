@@ -8,7 +8,13 @@ const router = Router();
 const adminController = new AdminController();
 export default (app: Router) => {
   app.use("/admin", router);
-  router.get("/", protectedRoute(adminController.getAdmins));
+  router.get(
+    "/",
+    protectedRoute(adminController.getAdmins, {
+      resource: "Admin",
+      action: "read",
+    })
+  );
   router.get("/session", adminController.getSession);
   // router.get("/", adminController.getAdmins);
   router.post(

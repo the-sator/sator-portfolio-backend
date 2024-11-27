@@ -10,7 +10,7 @@ export class UserController {
     this.userService = new UserService();
   }
 
-  public getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  public async getUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await this.userService.getUsers();
       res.json({ data: users });
@@ -18,9 +18,9 @@ export class UserController {
       logger.error("🔥 error: %o", error);
       return next(error);
     }
-  };
+  }
 
-  public addUser = async (req: Request, res: Response, next: NextFunction) => {
+  public async addUser(req: Request, res: Response, next: NextFunction) {
     try {
       const validated = CreateUserSchema.parse(req.body);
       const user = await this.userService.createUser(validated);
@@ -28,5 +28,5 @@ export class UserController {
     } catch (error) {
       next(error);
     }
-  };
+  }
 }

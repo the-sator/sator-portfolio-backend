@@ -12,6 +12,9 @@ export class SessionRepository {
           omit: {
             password: true,
           },
+          include: {
+            role: true,
+          },
         },
       },
     });
@@ -27,7 +30,7 @@ export class SessionRepository {
         id: sessionId,
       },
       data: {
-        expiresAt: expiredAt,
+        expires_at: expiredAt,
       },
     });
   }

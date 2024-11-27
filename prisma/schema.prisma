@@ -15,29 +15,56 @@ model User {
 }
 
 model Admin {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  password          String
-  username          String    @unique @db.VarChar(20)
-  role              Role      @default(ADMIN)
-  profilePictureUrl String? // Optional URL for profile picture
-  totp_key          Bytes?
-  lastLogin         DateTime? // Last login timestamp
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  sessions          Session[]
+  id          String    @id @default(uuid())
+  role_id     Int
+  email       String    @unique
+  password    String
+  username    String    @unique @db.VarChar(20)
+  profile_url String? // Optional URL for profile picture
+  totp_key    Bytes?
+  last_login  DateTime? // Last login timestamp
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  sessions    Session[]
+  role        Role      @relation(references: [id], fields: [role_id])
 }
 
 model Session {
   id                  String   @id
-  adminId             String
-  expiresAt           DateTime
+  admin_id            String
+  expires_at          DateTime
   two_factor_verified Boolean  @default(false)
 
-  admin Admin @relation(references: [id], fields: [adminId], onDelete: Cascade)
+  admin Admin @relation(references: [id], fields: [admin_id], onDelete: Cascade)
 }
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+  permissions PermissionFlag[]
+  admins      Admin[]
+}
+
+model Resource {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+  permissions PermissionFlag[]
+}
+
+model PermissionFlag {
+  id          Int       @id @default(autoincrement())
+  role_id     Int
+  resource_id Int
+  read        Boolean   @default(false)
+  write       Boolean   @default(false)
+  delete      Boolean   @default(false)
+  role        Role?     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  resource    Resource? @relation(fields: [resource_id], references: [id])
+
+  @@unique([role_id, resource_id])
 }

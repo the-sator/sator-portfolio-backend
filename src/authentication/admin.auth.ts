@@ -29,15 +29,15 @@ export class AdminAuth {
       return ThrowUnauthorized();
     }
     const { admin, ...session } = result;
-    if (Date.now() >= session.expiresAt.getTime()) {
+    if (Date.now() >= session.expires_at.getTime()) {
       await this.sessionRepository.deleteSessionById(sessionId);
       return { session: null, admin: null };
     }
-    if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
-      session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    if (Date.now() >= session.expires_at.getTime() - 1000 * 60 * 60 * 24 * 15) {
+      session.expires_at = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
       await this.sessionRepository.updateSessionExpiredAt(
         session.id,
-        session.expiresAt
+        session.expires_at
       );
     }
     return { session, admin };
@@ -45,7 +45,7 @@ export class AdminAuth {
 
   public async createSession(
     token: string,
-    adminId: string,
+    admin_id: string,
     two_factor_verified: boolean
   ): Promise<Session> {
     const sessionId = encodeHexLowerCase(
@@ -53,9 +53,9 @@ export class AdminAuth {
     );
     const session: Session = {
       id: sessionId,
-      adminId,
+      admin_id,
       two_factor_verified: two_factor_verified,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+      expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     };
     await this.sessionRepository.createSession(session);
     return session;

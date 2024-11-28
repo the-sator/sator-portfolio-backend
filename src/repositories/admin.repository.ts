@@ -1,5 +1,9 @@
 import prisma from "@/loaders/prisma";
-import type { CreateAdmin, UpdateAdminTotp } from "@/types/admin.type";
+import type {
+  AssignAdminRole,
+  CreateAdmin,
+  UpdateAdminTotp,
+} from "@/types/admin.type";
 import { encrypt, encryptToBuffer } from "@/utils/encryption";
 import { exclude } from "@/utils/fetch";
 import type { Prisma } from "@prisma/client";
@@ -13,6 +17,9 @@ export class AdminRepository {
     return await prisma.admin.findMany({
       omit: {
         password: true,
+      },
+      include: {
+        role: true,
       },
     });
   }
@@ -53,6 +60,14 @@ export class AdminRepository {
       },
       omit: {
         password: true,
+      },
+    });
+  }
+  public async assignRole(id: string, payload: AssignAdminRole) {
+    return await prisma.admin.update({
+      where: { id },
+      data: {
+        role_id: payload.role_id,
       },
     });
   }

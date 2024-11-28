@@ -1,6 +1,7 @@
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
 import {
+  AssignAdminRoleSchema,
   CreateAdminSchema,
   LoginSchema,
   UpdateAdminTotpSchema,
@@ -93,6 +94,20 @@ export class AdminController {
     try {
       // const validated = UpdateAdminTotpSchema.parse(req.body);
       const admin = await this.adminService.updateAdminTotp(req.body);
+      res.json({ data: admin });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public assignRole = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validated = AssignAdminRoleSchema.parse(req.body);
+      const admin = await this.adminService.assignRole(validated);
       res.json({ data: admin });
     } catch (error) {
       next(error);

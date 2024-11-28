@@ -17,7 +17,11 @@ export class RoleRepository {
     return await client.findFirst({
       where: { id },
       include: {
-        permissions: true,
+        permissions: {
+          include: {
+            resource: true,
+          },
+        },
       },
     });
   }

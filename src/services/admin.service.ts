@@ -12,6 +12,7 @@ import { AdminAuth } from "@/authentication/admin.auth";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
 import { decrypt } from "@/utils/encryption";
+import type { AssignAdminRole } from "@/types/admin.type";
 
 export class AdminService {
   private adminRepository: AdminRepository;
@@ -153,5 +154,8 @@ export class AdminService {
         error instanceof Error ? error.message : String(error)
       );
     }
+  }
+  public async assignRole(payload: AssignAdminRole) {
+    return this.adminRepository.assignRole(payload.admin_id, payload);
   }
 }

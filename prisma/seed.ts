@@ -13,7 +13,21 @@ export const Resource = [
   {
     name: "Blog",
   },
+  {
+    name: "Role",
+  },
+  {
+    name: "Resource",
+  },
+  {
+    name: "Chat",
+  },
 ];
+
+type Resource = {
+  name: string;
+  id: number;
+};
 
 const prisma = new PrismaClient();
 
@@ -34,7 +48,7 @@ async function main() {
     },
   });
   console.log("Role ", adminRole.name, " Created ✅");
-  let resourceIds: number[] = [];
+  let resources: Resource[] = [];
   for (const resource of Resource) {
     const result = await prisma.resource.upsert({
       where: { name: resource.name },
@@ -44,22 +58,59 @@ async function main() {
       },
     });
 
-    resourceIds.push(result.id);
+    resources.push({
+      id: result.id,
+      name: result.name,
+    });
     console.log("Resource ", result.name, " Created ✅");
   }
 
-  resourceIds.forEach(async (id) => {
+  resources.forEach(async (resource) => {
+    let isUserResource;
+    switch (resource.name) {
+      case "User":
+      case "Portfolio":
+      case "Role":
+      case "Chat":
+      case "Blog":
+        isUserResource = true;
+        break;
+      default:
+        isUserResource = false;
+        break;
+    }
     await prisma.permissionFlag.upsert({
       where: {
         role_id_resource_id: {
           role_id: superAdminRole.id,
-          resource_id: id,
+          resource_id: resource.id,
         },
       },
       update: {},
       create: {
         role_id: superAdminRole.id,
-        resource_id: id,
+        resource_id: resource.id,
+        read: true,
+        write: isUserResource,
+        delete: isUserResource,
+      },
+    });
+  });
+
+  console.log("Permission for ", superAdminRole.name, " Created ✅");
+
+  resources.forEach(async (resource) => {
+    await prisma.permissionFlag.upsert({
+      where: {
+        role_id_resource_id: {
+          role_id: adminRole.id,
+          resource_id: resource.id,
+        },
+      },
+      update: {},
+      create: {
+        role_id: adminRole.id,
+        resource_id: resource.id,
         read: true,
         write: true,
         delete: true,
@@ -67,18 +118,32 @@ async function main() {
     });
   });
 
-  console.log("Permission ", adminRole.name, " Created ✅");
+  console.log("Permission for ", adminRole.name, " Created ✅");
 
   const saltRounds = process.env.PASSWORD_SALT;
+
+  const superPasswordHash = await bcrypt.hash("super123", Number(saltRounds));
+  const superAdminTest = await prisma.admin.upsert({
+    where: { email: "super@test.com" },
+    update: {},
+    create: {
+      email: "super@test.com",
+      username: "super",
+      password: superPasswordHash,
+      role_id: superAdminRole.id,
+    },
+  });
+  console.log("Super Admin ", superAdminTest.username, " Created ✅");
+
   const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
   const adminTest = await prisma.admin.upsert({
     where: { email: "admin@test.com" },
     update: {},
     create: {
       email: "admin@test.com",
-      username: "test",
+      username: "admin",
       password: passwordHash,
-      role_id: superAdminRole.id,
+      role_id: adminRole.id,
     },
   });
   console.log("Admin ", adminTest.username, " Created ✅");

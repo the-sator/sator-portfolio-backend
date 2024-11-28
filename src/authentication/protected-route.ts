@@ -44,8 +44,6 @@ function protectedRoute(
       }
 
       if (options) {
-        console.log("options:", options);
-
         const role = await roleRepository.findById(admin.role_id!);
         if (!role) {
           return ThrowForbidden();

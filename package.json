@@ -9,6 +9,7 @@
     "migrate": "bunx prisma migrate dev",
     "studio": "bunx prisma studio",
     "inspect": "nodemon --inspect src/index.ts",
+    "reset-all": "npx prisma db push --force-reset",
     "test": "jest",
     "lint": "npm run lint:js ",
     "lint:eslint": "eslint --ignore-path .gitignore --ext .ts",
@@ -16,7 +17,8 @@
     "lint:fix": "npm run lint:js -- --fix"
   },
   "prisma": {
-    "seed": "node --loader ts-node/esm ./prisma/seed.ts"
+    "seed": "node --loader ts-node/esm ./prisma/seed.ts",
+    "purge": "node --loader ts-node/esm ./prisma/purge.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

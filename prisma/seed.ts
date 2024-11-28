@@ -66,6 +66,27 @@ async function main() {
   }
 
   resources.forEach(async (resource) => {
+    await prisma.permissionFlag.upsert({
+      where: {
+        role_id_resource_id: {
+          role_id: superAdminRole.id,
+          resource_id: resource.id,
+        },
+      },
+      update: {},
+      create: {
+        role_id: superAdminRole.id,
+        resource_id: resource.id,
+        read: true,
+        write: true,
+        delete: true,
+      },
+    });
+  });
+
+  console.log("Permission for ", superAdminRole.name, " Created ✅");
+
+  resources.forEach(async (resource) => {
     let isUserResource;
     switch (resource.name) {
       case "User":
@@ -79,27 +100,7 @@ async function main() {
         isUserResource = false;
         break;
     }
-    await prisma.permissionFlag.upsert({
-      where: {
-        role_id_resource_id: {
-          role_id: superAdminRole.id,
-          resource_id: resource.id,
-        },
-      },
-      update: {},
-      create: {
-        role_id: superAdminRole.id,
-        resource_id: resource.id,
-        read: true,
-        write: isUserResource,
-        delete: isUserResource,
-      },
-    });
-  });
-
-  console.log("Permission for ", superAdminRole.name, " Created ✅");
-
-  resources.forEach(async (resource) => {
+    console.log("resource.name:", resource.name, " : ", isUserResource);
     await prisma.permissionFlag.upsert({
       where: {
         role_id_resource_id: {
@@ -112,8 +113,8 @@ async function main() {
         role_id: adminRole.id,
         resource_id: resource.id,
         read: true,
-        write: true,
-        delete: true,
+        write: isUserResource,
+        delete: isUserResource,
       },
     });
   });

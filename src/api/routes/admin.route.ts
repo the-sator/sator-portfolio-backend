@@ -32,6 +32,9 @@ export default (app: Router) => {
   router.post(
     "/assign",
     validateData(AssignAdminRoleSchema),
-    protectedRoute(adminController.assignRole)
+    protectedRoute(adminController.assignRole, {
+      resource: "Admin",
+      action: "write",
+    })
   );
 };

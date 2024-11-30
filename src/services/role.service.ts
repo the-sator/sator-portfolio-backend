@@ -4,12 +4,7 @@ import { PermissionFlagRepository } from "@/repositories/permission-flag.reposit
 import { ResourceRepository } from "@/repositories/resource.repository";
 import { RoleRepository } from "@/repositories/role.repository";
 import type { BaseModel } from "@/types/base.type";
-import type {
-  AssignRole,
-  CheckRole,
-  CreateRole,
-  UpdateRole,
-} from "@/types/role.type";
+import type { CheckRole, CreateRole, UpdateRole } from "@/types/role.type";
 import { ThrowForbidden, ThrowInternalServer } from "@/utils/exception";
 
 export class RoleService {

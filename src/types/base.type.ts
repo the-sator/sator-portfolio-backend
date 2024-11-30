@@ -16,5 +16,12 @@ export const BaseModelSchema = z.object({
   ]),
 });
 
+export const ValidatedSlugSchema = z.object({
+  slug: z
+    .string()
+    .trim()
+    .refine((s) => !s.includes(" "), "No Spaces!"),
+});
+
 export type ValidateSessionToken = z.infer<typeof ValidateSessionTokenSchema>;
 export type BaseModel = z.infer<typeof BaseModelSchema>;

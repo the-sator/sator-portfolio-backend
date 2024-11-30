@@ -11,7 +11,7 @@ import protectedRoute from "@/authentication/protected-route";
 const router = Router();
 const adminController = new AdminController();
 export default (app: Router) => {
-  app.use("/admin", router);
+  app.use("/", router);
   router.get(
     "/",
     protectedRoute(adminController.getAdmins, {

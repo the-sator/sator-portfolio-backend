@@ -8,7 +8,7 @@ const router = Router();
 const roleController = new RoleController();
 
 export default (app: Router) => {
-  app.use("/admin/role", router);
+  app.use("/role", router);
   router.get("/", protectedRoute(roleController.getRoles));
   router.get("/:id", protectedRoute(roleController.getRoleById));
   router.put(
@@ -22,5 +22,11 @@ export default (app: Router) => {
     validateData(CreateRoleSchema),
     protectedRoute(roleController.createRole)
   );
-  router.delete("/:id", protectedRoute(roleController.deleteRole));
+  router.delete(
+    "/:id",
+    protectedRoute(roleController.deleteRole, {
+      resource: "Role",
+      action: "delete",
+    })
+  );
 };

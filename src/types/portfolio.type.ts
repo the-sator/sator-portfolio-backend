@@ -13,6 +13,7 @@ export const CreatePortfolioSchema = z.object({
   cover_url: z.string().optional(),
   gallery: z.array(z.string()).optional(),
   content: z.string().optional(),
+  categories: z.array(z.string()).optional(),
 });
 
 export type CreatePortfolio = z.infer<typeof CreatePortfolioSchema>;

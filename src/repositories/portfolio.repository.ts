@@ -1,5 +1,6 @@
 import prisma from "@/loaders/prisma";
 import type { CreatePortfolio } from "@/types/portfolio.type";
+import type { Prisma } from "@prisma/client";
 
 export class PortfolioRepository {
   public async findAll() {
@@ -12,8 +13,9 @@ export class PortfolioRepository {
     });
   }
 
-  public async create(payload: CreatePortfolio) {
-    return await prisma.portfolio.create({
+  public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.portfolio.create({
       data: {
         admin_id: payload.admin_id,
         description: payload.description,

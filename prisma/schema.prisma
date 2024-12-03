@@ -75,6 +75,7 @@ model Category {
   name               String
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
+  color              CategoryColor        @default(BLUE)
   CategoryOnPorfolio CategoryOnPorfolio[]
 }
 
@@ -90,9 +91,8 @@ model CategoryOnPorfolio {
 }
 
 model Portfolio {
-  id       String @id @default(uuid())
-  admin_id String
-
+  id                 String               @id @default(uuid())
+  admin_id           String
   title              String
   description        String
   cover_url          String
@@ -104,4 +104,17 @@ model Portfolio {
   content            Json?
   admin              Admin                @relation(fields: [admin_id], references: [id])
   CategoryOnPorfolio CategoryOnPorfolio[]
+}
+
+enum CategoryColor {
+  RED
+  VIOLET
+  GREEN
+  PURPLE
+  YELLOW
+  ORANGE
+  GRAY
+  TEAL
+  INDIGO
+  BLUE
 }

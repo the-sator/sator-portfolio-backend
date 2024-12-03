@@ -1,10 +1,14 @@
+import prisma from "@/loaders/prisma";
+import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
 import { PortfolioRepository } from "@/repositories/portfolio.repository";
 import type { CreatePortfolio } from "@/types/portfolio.type";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
+  private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
+    this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
   }
   public async findAll() {
     return this.portfolioRepository.findAll();
@@ -13,6 +17,25 @@ export class PortfolioService {
     return this.portfolioRepository.findBySlug(slug);
   }
   public async create(payload: CreatePortfolio) {
-    return this.portfolioRepository.create(payload);
+    console.log("payload.categories:", payload.categories);
+    if (payload.categories) {
+      return await prisma.$transaction(async (tx) => {
+        const portfolio = await this.portfolioRepository.create(payload, tx);
+
+        for (const category of payload.categories!) {
+          await this.categoryOnPortfolioRepository.create(
+            {
+              category_id: category,
+              portfolio_id: portfolio.id,
+              assignedBy: payload.admin_id,
+            },
+            tx
+          );
+        }
+        return portfolio;
+      });
+    }
+    const portfolio = await this.portfolioRepository.create(payload);
+    return portfolio;
   }
 }

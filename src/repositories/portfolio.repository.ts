@@ -10,6 +10,9 @@ export class PortfolioRepository {
   public async findBySlug(slug: string) {
     return await prisma.portfolio.findFirst({
       where: { slug },
+      include: {
+        CategoryOnPorfolio: true,
+      },
     });
   }
 
@@ -24,6 +27,27 @@ export class PortfolioRepository {
         gallery: payload.gallery ? payload.gallery : [],
         title: payload.title,
         slug: payload.slug,
+      },
+    });
+  }
+
+  public async update(
+    id: string,
+    payload: CreatePortfolio,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.portfolio.update({
+      where: { id },
+      data: {
+        admin_id: payload.admin_id,
+        description: payload.description,
+        cover_url: payload.cover_url,
+        content: payload.content
+          ? JSON.parse(payload.content)
+          : payload.content,
+        gallery: payload.gallery,
+        title: payload.title,
       },
     });
   }

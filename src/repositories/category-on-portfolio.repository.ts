@@ -17,4 +17,11 @@ export class CategoryOnPortfolioRepository {
       },
     });
   }
+
+  public async deleteByPortfolioId(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.categoryOnPorfolio.deleteMany({
+      where: { portfolio_id: id },
+    });
+  }
 }

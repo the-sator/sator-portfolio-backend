@@ -1,5 +1,5 @@
 import { PortfolioService } from "@/services/portfolio.service";
-import { ValidatedSlugSchema } from "@/types/base.type";
+import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
 import { CreatePortfolioSchema } from "@/types/portfolio.type";
 import type { NextFunction, Response, Request } from "express";
 
@@ -42,6 +42,26 @@ export class PortfolioController {
     try {
       const validated = CreatePortfolioSchema.parse(req.body);
       const portfolio = await this.portfolioService.create(validated);
+      res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updatePortfolio = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse({
+        id: req.params.id,
+      });
+      const validated = CreatePortfolioSchema.parse(req.body);
+      const portfolio = await this.portfolioService.update(
+        params.id as string,
+        validated
+      );
       res.json({ data: portfolio });
     } catch (error) {
       next(error);

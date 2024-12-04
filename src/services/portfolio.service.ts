@@ -17,7 +17,6 @@ export class PortfolioService {
     return this.portfolioRepository.findBySlug(slug);
   }
   public async create(payload: CreatePortfolio) {
-    console.log("payload.categories:", payload.categories);
     if (payload.categories) {
       return await prisma.$transaction(async (tx) => {
         const portfolio = await this.portfolioRepository.create(payload, tx);
@@ -37,5 +36,25 @@ export class PortfolioService {
     }
     const portfolio = await this.portfolioRepository.create(payload);
     return portfolio;
+  }
+
+  public async update(id: string, payload: CreatePortfolio) {
+    return await prisma.$transaction(async (tx) => {
+      await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
+      const portfolio = await this.portfolioRepository.update(id, payload, tx);
+      if (payload.categories) {
+        for (const category of payload.categories) {
+          await this.categoryOnPortfolioRepository.create(
+            {
+              category_id: category,
+              portfolio_id: portfolio.id,
+              assignedBy: payload.admin_id,
+            },
+            tx
+          );
+        }
+      }
+      return portfolio;
+    });
   }
 }

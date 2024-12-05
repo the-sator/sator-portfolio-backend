@@ -67,4 +67,54 @@ export class PortfolioController {
       next(error);
     }
   };
+  public deletePortfolio = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse({
+        id: req.params.id,
+      });
+      const portfolio = await this.portfolioService.delete(params.id as string);
+      res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public publishPortfolio = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse({
+        id: req.params.id,
+      });
+      const portfolio = await this.portfolioService.publish(
+        params.id as string
+      );
+      res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public unpublishPortfolio = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse({
+        id: req.params.id,
+      });
+      const portfolio = await this.portfolioService.unpublish(
+        params.id as string
+      );
+      res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

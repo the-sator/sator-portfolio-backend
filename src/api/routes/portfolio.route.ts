@@ -10,5 +10,14 @@ export default (app: Router) => {
   router.get("/", protectedRoute(portfolioController.findAll));
   router.get("/:slug", protectedRoute(portfolioController.findPortfolioBySlug));
   router.post("/", protectedRoute(portfolioController.createPortfolio));
+  router.post(
+    "/:id/publish",
+    protectedRoute(portfolioController.publishPortfolio)
+  );
+  router.post(
+    "/:id/unpublish",
+    protectedRoute(portfolioController.unpublishPortfolio)
+  );
   router.put("/:id", protectedRoute(portfolioController.updatePortfolio));
+  router.delete("/:id", protectedRoute(portfolioController.deletePortfolio));
 };

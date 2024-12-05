@@ -51,4 +51,28 @@ export class PortfolioRepository {
       },
     });
   }
+  public async delete(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.portfolio.delete({
+      where: { id },
+    });
+  }
+  public async publish(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.portfolio.update({
+      where: { id },
+      data: {
+        published_at: new Date(),
+      },
+    });
+  }
+  public async unpublish(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.portfolio.update({
+      where: { id },
+      data: {
+        published_at: null,
+      },
+    });
+  }
 }

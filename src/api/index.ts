@@ -5,6 +5,7 @@ import role from "./routes/role.route";
 import resource from "./routes/resource.route";
 import portfolio from "./routes/portfolio.route";
 import category from "./routes/category.route";
+import formQuestion from "./routes/form-question.route";
 
 // guaranteed to get dependencies
 
@@ -21,6 +22,7 @@ export default () => {
   resource(adminRouter);
   portfolio(adminRouter);
   category(adminRouter);
+  formQuestion(adminRouter);
   app.use("/admin", adminRouter);
 
   return app;

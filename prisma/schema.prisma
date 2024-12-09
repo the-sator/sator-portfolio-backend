@@ -9,9 +9,10 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  form_attempt FormAttempt[]
 }
 
 model Admin {
@@ -106,6 +107,53 @@ model Portfolio {
   CategoryOnPorfolio CategoryOnPorfolio[]
 }
 
+model FormQuestion {
+  id            String         @id @default(uuid())
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  published_at  DateTime?
+  form_text     String
+  type          QuestionType   @default(SINGLE_CHOICE)
+  order         Int            @unique
+  form_option   FormOption[]
+  form_response FormResponse[]
+}
+
+model FormOption {
+  id            String         @id @default(uuid())
+  question_id   String
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  option_text   String
+  type          QuestionType   @default(SINGLE_CHOICE)
+  price         Float[]
+  metadata      Json?
+  form_question FormQuestion   @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  form_response FormResponse[]
+}
+
+model FormResponse {
+  id            String       @id @default(uuid())
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  question_id   String
+  option_id     String
+  attempt_id    String
+  metadata      Json?
+  form_question FormQuestion @relation(fields: [question_id], references: [id])
+  form_option   FormOption   @relation(fields: [option_id], references: [id])
+  form_attempt  FormAttempt  @relation(fields: [attempt_id], references: [id])
+}
+
+model FormAttempt {
+  id            String         @id @default(uuid())
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  user_id       String
+  user          User           @relation(fields: [user_id], references: [id])
+  form_response FormResponse[]
+}
+
 enum CategoryColor {
   RED
   VIOLET
@@ -117,4 +165,9 @@ enum CategoryColor {
   TEAL
   INDIGO
   BLUE
+}
+
+enum QuestionType {
+  MULTI_CHOICE
+  SINGLE_CHOICE
 }

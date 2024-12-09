@@ -128,7 +128,7 @@ model FormOption {
   type          QuestionType   @default(SINGLE_CHOICE)
   price         Float[]
   metadata      Json?
-  form_question FormQuestion   @relation(fields: [question_id], references: [id])
+  form_question FormQuestion   @relation(fields: [question_id], references: [id], onDelete: Cascade)
   form_response FormResponse[]
 }
 

@@ -1,7 +1,9 @@
 import prisma from "@/loaders/prisma";
 import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
 import { PortfolioRepository } from "@/repositories/portfolio.repository";
+import type { BaseFilter } from "@/types/base.type";
 import type { CreatePortfolio } from "@/types/portfolio.type";
+import { ThrowInternalServer } from "@/utils/exception";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
@@ -14,6 +16,16 @@ export class PortfolioService {
 
   public async findAll() {
     return this.portfolioRepository.findAll();
+  }
+
+  public async paginateAll(filter: BaseFilter) {
+    const count = await this.portfolioRepository.count();
+    const page =
+      count > Number(filter.page) * Number(filter.limit)
+        ? Number(filter.page) + 1
+        : null;
+    const portfolios = await this.portfolioRepository.paginateAll(filter);
+    return { portfolios, page };
   }
 
   public async findBySlug(slug: string) {

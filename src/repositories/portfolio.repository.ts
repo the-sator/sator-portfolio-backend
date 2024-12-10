@@ -1,10 +1,24 @@
+import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
+import type { BaseFilter } from "@/types/base.type";
 import type { CreatePortfolio } from "@/types/portfolio.type";
 import type { Prisma } from "@prisma/client";
 
 export class PortfolioRepository {
   public async findAll() {
     return await prisma.portfolio.findMany();
+  }
+
+  public async paginateAll(filter: BaseFilter) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    return await prisma.portfolio.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: "asc",
+      },
+    });
   }
 
   public async findBySlug(slug: string) {
@@ -15,7 +29,9 @@ export class PortfolioRepository {
       },
     });
   }
-
+  public async count() {
+    return await prisma.portfolio.count();
+  }
   public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.portfolio.create({

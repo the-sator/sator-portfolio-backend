@@ -1,4 +1,6 @@
+import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
+import type { BaseFilter } from "@/types/base.type";
 import type { CreateFormQuestion } from "@/types/portfolio-form.type";
 import type { Prisma } from "@prisma/client";
 
@@ -13,6 +15,26 @@ export class FormQuestionRepository {
       },
     });
   }
+
+  public async paginate(filter: BaseFilter) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    return await prisma.formQuestion.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        order: "asc",
+      },
+      include: {
+        form_option: true,
+      },
+    });
+  }
+
+  public async count() {
+    return await prisma.formQuestion.count();
+  }
+
   public async create(
     payload: CreateFormQuestion,
     tx?: Prisma.TransactionClient

@@ -2,8 +2,10 @@ import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import { FormOptionRepository } from "@/repositories/form-option.repository";
 import { FormQuestionRepository } from "@/repositories/form-question.repository";
-import type { BaseFilter } from "@/types/base.type";
-import type { CreateFormQuestion } from "@/types/portfolio-form.type";
+import type {
+  CreateFormQuestion,
+  PortfolioFormFilter,
+} from "@/types/portfolio-form.type";
 
 export class FormQuestionService {
   private formQuestionRepository: FormQuestionRepository;
@@ -17,13 +19,14 @@ export class FormQuestionService {
     return this.formQuestionRepository.findAll();
   }
 
-  public async paginate(filter: BaseFilter) {
-    const count = await this.formQuestionRepository.count();
-    const currentPage = filter.page ? Number(filter.page) : 1;
-    const limit = filter.limit ? Number(filter.limit) : LIMIT;
-    const page = count > currentPage * limit ? currentPage + 1 : null;
+  public async paginate(filter: PortfolioFormFilter) {
+    const count = await this.formQuestionRepository.count(filter);
+    const current_page = filter.page ? Number(filter.page) : 1;
+    const page_size = filter.limit ? Number(filter.limit) : LIMIT;
+    const page_count = Math.ceil(count / page_size);
+    const page = count > current_page * page_size ? current_page + 1 : null;
     const questions = await this.formQuestionRepository.paginate(filter);
-    return { questions, currentPage, page, count };
+    return { questions, current_page, page, count, page_size, page_count };
   }
 
   public async create(payload: CreateFormQuestion) {

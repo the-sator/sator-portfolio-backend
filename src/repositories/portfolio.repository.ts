@@ -1,23 +1,58 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import type { BaseFilter } from "@/types/base.type";
-import type { CreatePortfolio } from "@/types/portfolio.type";
+import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
 import type { Prisma } from "@prisma/client";
 
 export class PortfolioRepository {
   public async findAll() {
     return await prisma.portfolio.findMany();
   }
-
-  public async paginateAll(filter: BaseFilter) {
+  public buildFilter(filter: PortfolioFilter) {
+    let where: Record<string, any> = {};
+    if (filter.title) {
+      where.title = { startsWith: filter.title };
+    }
+    if (filter.categories && filter.categories.length > 0) {
+      where.AND = [
+        {
+          CategoryOnPorfolio: {
+            every: {
+              category_id: {
+                in: filter.categories,
+              },
+            },
+          },
+        },
+        ...filter.categories.map((id) => ({
+          CategoryOnPorfolio: {
+            some: {
+              category_id: id,
+            },
+          },
+        })),
+      ];
+    }
+    return where;
+  }
+  public async paginate(filter: PortfolioFilter) {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    const where = this.buildFilter(filter);
     return await prisma.portfolio.findMany({
       take: limit,
       skip: (page - 1) * limit,
       orderBy: {
         created_at: "asc",
       },
+      include: {
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      where,
     });
   }
 
@@ -25,7 +60,11 @@ export class PortfolioRepository {
     return await prisma.portfolio.findFirst({
       where: { slug },
       include: {
-        CategoryOnPorfolio: true,
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
   }

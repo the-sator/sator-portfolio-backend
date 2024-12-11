@@ -1,6 +1,9 @@
 import { FormQuestionService } from "@/services/form-question.service";
 import { BaseFilterSchema, BaseModelSchema } from "@/types/base.type";
-import { CreateFormQuestionSchema } from "@/types/portfolio-form.type";
+import {
+  CreateFormQuestionSchema,
+  PortfolioFormFilterSchema,
+} from "@/types/portfolio-form.type";
 import { ThrowInternalServer } from "@/utils/exception";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { NextFunction, Request, Response } from "express";
@@ -21,11 +24,14 @@ export class FormQuestionController {
   };
   public paginate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validatedQuery = BaseFilterSchema.parse(req.query);
-      const { questions, currentPage, page, count } =
+      const validatedQuery = PortfolioFormFilterSchema.parse(req.query);
+      const { questions, current_page, page, count, page_count, page_size } =
         await this.formQuestionService.paginate(validatedQuery);
       res.json({
-        data: { data: questions, metadata: { page, count, currentPage } },
+        data: {
+          data: questions,
+          metadata: { page, count, current_page, page_count, page_size },
+        },
       });
     } catch (err) {
       next(err);

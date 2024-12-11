@@ -4,7 +4,10 @@ import {
   BaseModelSchema,
   ValidatedSlugSchema,
 } from "@/types/base.type";
-import { CreatePortfolioSchema } from "@/types/portfolio.type";
+import {
+  CreatePortfolioSchema,
+  PortfolioFilterSchema,
+} from "@/types/portfolio.type";
 import type { NextFunction, Response, Request } from "express";
 
 export class PortfolioController {
@@ -27,11 +30,15 @@ export class PortfolioController {
     next: NextFunction
   ) => {
     try {
-      const filter = BaseFilterSchema.parse(req.query);
-      const { portfolios, page } = await this.portfolioService.paginateAll(
-        filter
-      );
-      res.json({ data: { data: portfolios, metadata: { page } } });
+      const filter = PortfolioFilterSchema.parse(req.query);
+      const { portfolios, page_size, page_count, page, current_page } =
+        await this.portfolioService.paginate(filter);
+      res.json({
+        data: {
+          data: portfolios,
+          metadata: { page, page_size, page_count, current_page },
+        },
+      });
     } catch (error) {
       next(error);
     }

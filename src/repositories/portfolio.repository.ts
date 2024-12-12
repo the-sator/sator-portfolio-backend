@@ -11,27 +11,23 @@ export class PortfolioRepository {
   public buildFilter(filter: PortfolioFilter) {
     let where: Record<string, any> = {};
     if (filter.title) {
-      where.title = { startsWith: filter.title };
+      where.title = { search: filter.title };
     }
-    if (filter.categories && filter.categories.length > 0) {
-      where.AND = [
-        {
-          CategoryOnPorfolio: {
-            every: {
-              category_id: {
-                in: filter.categories,
-              },
+    const categoryArray = filter.categories
+      ? Array.isArray(filter.categories)
+        ? filter.categories
+        : [filter.categories]
+      : undefined;
+    if (categoryArray && categoryArray.length > 0) {
+      where = {
+        CategoryOnPorfolio: {
+          every: {
+            category_id: {
+              in: categoryArray,
             },
           },
         },
-        ...filter.categories.map((id) => ({
-          CategoryOnPorfolio: {
-            some: {
-              category_id: id,
-            },
-          },
-        })),
-      ];
+      };
     }
     return where;
   }
@@ -68,8 +64,12 @@ export class PortfolioRepository {
       },
     });
   }
-  public async count() {
-    return await prisma.portfolio.count();
+  public async count(filter: PortfolioFilter) {
+    const where = this.buildFilter(filter);
+
+    return await prisma.portfolio.count({
+      where,
+    });
   }
   public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;

@@ -20,7 +20,7 @@ export class PortfolioService {
   }
 
   public async paginate(filter: PortfolioFilter) {
-    const count = await this.portfolioRepository.count();
+    const count = await this.portfolioRepository.count(filter);
     const current_page = filter.page ? Number(filter.page) : 1;
     const page_size = filter.limit ? Number(filter.limit) : LIMIT;
     const page_count = Math.ceil(count / page_size);

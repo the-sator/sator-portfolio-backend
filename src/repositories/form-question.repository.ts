@@ -37,7 +37,6 @@ export class FormQuestionRepository {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
     const where = this.buildFilter(filter);
-    console.log("where:", where);
     return await prisma.formQuestion.findMany({
       take: limit,
       skip: (page - 1) * limit,

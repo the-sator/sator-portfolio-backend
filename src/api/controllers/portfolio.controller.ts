@@ -1,6 +1,13 @@
 import { PortfolioService } from "@/services/portfolio.service";
-import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
-import { CreatePortfolioSchema } from "@/types/portfolio.type";
+import {
+  BaseFilterSchema,
+  BaseModelSchema,
+  ValidatedSlugSchema,
+} from "@/types/base.type";
+import {
+  CreatePortfolioSchema,
+  PortfolioFilterSchema,
+} from "@/types/portfolio.type";
 import type { NextFunction, Response, Request } from "express";
 
 export class PortfolioController {
@@ -16,6 +23,28 @@ export class PortfolioController {
       next(error);
     }
   };
+
+  public paginateAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      console.log("req.query:", req.query);
+      const filter = PortfolioFilterSchema.parse(req.query);
+      const { portfolios, page_size, page_count, page, current_page } =
+        await this.portfolioService.paginate(filter);
+      res.json({
+        data: {
+          data: portfolios,
+          metadata: { page, page_size, page_count, current_page },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public findPortfolioBySlug = async (
     req: Request,
     res: Response,

@@ -1,21 +1,76 @@
+import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { CreatePortfolio } from "@/types/portfolio.type";
+import type { BaseFilter } from "@/types/base.type";
+import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
 import type { Prisma } from "@prisma/client";
 
 export class PortfolioRepository {
   public async findAll() {
     return await prisma.portfolio.findMany();
   }
+  public buildFilter(filter: PortfolioFilter) {
+    let where: Record<string, any> = {};
+    if (filter.title) {
+      where.title = { search: filter.title };
+    }
+    const categoryArray = filter.categories
+      ? Array.isArray(filter.categories)
+        ? filter.categories
+        : [filter.categories]
+      : undefined;
+    if (categoryArray && categoryArray.length > 0) {
+      where = {
+        CategoryOnPorfolio: {
+          every: {
+            category_id: {
+              in: categoryArray,
+            },
+          },
+        },
+      };
+    }
+    return where;
+  }
+  public async paginate(filter: PortfolioFilter) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    const where = this.buildFilter(filter);
+    return await prisma.portfolio.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: "asc",
+      },
+      include: {
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      where,
+    });
+  }
 
   public async findBySlug(slug: string) {
     return await prisma.portfolio.findFirst({
       where: { slug },
       include: {
-        CategoryOnPorfolio: true,
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
   }
+  public async count(filter: PortfolioFilter) {
+    const where = this.buildFilter(filter);
 
+    return await prisma.portfolio.count({
+      where,
+    });
+  }
   public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.portfolio.create({

@@ -23,5 +23,11 @@ export const ValidatedSlugSchema = z.object({
     .refine((s) => !s.includes(" "), "No Spaces!"),
 });
 
+export const BaseFilterSchema = z.object({
+  page: z.string().min(1).optional(),
+  limit: z.string().min(1).optional(),
+});
+
+export type BaseFilter = z.infer<typeof BaseFilterSchema>;
 export type ValidateSessionToken = z.infer<typeof ValidateSessionTokenSchema>;
 export type BaseModel = z.infer<typeof BaseModelSchema>;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BaseFilterSchema } from "./base.type";
 
 export const CreateFormOptionSchema = z.object({
   // question_id: z.string().min(1, { message: "Question ID is required" }),
@@ -12,5 +13,11 @@ export const CreateFormQuestionSchema = z.object({
   options: z.array(CreateFormOptionSchema),
 });
 
+export const PortfolioFormFilterSchema = BaseFilterSchema.extend({
+  order: z.string().optional(),
+  id: z.string().optional(),
+});
+
 export type CreateFormQuestion = z.infer<typeof CreateFormQuestionSchema>;
 export type CreateFormOption = z.infer<typeof CreateFormOptionSchema>;
+export type PortfolioFormFilter = z.infer<typeof PortfolioFormFilterSchema>;

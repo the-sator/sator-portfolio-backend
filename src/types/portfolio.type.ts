@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BaseFilterSchema } from "./base.type";
 
 export const CreatePortfolioSchema = z.object({
   admin_id: z.string().min(1, { message: "Admin ID is required" }),
@@ -16,4 +17,10 @@ export const CreatePortfolioSchema = z.object({
   categories: z.array(z.string()).optional(),
 });
 
+export const PortfolioFilterSchema = BaseFilterSchema.extend({
+  title: z.string().optional(),
+  categories: z.union([z.array(z.string()), z.string()]).optional(),
+});
+
 export type CreatePortfolio = z.infer<typeof CreatePortfolioSchema>;
+export type PortfolioFilter = z.infer<typeof PortfolioFilterSchema>;

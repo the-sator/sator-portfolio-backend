@@ -5,6 +5,7 @@ import {
 import { sha256 } from "@oslojs/crypto/sha2";
 
 import type { Admin, Session } from "@prisma/client";
+import type { Request } from "express";
 import prisma from "@/loaders/prisma";
 import { SessionRepository } from "@/repositories/session.repository";
 import { ThrowUnauthorized } from "@/utils/exception";
@@ -63,6 +64,20 @@ export class AdminAuth {
 
   public async invalidateSession(sessionId: string) {
     return await this.sessionRepository.deleteSessionById(sessionId);
+  }
+
+  public async getAdmin(req: Request) {
+    const sessionCookie = req.cookies?.session; // Assuming session cookie is named 'session'
+    if (!sessionCookie) {
+      return ThrowUnauthorized(); // Or throw a custom error
+    }
+
+    const result = await this.validateSessionToken(sessionCookie);
+    if (!result) {
+      return ThrowUnauthorized();
+    }
+
+    return result;
   }
 
   public generateSessionToken(): string {

@@ -6,6 +6,9 @@ import resource from "./routes/resource.route";
 import portfolio from "./routes/portfolio.route";
 import category from "./routes/category.route";
 import formQuestion from "./routes/form-question.route";
+import chatRoom from "./routes/chat-room.route";
+import chatMessage from "./routes/chat-message.route";
+import chatMember from "./routes/chat-member.route";
 
 // guaranteed to get dependencies
 
@@ -23,6 +26,9 @@ export default () => {
   portfolio(adminRouter);
   category(adminRouter);
   formQuestion(adminRouter);
+  chatRoom(adminRouter);
+  chatMessage(adminRouter);
+  chatMember(adminRouter);
   app.use("/admin", adminRouter);
 
   return app;

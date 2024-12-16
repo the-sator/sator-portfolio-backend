@@ -6,6 +6,7 @@ import type {
 } from "express";
 import logger from "@/logger/logger";
 import createHttpError, { isHttpError } from "http-errors";
+import { ZodError } from "zod";
 const errorMiddleware: ErrorRequestHandler = (
   error,
   request,
@@ -21,6 +22,15 @@ const errorMiddleware: ErrorRequestHandler = (
   if (isHttpError(error)) {
     statusCode = error.status;
     errorMessage = error.message;
+  }
+
+  if (error instanceof ZodError) {
+    const errorMessages = error.errors.map((issue) => ({
+      message: `${issue.path.join(".")} is ${issue.message}`,
+    }));
+    response
+      .status(statusCode)
+      .json({ statusCode: statusCode, error: errorMessages });
   }
 
   // Return a sanitized error response

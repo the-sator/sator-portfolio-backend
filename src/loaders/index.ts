@@ -1,4 +1,5 @@
 import expressLoader from "./express";
+import { socketLoader } from "./socket";
 import Logger from "@/logger/logger";
 
 export default async ({ expressApp }: any) => {
@@ -13,6 +14,7 @@ export default async ({ expressApp }: any) => {
 
     // Apply express loader
     await expressLoader({ app: expressApp });
+    await socketLoader({ app: expressApp });
 
     // Log after express loader
     Logger.info("✌️ Express loaded");

@@ -24,7 +24,6 @@ export function socketLoader({ app }: { app: express.Application }) {
     });
 
     socket.on(`join-room`, (payload) => {
-      console.log("msg:", payload);
       socket.join(payload.data.id);
     });
 

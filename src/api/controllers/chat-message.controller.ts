@@ -1,6 +1,9 @@
 import { io } from "@/loaders/socket";
 import { ChatMessageService } from "@/services/chat-message.service";
-import { CreateChatMessageSchema } from "@/types/chat-message.type";
+import {
+  ChatMessageFilterSchema,
+  CreateChatMessageSchema,
+} from "@/types/chat-message.type";
 import { RoomIdSchema } from "@/types/chat-room.type";
 import type { Request, Response, NextFunction } from "express";
 
@@ -14,6 +17,31 @@ export class ChatMessageController {
     try {
       const messages = await this.chatMessageService.findAll();
       res.json({ data: messages });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public paginateByRoomId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = RoomIdSchema.parse(req.params);
+      const filter = ChatMessageFilterSchema.parse(req.query);
+      const { messages, page, page_count, page_size, current_page } =
+        await this.chatMessageService.paginateByRoomId(
+          req,
+          params.roomId as string,
+          filter
+        );
+      res.json({
+        data: {
+          data: messages,
+          metadata: { page, page_size, page_count, current_page },
+        },
+      });
     } catch (error) {
       next(error);
     }

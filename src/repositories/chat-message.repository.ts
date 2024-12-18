@@ -1,9 +1,34 @@
+import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { CreateChatMessage } from "@/types/chat-message.type";
+import type {
+  ChatMessageFilter,
+  CreateChatMessage,
+} from "@/types/chat-message.type";
 
 export class ChatMessageRepository {
   public async findAll() {
     return await prisma.chatMessage.findMany();
+  }
+
+  public async paginateByRoomId(id: string, filter: ChatMessageFilter) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    return await prisma.chatMessage.findMany({
+      where: { chat_room_id: id },
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        chat_member: {
+          include: {
+            admin: true,
+            user: true,
+          },
+        },
+      },
+    });
   }
 
   public async findByRoomId(id: string) {
@@ -20,6 +45,12 @@ export class ChatMessageRepository {
       orderBy: {
         created_at: "desc",
       },
+    });
+  }
+
+  public async count(id: string) {
+    return await prisma.chatMessage.count({
+      where: { chat_room_id: id },
     });
   }
 

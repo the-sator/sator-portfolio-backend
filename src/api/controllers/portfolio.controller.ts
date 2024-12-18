@@ -30,7 +30,6 @@ export class PortfolioController {
     next: NextFunction
   ) => {
     try {
-      console.log("req.query:", req.query);
       const filter = PortfolioFilterSchema.parse(req.query);
       const { portfolios, page_size, page_count, page, current_page } =
         await this.portfolioService.paginate(filter);

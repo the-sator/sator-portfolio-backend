@@ -1,13 +1,9 @@
 import { validateData } from "@/utils/validator";
 import { Router } from "express";
-import { AdminController } from "../controllers/admin.controller";
-import {
-  AssignAdminRoleSchema,
-  CreateAdminSchema,
-  LoginSchema,
-} from "@/types/admin.type";
-import { ValidateSessionTokenSchema } from "@/types/base.type";
+import { AdminController } from "../../controllers/admin.controller";
+import { AssignAdminRoleSchema, CreateAdminSchema } from "@/types/admin.type";
 import protectedRoute from "@/authentication/protected-route";
+import { LoginSchema } from "@/types/auth.type";
 const router = Router();
 const adminController = new AdminController();
 export default (app: Router) => {
@@ -19,7 +15,7 @@ export default (app: Router) => {
       action: "read",
     })
   );
-  router.get("/session", adminController.getSession);
+  router.get("/me", adminController.getAdminSession);
   // router.get("/", adminController.getAdmins);
   router.post(
     "/signup",

@@ -1,20 +1,23 @@
+import { AdminAuth } from "@/authentication/admin.auth";
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
 import {
   AssignAdminRoleSchema,
   CreateAdminSchema,
-  LoginSchema,
   UpdateAdminTotpSchema,
 } from "@/types/admin.type";
+import { LoginSchema } from "@/types/auth.type";
 import { BaseModelSchema, ValidateSessionTokenSchema } from "@/types/base.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
 
 export class AdminController {
   private adminService: AdminService;
+  private adminAuth: AdminAuth;
 
   constructor() {
     this.adminService = new AdminService();
+    this.adminAuth = new AdminAuth();
   }
 
   public getAdmins = async (
@@ -47,7 +50,6 @@ export class AdminController {
       const admin = await this.adminService.login(validated);
       res.json({ data: admin });
     } catch (error) {
-      console.log("error:", error);
       next(error);
     }
   };
@@ -67,21 +69,18 @@ export class AdminController {
     }
   };
 
-  public getSession = async (
+  public getAdminSession = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const sessionToken = req.cookies["session"];
+      const sessionToken = req.cookies["session-admin"];
       if (!sessionToken) {
         return ThrowUnauthorized();
       }
-      const validated = ValidateSessionTokenSchema.parse({
-        token: sessionToken,
-      });
-      const admin = await this.adminService.getSession(validated);
-      res.json({ data: admin });
+      const auth = await this.adminAuth.validateSessionToken(sessionToken);
+      res.json({ data: auth });
     } catch (error) {
       next(error);
     }

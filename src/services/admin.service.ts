@@ -7,12 +7,13 @@ import { verifyTOTP } from "@oslojs/otp";
 import bcrypt from "bcrypt";
 
 import type { BaseModel, ValidateSessionToken } from "@/types/base.type";
-import type { CreateAdmin, Login, UpdateAdminTotp } from "@/types/admin.type";
+import type { CreateAdmin, UpdateAdminTotp } from "@/types/admin.type";
 import { AdminAuth } from "@/authentication/admin.auth";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
 import { decrypt } from "@/utils/encryption";
 import type { AssignAdminRole } from "@/types/admin.type";
+import type { Login } from "@/types/auth.type";
 
 export class AdminService {
   private adminRepository: AdminRepository;
@@ -108,11 +109,6 @@ export class AdminService {
 
   public async signout(payload: BaseModel) {
     const result = await this.adminAuth.invalidateSession(String(payload.id));
-    return result;
-  }
-
-  public async getSession(payload: ValidateSessionToken) {
-    const result = await this.adminAuth.validateSessionToken(payload.token);
     return result;
   }
 

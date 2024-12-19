@@ -4,25 +4,25 @@ import {
 } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 
-import type { Admin, Session } from "@prisma/client";
+import type { User, Session } from "@prisma/client";
 import type { Request } from "express";
 import prisma from "@/loaders/prisma";
 import { SessionRepository } from "@/repositories/session.repository";
 import { ThrowUnauthorized } from "@/utils/exception";
 import type { Auth } from "@/types/auth.type";
 
-export type AdminSessionValidationResult =
-  | { session: Session; auth: Auth | null }
+export type UserSessionValidationResult =
+  | { session: Session; auth: Partial<Auth> | null }
   | { session: null; auth: null };
 
-export class AdminAuth {
+export class UserAuth {
   private sessionRepository: SessionRepository;
   constructor() {
     this.sessionRepository = new SessionRepository();
   }
   public async validateSessionToken(
     token: string
-  ): Promise<AdminSessionValidationResult> {
+  ): Promise<UserSessionValidationResult> {
     const sessionId = encodeHexLowerCase(
       sha256(new TextEncoder().encode(token))
     );
@@ -30,7 +30,8 @@ export class AdminAuth {
     if (result === null) {
       return ThrowUnauthorized();
     }
-    const { admin, ...session } = result;
+    const { user, ...session } = result;
+
     if (Date.now() >= session.expires_at.getTime()) {
       await this.sessionRepository.deleteSessionById(sessionId);
       return { session: null, auth: null };
@@ -42,12 +43,12 @@ export class AdminAuth {
         session.expires_at
       );
     }
-    return { session, auth: admin };
+    return { session, auth: user };
   }
 
   public async createSession(
     token: string,
-    admin_id: string,
+    user_id: string,
     two_factor_verified: boolean
   ): Promise<Session> {
     const sessionId = encodeHexLowerCase(
@@ -55,8 +56,8 @@ export class AdminAuth {
     );
     const session: Session = {
       id: sessionId,
-      admin_id,
-      user_id: null,
+      user_id,
+      admin_id: null,
       two_factor_verified: two_factor_verified,
       expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
     };
@@ -68,10 +69,10 @@ export class AdminAuth {
     return await this.sessionRepository.deleteSessionById(sessionId);
   }
 
-  public async getAdmin(req: Request) {
-    const sessionCookie = req.cookies["session-admin"];
+  public async getUser(req: Request) {
+    const sessionCookie = req.cookies["session-user"];
     if (!sessionCookie) {
-      return ThrowUnauthorized(); // Or throw a custom error
+      return ThrowUnauthorized();
     }
 
     const result = await this.validateSessionToken(sessionCookie);

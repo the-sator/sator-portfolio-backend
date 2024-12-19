@@ -4,6 +4,7 @@ import { AdminAuth } from "./admin.auth";
 import type { Admin, Session } from "@prisma/client";
 import { RoleRepository } from "@/repositories/role.repository";
 import { ResourceRepository } from "@/repositories/resource.repository";
+import { UserAuth } from "./user.auth";
 
 type ProtectedRouteHandler = (
   req: Request,
@@ -19,6 +20,7 @@ function protectedRoute(
   }
 ) {
   const adminAuth = new AdminAuth(); // Instantiate AdminAuth
+  const userAuth = new UserAuth(); // Instantiate AdminAuth
   const roleRepository = new RoleRepository(); // Instantiate AdminAuth
   const resourceRepository = new ResourceRepository(); // Instantiate AdminAuth
 
@@ -28,23 +30,23 @@ function protectedRoute(
     next: NextFunction
   ): Promise<void> => {
     try {
-      const sessionToken = req.cookies["session"]; // Retrieve the session token
+      const isAdminRoute = req.originalUrl.startsWith("/api/admin");
+      const sessionToken = isAdminRoute
+        ? req.cookies["session-admin"]
+        : req.cookies["session-user"];
 
       if (!sessionToken) {
         return ThrowUnauthorized(); // Handle unauthorized access
       }
-
-      // Validate the session token
-      const { session, admin } = await adminAuth.validateSessionToken(
-        sessionToken
-      );
-
-      if (!session || !admin) {
+      const { session, auth } = isAdminRoute
+        ? await adminAuth.validateSessionToken(sessionToken)
+        : await userAuth.validateSessionToken(sessionToken);
+      if (!session || !auth) {
         return ThrowUnauthorized();
       }
 
-      if (options) {
-        const role = await roleRepository.findById(admin.role_id!);
+      if (options && isAdminRoute) {
+        const role = await roleRepository.findById((auth as Admin).role_id);
         if (!role) {
           return ThrowForbidden();
         }

@@ -29,6 +29,19 @@ export class ChatRoomController {
     }
   };
 
+  public findUserChatRoom = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const chatRooms = await this.chatRoomService.findUserChatRoom(req);
+      res.json({ data: chatRooms });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateChatRoomSchema.parse(req.body);

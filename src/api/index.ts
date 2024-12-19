@@ -1,15 +1,15 @@
 import { Router } from "express";
 import user from "./routes/user.route";
-import admin from "./routes/admin.route";
-import role from "./routes/role.route";
-import resource from "./routes/resource.route";
-import portfolio from "./routes/portfolio.route";
-import category from "./routes/category.route";
-import formQuestion from "./routes/form-question.route";
+import admin from "./routes/admin/admin.route";
+import role from "./routes/admin/role.route";
+import resource from "./routes/admin/resource.route";
+import portfolio from "./routes/admin/portfolio.route";
+import category from "./routes/admin/category.route";
 import blogRoute from "./routes/blog.route";
+import formQuestion from "./routes/admin/form-question.route";
 import chatRoom from "./routes/chat-room.route";
-import chatMessage from "./routes/chat-message.route";
 import chatMember from "./routes/chat-member.route";
+import chatMessage from "./routes/chat-message.route";
 
 // guaranteed to get dependencies
 
@@ -18,12 +18,15 @@ export default () => {
 
   // User routes remain top-level
   user(app);
+  chatRoom(app);
+  chatMember(app);
+  chatMessage(app);
+  blogRoute(app);
 
   // Admin routes group
   const adminRouter = Router();
   admin(adminRouter);
   role(adminRouter);
-  blogRoute(adminRouter);
   resource(adminRouter);
   portfolio(adminRouter);
   category(adminRouter);

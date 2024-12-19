@@ -20,7 +20,7 @@ export class BlogController {
     try {
       const validated = CreateBlogSchema.parse(req.body);
       const blog = await this.blogService.create(validated);
-      res.json({ data: validated });
+      res.json({ data: blog });
     } catch (error) {
       next(error);
     }
@@ -42,7 +42,7 @@ export class BlogController {
     try {
       const params = BaseModelSchema.parse({ id: req.params.id });
       const blog = await this.blogService.delete(params.id as string);
-      res.json(`Deleted ${blog.name} successful!`);
+      res.json({ data: blog });
     } catch (error) {
       next(error);
     }
@@ -51,7 +51,7 @@ export class BlogController {
     try {
       const params = BaseModelSchema.parse({ id: req.params.id });
       const blog = await this.blogService.publish(params.id as string);
-      res.json(`Published ${blog.name} successful!`);
+      res.json({ data: blog });
     } catch (error) {
       next(error);
     }
@@ -64,7 +64,7 @@ export class BlogController {
     try {
       const params = BaseModelSchema.parse({ id: req.params.id });
       const blog = await this.blogService.unpublish(params.id as string);
-      res.json(`Unpublished ${blog.name} successful!!`);
+      res.json({ data: blog });
     } catch (error) {
       next(error);
     }

@@ -6,6 +6,20 @@ export class ChatRoomRepository {
     return await prisma.chatRoom.findMany();
   }
 
+  public async findUserChatRoom(user_id: string) {
+    return await prisma.chatRoom.findMany({
+      where: {
+        chat_members: {
+          some: {
+            user_id: {
+              startsWith: user_id,
+            },
+          },
+        },
+      },
+    });
+  }
+
   public async findById(id: string) {
     return await prisma.chatRoom.findFirst({
       where: { id },

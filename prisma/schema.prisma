@@ -11,9 +11,16 @@ datasource db {
 model User {
   id           String        @id @default(uuid())
   email        String        @unique
-  name         String?
+  password     String
+  username     String        @unique @db.VarChar(20)
+  profile_url  String? // Optional URL for profile picture
+  totp_key     Bytes?
+  last_login   DateTime? // Last login timestamp
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
   form_attempt FormAttempt[]
   ChatMember   ChatMember[]
+  Session      Session[]
 }
 
 model Admin {
@@ -35,11 +42,13 @@ model Admin {
 
 model Session {
   id                  String   @id
-  admin_id            String
+  admin_id            String?
+  user_id             String?
   expires_at          DateTime
   two_factor_verified Boolean  @default(false)
 
-  admin Admin @relation(references: [id], fields: [admin_id], onDelete: Cascade)
+  admin Admin? @relation(references: [id], fields: [admin_id], onDelete: Cascade)
+  user  User?  @relation(references: [id], fields: [user_id], onDelete: Cascade)
 }
 
 model Role {

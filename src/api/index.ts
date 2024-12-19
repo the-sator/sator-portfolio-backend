@@ -1,14 +1,18 @@
 import { Router } from "express";
 import user from "./routes/user.route";
-import admin from "./routes/admin.route";
-import role from "./routes/role.route";
-import resource from "./routes/resource.route";
-import portfolio from "./routes/portfolio.route";
-import category from "./routes/category.route";
-import formQuestion from "./routes/form-question.route";
 import chatRoom from "./routes/chat-room.route";
-import chatMessage from "./routes/chat-message.route";
 import chatMember from "./routes/chat-member.route";
+import chatMessage from "./routes/chat-message.route";
+import adminRouteUser from "./routes/admin/user.route";
+import adminRouteAdmin from "./routes/admin/admin.route";
+import adminRouteRole from "./routes/admin/role.route";
+import adminRouteResource from "./routes/admin/resource.route";
+import adminRoutePortfolio from "./routes/admin/portfolio.route";
+import adminRouteCategory from "./routes/admin/category.route";
+import adminRouteFormQuestion from "./routes/admin/form-question.route";
+import adminRouteChatRoom from "./routes/admin/chat-room.route";
+import adminRouteChatMessage from "./routes/admin/chat-message.route";
+import adminRouteChatMember from "./routes/admin/chat-member.route";
 
 // guaranteed to get dependencies
 
@@ -17,18 +21,22 @@ export default () => {
 
   // User routes remain top-level
   user(app);
+  chatRoom(app);
+  chatMember(app);
+  chatMessage(app);
 
   // Admin routes group
   const adminRouter = Router();
-  admin(adminRouter);
-  role(adminRouter);
-  resource(adminRouter);
-  portfolio(adminRouter);
-  category(adminRouter);
-  formQuestion(adminRouter);
-  chatRoom(adminRouter);
-  chatMessage(adminRouter);
-  chatMember(adminRouter);
+  adminRouteUser(adminRouter);
+  adminRouteAdmin(adminRouter);
+  adminRouteRole(adminRouter);
+  adminRouteResource(adminRouter);
+  adminRoutePortfolio(adminRouter);
+  adminRouteCategory(adminRouter);
+  adminRouteFormQuestion(adminRouter);
+  adminRouteChatRoom(adminRouter);
+  adminRouteChatMessage(adminRouter);
+  adminRouteChatMember(adminRouter);
   app.use("/admin", adminRouter);
 
   return app;

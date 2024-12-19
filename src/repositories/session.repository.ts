@@ -9,11 +9,19 @@ export class SessionRepository {
       },
       include: {
         admin: {
-          omit: {
-            password: true,
-          },
           include: {
             role: true,
+          },
+          omit: {
+            password: true,
+            totp_key: true,
+          },
+        },
+
+        user: {
+          omit: {
+            password: true,
+            totp_key: true,
           },
         },
       },

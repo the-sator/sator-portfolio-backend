@@ -4,8 +4,7 @@ import type {
   CreateAdmin,
   UpdateAdminTotp,
 } from "@/types/admin.type";
-import { encrypt, encryptToBuffer } from "@/utils/encryption";
-import { exclude } from "@/utils/fetch";
+import { encryptToBuffer } from "@/utils/encryption";
 import type { Prisma } from "@prisma/client";
 
 export interface EncryptedUpdateAdminTotp extends Omit<UpdateAdminTotp, "key"> {
@@ -17,6 +16,7 @@ export class AdminRepository {
     return await prisma.admin.findMany({
       omit: {
         password: true,
+        totp_key: true,
       },
       include: {
         role: true,
@@ -60,6 +60,7 @@ export class AdminRepository {
       },
       omit: {
         password: true,
+        totp_key: true,
       },
     });
   }

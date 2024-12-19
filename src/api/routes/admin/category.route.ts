@@ -1,6 +1,6 @@
 import { Router } from "express";
 import protectedRoute from "@/authentication/protected-route";
-import { CategoryController } from "../controllers/category.controller";
+import { CategoryController } from "../../controllers/category.controller";
 
 const router = Router();
 const categoryController = new CategoryController();

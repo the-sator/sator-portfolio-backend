@@ -1,4 +1,5 @@
 import { AdminAuth } from "@/authentication/admin.auth";
+import { UserAuth } from "@/authentication/user.auth";
 import { LIMIT } from "@/constant/base";
 import { AdminRepository } from "@/repositories/admin.repository";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
@@ -9,15 +10,18 @@ import type {
   CreateChatMessage,
 } from "@/types/chat-message.type";
 import { ThrowUnauthorized } from "@/utils/exception";
+import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
   private adminAuth: AdminAuth;
+  private userAuth: UserAuth;
   constructor() {
     this.chatMessageRepository = new ChatMessageRepository();
     this.chatMemberRepository = new ChatMemberRepository();
+    this.userAuth = new UserAuth();
     this.adminAuth = new AdminAuth();
   }
   public async findAll() {
@@ -25,11 +29,11 @@ export class ChatMessageService {
   }
 
   public async findByRoomId(req: Request, id: string) {
-    const { admin } = await this.adminAuth.getAdmin(req);
-    if (!admin) {
+    const { auth } = await this.adminAuth.getAdmin(req);
+    if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMember(admin.id!, id);
+    const member = await this.chatMemberRepository.isMember(auth.id!, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
@@ -42,20 +46,23 @@ export class ChatMessageService {
     id: string,
     filter: ChatMessageFilter
   ) {
-    const { admin } = await this.adminAuth.getAdmin(req);
-    if (!admin) {
+    const isAdminRoute = req.originalUrl.startsWith("/api/admin");
+    const { auth } = isAdminRoute
+      ? await this.adminAuth.getAdmin(req)
+      : await this.userAuth.getUser(req);
+    if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMember(admin.id!, id);
+    const member = await this.chatMemberRepository.isMember(auth.id!, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
 
     const count = await this.chatMessageRepository.count(id);
-    const current_page = filter.page ? Number(filter.page) : 1;
-    const page_size = filter.limit ? Number(filter.limit) : LIMIT;
-    const page_count = Math.ceil(count / page_size);
-    const page = count > current_page * page_size ? current_page + 1 : null;
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
     const messages = await this.chatMessageRepository.paginateByRoomId(
       id,
       filter

@@ -14,9 +14,4 @@ export const CreateBlogSchema = z.object({
   categories: z.array(z.string()).optional(),
 });
 
-export const UpdateLikeBlogSchema = z.object({
-  like: z.number().min(1),
-});
-
 export type CreateBlog = z.infer<typeof CreateBlogSchema>;
-export type UpdateLikeBlogSchema = z.infer<typeof UpdateLikeBlogSchema>;

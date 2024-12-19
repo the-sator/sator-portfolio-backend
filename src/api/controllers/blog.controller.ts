@@ -1,4 +1,6 @@
 import { BlogService } from "@/services/blog.service";
+import { BaseModelSchema } from "@/types/base.type";
+import { CreateBlogSchema } from "@/types/blog.type";
 import type { NextFunction, Request, Response } from "express";
 
 export class BlogController {
@@ -10,6 +12,59 @@ export class BlogController {
     try {
       const resources = await this.blogService.findAll();
       res.json({ data: resources });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public create = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = CreateBlogSchema.parse(req.body);
+      const blog = await this.blogService.create(validated);
+      res.json({ data: validated });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public update = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const params = BaseModelSchema.parse({ id: req.params.id });
+      const validated = CreateBlogSchema.parse(req.body);
+      const blog = await this.blogService.update(
+        params.id as string,
+        validated
+      );
+      res.json({ data: blog });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const params = BaseModelSchema.parse({ id: req.params.id });
+      const blog = await this.blogService.delete(params.id as string);
+      res.json(`Deleted ${blog.name} successful!`);
+    } catch (error) {
+      next(error);
+    }
+  };
+  public publish = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const params = BaseModelSchema.parse({ id: req.params.id });
+      const blog = await this.blogService.publish(params.id as string);
+      res.json(`Published ${blog.name} successful!`);
+    } catch (error) {
+      next(error);
+    }
+  };
+  public unpublish = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse({ id: req.params.id });
+      const blog = await this.blogService.unpublish(params.id as string);
+      res.json(`Unpublished ${blog.name} successful!!`);
     } catch (error) {
       next(error);
     }

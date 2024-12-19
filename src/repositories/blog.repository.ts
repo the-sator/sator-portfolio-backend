@@ -1,6 +1,6 @@
 import prisma from "@/loaders/prisma";
 import type { CreateBlog } from "@/types/blog.type";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export class BlogRepository {
   public async findAll() {

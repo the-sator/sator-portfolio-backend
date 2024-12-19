@@ -3,7 +3,6 @@ import "reflect-metadata"; // We need this in order to use @Decorators
 import express from "express";
 import config from "@/config/environment";
 import Logger from "@/logger/logger";
-import errorMiddleware from "./api/middleware/errorHandler";
 
 async function startServer() {
   console.log("Starting server initialization...");

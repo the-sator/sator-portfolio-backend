@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["omitApi"]
+  previewFeatures = ["omitApi", "fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -13,23 +13,25 @@ model User {
   email        String        @unique
   name         String?
   form_attempt FormAttempt[]
+  ChatMember   ChatMember[]
 }
 
 model Admin {
-  id          String      @id @default(uuid())
+  id          String       @id @default(uuid())
   role_id     Int
-  email       String      @unique
+  email       String       @unique
   password    String
-  username    String      @unique @db.VarChar(20)
+  username    String       @unique @db.VarChar(20)
   profile_url String? // Optional URL for profile picture
   totp_key    Bytes?
   last_login  DateTime? // Last login timestamp
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
   sessions    Session[]
-  role        Role        @relation(references: [id], fields: [role_id])
+  role        Role         @relation(references: [id], fields: [role_id])
   Portfolio   Portfolio[]
   Blog        Blog[]
+  ChatMember  ChatMember[]
 }
 
 model Session {
@@ -181,6 +183,42 @@ model FormAttempt {
   form_response FormResponse[]
 }
 
+model ChatRoom {
+  id            String        @id @default(uuid())
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  name          String
+  is_group      Boolean
+  chat_members  ChatMember[]
+  chat_messages ChatMessage[]
+}
+
+model ChatMember {
+  id            String         @id @default(uuid())
+  admin_id      String?
+  user_id       String?
+  chat_room_id  String
+  role          ChatMemberRole @default(MEMBER)
+  joined_at     DateTime       @default(now())
+  admin         Admin?         @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  chat_room     ChatRoom       @relation(fields: [chat_room_id], references: [id])
+  chat_messages ChatMessage[]
+}
+
+model ChatMessage {
+  id             String          @id @default(uuid())
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  deleted_at     DateTime?
+  chat_member_id String
+  chat_room_id   String
+  content        String
+  message_type   ChatMessageType @default(TEXT)
+  chat_member    ChatMember      @relation(fields: [chat_member_id], references: [id])
+  chat_room      ChatRoom        @relation(fields: [chat_room_id], references: [id])
+}
+
 enum CategoryColor {
   RED
   VIOLET
@@ -197,4 +235,14 @@ enum CategoryColor {
 enum QuestionType {
   MULTI_CHOICE
   SINGLE_CHOICE
+}
+
+enum ChatMemberRole {
+  ADMIN
+  MEMBER
+}
+
+enum ChatMessageType {
+  TEXT
+  IMAGE
 }

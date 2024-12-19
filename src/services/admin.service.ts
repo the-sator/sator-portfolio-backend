@@ -75,7 +75,6 @@ export class AdminService {
 
     if (admin.totp_key) {
       const key = decrypt(Uint8Array.from(admin.totp_key));
-      console.log("key:", key);
       if (!verifyTOTP(key, 30, 6, String(payload.otp))) {
         return ThrowInternalServer("Invalid Code");
       }

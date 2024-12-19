@@ -6,6 +6,7 @@ import resource from "./routes/resource.route";
 import portfolio from "./routes/portfolio.route";
 import category from "./routes/category.route";
 import formQuestion from "./routes/form-question.route";
+import blogRoute from "./routes/blog.route";
 
 // guaranteed to get dependencies
 
@@ -19,6 +20,7 @@ export default () => {
   const adminRouter = Router();
   admin(adminRouter);
   role(adminRouter);
+  blogRoute(adminRouter);
   resource(adminRouter);
   portfolio(adminRouter);
   category(adminRouter);

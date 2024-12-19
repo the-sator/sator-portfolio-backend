@@ -62,7 +62,7 @@ export class BlogRepository {
       },
     });
   }
-  public async unpublish(id: string, tx: Prisma.TransactionClient) {
+  public async unpublish(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.blog.update({
       where: {

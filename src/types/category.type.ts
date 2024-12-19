@@ -24,5 +24,12 @@ export const AssignCategorySchema = z.object({
   assignedBy: z.string().min(1, { message: "Assigned By is required" }),
 });
 
+export const AssignCategoryOnBlogSchema = z.object({
+  blog_id: z.string().min(1, { message: "Blog ID is required!" }),
+  category_id: z.string().min(1, { message: "Category ID is required!" }),
+  assignedBy: z.string().min(1, { message: "Assigned by is required!" }),
+});
+
 export type CreateCategory = z.infer<typeof CreateCategorySchema>;
 export type AssignCategory = z.infer<typeof AssignCategorySchema>;
+export type AssignCategoryOnBlog = z.infer<typeof AssignCategoryOnBlogSchema>;

@@ -37,6 +37,7 @@ model Admin {
   sessions    Session[]
   role        Role         @relation(references: [id], fields: [role_id])
   Portfolio   Portfolio[]
+  Blog        Blog[]
   ChatMember  ChatMember[]
 }
 
@@ -89,6 +90,7 @@ model Category {
   updated_at         DateTime             @updatedAt
   color              CategoryColor        @default(BLUE)
   CategoryOnPorfolio CategoryOnPorfolio[]
+  CategoryOnBlog    CategoryOnBlog[]
 }
 
 model CategoryOnPorfolio {
@@ -100,6 +102,16 @@ model CategoryOnPorfolio {
   category  Category  @relation(fields: [category_id], references: [id], onDelete: Cascade)
 
   @@id([portfolio_id, category_id])
+}
+model CategoryOnBlog {
+  blog_id         String
+  category_id     String
+  assignedBy      String
+
+  blog            Blog        @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  category        Category    @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@id([blog_id, category_id])
 }
 
 model Portfolio {
@@ -116,6 +128,21 @@ model Portfolio {
   content            Json?
   admin              Admin                @relation(fields: [admin_id], references: [id])
   CategoryOnPorfolio CategoryOnPorfolio[]
+}
+
+model Blog {
+  id                String                @id@default(uuid())
+  admin_id          String
+  name              String                
+  created_at        DateTime              @default(now())
+  updated_at        DateTime              @updatedAt
+  published_at      DateTime?             @default(now())
+  slug              String
+  content           Json?
+  like              Int                   @default(0)
+  view              Int                   @default(0)
+  admin             Admin                 @relation(fields: [admin_id], references: [id])
+  CategoryOnBlog    CategoryOnBlog[]
 }
 
 model FormQuestion {

@@ -10,8 +10,4 @@ export default (app: Router) => {
   router.get("/", protectedRoute(chatRoomController.findAll));
   router.get("/:id", protectedRoute(chatRoomController.findById));
   router.post("/", protectedRoute(chatRoomController.create));
-  router.post(
-    "/:id/change-name",
-    protectedRoute(chatRoomController.changeName)
-  );
 };

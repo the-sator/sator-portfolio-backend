@@ -26,12 +26,6 @@ export class UserRepository {
     });
   }
 
-  public async findById(id: string) {
-    return prisma.user.findUnique({
-      where: { id },
-    });
-  }
-
   public async paginate(filter: UserFilter) {
     const where = this.buildFilter(filter);
     return prisma.user.findMany({

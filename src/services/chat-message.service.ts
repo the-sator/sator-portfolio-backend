@@ -1,10 +1,10 @@
 import { AdminAuth } from "@/authentication/admin.auth";
 import { UserAuth } from "@/authentication/user.auth";
-import prisma from "@/loaders/prisma";
+import { LIMIT } from "@/constant/base";
+import { AdminRepository } from "@/repositories/admin.repository";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { ChatMessageRepository } from "@/repositories/chat-message.repository";
-import { ChatRoomRepository } from "@/repositories/chat-room.repository";
-import { io } from "@/loaders/socket";
+import { SessionRepository } from "@/repositories/session.repository";
 import type {
   ChatMessageFilter,
   CreateChatMessage,
@@ -12,18 +12,15 @@ import type {
 import { ThrowUnauthorized } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
-import { WSEvent } from "@/enum/ws-event.enum";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
-  private chatRoomRepository: ChatRoomRepository;
   private adminAuth: AdminAuth;
   private userAuth: UserAuth;
   constructor() {
     this.chatMessageRepository = new ChatMessageRepository();
     this.chatMemberRepository = new ChatMemberRepository();
-    this.chatRoomRepository = new ChatRoomRepository();
     this.userAuth = new UserAuth();
     this.adminAuth = new AdminAuth();
   }
@@ -36,7 +33,7 @@ export class ChatMessageService {
     if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMemberActive(auth.id, id);
+    const member = await this.chatMemberRepository.isMember(auth.id!, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
@@ -56,7 +53,7 @@ export class ChatMessageService {
     if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMemberActive(auth.id!, id);
+    const member = await this.chatMemberRepository.isMember(auth.id!, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
@@ -74,15 +71,6 @@ export class ChatMessageService {
   }
 
   public async create(payload: CreateChatMessage) {
-    return prisma.$transaction(async (tx) => {
-      const message = await this.chatMessageRepository.create(payload, tx);
-      const updatedRoom = await this.chatRoomRepository.bumpToLatest(
-        payload.chat_room_id,
-        tx
-      );
-      io.emit(`chat-room:${message.chat_room_id}`, message);
-      io.emit(WSEvent.ADMIN_UPDATE_ROOM, updatedRoom);
-      return message;
-    });
+    return this.chatMessageRepository.create(payload);
   }
 }

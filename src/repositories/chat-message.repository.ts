@@ -4,6 +4,7 @@ import type {
   ChatMessageFilter,
   CreateChatMessage,
 } from "@/types/chat-message.type";
+import type { Prisma } from "@prisma/client";
 
 export class ChatMessageRepository {
   public async findAll() {
@@ -54,13 +55,26 @@ export class ChatMessageRepository {
     });
   }
 
-  public async create(payload: CreateChatMessage) {
-    return await prisma.chatMessage.create({
+  public async create(
+    payload: CreateChatMessage,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.chatMessage.create({
       data: {
         content: payload.content,
         chat_member_id: payload.chat_member_id,
         chat_room_id: payload.chat_room_id,
         message_type: payload.message_type,
+      },
+
+      include: {
+        chat_member: {
+          include: {
+            admin: true,
+            user: true,
+          },
+        },
       },
     });
   }

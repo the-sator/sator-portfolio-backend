@@ -13,6 +13,7 @@ import adminRouteFormQuestion from "./routes/admin/form-question.route";
 import adminRouteChatRoom from "./routes/admin/chat-room.route";
 import adminRouteChatMember from "./routes/admin/chat-member.route";
 import adminRouteChatMessage from "./routes/admin/chat-message.route";
+import adminRouteUser from "./routes/admin/user.route";
 
 // guaranteed to get dependencies
 
@@ -30,6 +31,7 @@ export default () => {
   adminRouteAdmin(adminRouter);
   adminRouteRole(adminRouter);
   adminRouteBlog(adminRouter);
+  adminRouteUser(adminRouter);
   adminRouteResource(adminRouter);
   adminRoutePortfolio(adminRouter);
   adminRouteCategory(adminRouter);

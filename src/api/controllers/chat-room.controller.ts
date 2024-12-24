@@ -51,4 +51,22 @@ export class ChatRoomController {
       next(error);
     }
   };
+
+  public changeName = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse(req.params);
+      const validated = CreateChatRoomSchema.parse(req.body);
+      const chatRooms = await this.chatRoomService.changeName(
+        params.id as string,
+        validated
+      );
+      res.json({ data: chatRooms });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

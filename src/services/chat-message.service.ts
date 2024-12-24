@@ -36,7 +36,7 @@ export class ChatMessageService {
     if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMember(auth.id, id);
+    const member = await this.chatMemberRepository.isMemberActive(auth.id, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
@@ -56,7 +56,7 @@ export class ChatMessageService {
     if (!auth) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMember(auth.id!, id);
+    const member = await this.chatMemberRepository.isMemberActive(auth.id!, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }

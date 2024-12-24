@@ -88,19 +88,23 @@ export class ChatMemberService {
   public async join(payload: CreateChatMember) {
     const id = payload.admin_id || payload.user_id;
     if (!id) return ThrowInternalServer("Admin ID Or User ID Cannot Be Empty");
-    const isMember = await this.chatMemberRepository.isMember(
+    const member = await this.chatMemberRepository.isMember(
       id,
       payload.chat_room_id
     );
-    if (isMember) return ThrowForbidden("You are already a member");
+    // If member is found and left, restore the member
+    if (member && member.left_at) {
+      const chatMember = await this.chatMemberRepository.restore(member.id);
+      return chatMember;
+    }
 
     const chatMember = await this.chatMemberRepository.create(payload);
     return chatMember;
   }
+
   public async remove(req: Request, id: string) {
     const { auth } = await this.adminAuth.getAdmin(req);
     if (!auth) return ThrowUnauthorized();
-
     const member = await this.chatMemberRepository.findById(id);
     if (!member) return ThrowInternalServer("Member Cannot Be Found");
     const isSelf = member.admin_id === auth.id;

@@ -36,7 +36,7 @@ export class ChatMemberRepository {
     });
   }
 
-  public async isMember(id: string, roomId: string) {
+  public async isMemberActive(id: string, roomId: string) {
     return await prisma.chatMember.findFirst({
       where: {
         OR: [{ admin_id: id }, { user_id: id }],
@@ -44,6 +44,19 @@ export class ChatMemberRepository {
           {
             chat_room_id: roomId,
             left_at: null,
+          },
+        ],
+      },
+    });
+  }
+
+  public async isMember(id: string, roomId: string) {
+    return await prisma.chatMember.findFirst({
+      where: {
+        OR: [{ admin_id: id }, { user_id: id }],
+        AND: [
+          {
+            chat_room_id: roomId,
           },
         ],
       },
@@ -82,6 +95,18 @@ export class ChatMemberRepository {
       },
       data: {
         left_at: new Date(),
+      },
+    });
+  }
+
+  public async restore(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.update({
+      where: {
+        id,
+      },
+      data: {
+        left_at: null,
       },
     });
   }

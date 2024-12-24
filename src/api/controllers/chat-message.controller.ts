@@ -1,4 +1,3 @@
-import { io } from "@/loaders/socket";
 import { ChatMessageService } from "@/services/chat-message.service";
 import {
   ChatMessageFilterSchema,
@@ -65,9 +64,8 @@ export class ChatMessageController {
   public create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateChatMessageSchema.parse(req.body);
-      const messages = await this.chatMessageService.create(validated);
-      io.emit(`chat-room:${messages.chat_room_id}`, validated);
-      res.json({ data: messages });
+      const message = await this.chatMessageService.create(validated);
+      res.json({ data: message });
     } catch (error) {
       next(error);
     }

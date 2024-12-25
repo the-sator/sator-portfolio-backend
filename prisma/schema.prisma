@@ -256,4 +256,8 @@ enum ChatMemberRole {
 enum ChatMessageType {
   TEXT
   IMAGE
+  JOIN
+  LEAVE
+  INVITE
+  REMOVE
 }

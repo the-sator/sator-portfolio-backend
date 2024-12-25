@@ -65,11 +65,7 @@ export class ChatMemberController {
   };
   public leave = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const params = BaseModelSchema.parse(req.params);
-      const chatMember = await this.chatMemberService.leave(
-        req,
-        params.id as string
-      );
+      const chatMember = await this.chatMemberService.leave(req);
       res.json({ data: chatMember });
     } catch (error) {
       next(error);

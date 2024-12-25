@@ -37,6 +37,9 @@ export class ChatRoomRepository {
       where: { id },
       include: {
         chat_members: {
+          where: {
+            left_at: null,
+          },
           orderBy: {
             role: "asc",
           },

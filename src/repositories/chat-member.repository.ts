@@ -10,8 +10,9 @@ export class ChatMemberRepository {
       },
     });
   }
-  public async findById(id: string) {
-    return await prisma.chatMember.findUnique({
+  public async findById(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findUnique({
       where: {
         id,
         left_at: null,
@@ -19,16 +20,18 @@ export class ChatMemberRepository {
     });
   }
 
-  public async findByAdmin(admin_id: string) {
-    return await prisma.chatMember.findFirst({
+  public async findByAdmin(admin_id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findFirst({
       where: {
         admin_id,
         left_at: null,
       },
     });
   }
-  public async findByRoomId(id: string) {
-    return await prisma.chatMember.findMany({
+  public async findByRoomId(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findMany({
       where: {
         chat_room_id: id,
         left_at: null,
@@ -36,8 +39,13 @@ export class ChatMemberRepository {
     });
   }
 
-  public async isMemberActive(id: string, roomId: string) {
-    return await prisma.chatMember.findFirst({
+  public async isMemberActive(
+    id: string,
+    roomId: string,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findFirst({
       where: {
         OR: [{ admin_id: id }, { user_id: id }],
         AND: [
@@ -50,8 +58,13 @@ export class ChatMemberRepository {
     });
   }
 
-  public async isMember(id: string, roomId: string) {
-    return await prisma.chatMember.findFirst({
+  public async isMember(
+    id: string,
+    roomId: string,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findFirst({
       where: {
         OR: [{ admin_id: id }, { user_id: id }],
         AND: [
@@ -75,6 +88,10 @@ export class ChatMemberRepository {
         chat_room_id: payload.chat_room_id,
         role: payload.role,
       },
+      include: {
+        admin: true,
+        user: true,
+      },
     });
   }
 
@@ -93,6 +110,10 @@ export class ChatMemberRepository {
       where: {
         id,
       },
+      include: {
+        admin: true,
+        user: true,
+      },
       data: {
         left_at: new Date(),
       },
@@ -104,6 +125,10 @@ export class ChatMemberRepository {
     return await client.chatMember.update({
       where: {
         id,
+      },
+      include: {
+        admin: true,
+        user: true,
       },
       data: {
         left_at: null,

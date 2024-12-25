@@ -148,6 +148,17 @@ async function main() {
     },
   });
   console.log("Admin ", adminTest.username, " Created ✅");
+
+  const user = await prisma.user.upsert({
+    where: { email: "user@test.com" },
+    update: {},
+    create: {
+      email: "user@test.com",
+      username: "user",
+      password: passwordHash,
+    },
+  });
+  console.log("User ", user.username, " Created ✅");
 }
 main()
   .then(async () => {

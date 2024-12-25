@@ -194,13 +194,15 @@ model FormAttempt {
 }
 
 model ChatRoom {
-  id            String        @id @default(uuid())
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
-  name          String
-  is_group      Boolean
-  chat_members  ChatMember[]
-  chat_messages ChatMessage[]
+  id              String        @id @default(uuid())
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  name            String
+  is_group        Boolean
+  last_message_id String?       @unique
+  last_message    ChatMessage?  @relation(fields: [last_message_id], references: [id], name: "LastMessageInChatRoom")
+  chat_members    ChatMember[]
+  chat_messages   ChatMessage[]
 }
 
 model ChatMember {
@@ -218,16 +220,18 @@ model ChatMember {
 }
 
 model ChatMessage {
-  id             String          @id @default(uuid())
-  created_at     DateTime        @default(now())
-  updated_at     DateTime        @updatedAt
-  deleted_at     DateTime?
-  chat_member_id String
-  chat_room_id   String
-  content        String
-  message_type   ChatMessageType @default(TEXT)
-  chat_member    ChatMember      @relation(fields: [chat_member_id], references: [id])
-  chat_room      ChatRoom        @relation(fields: [chat_room_id], references: [id])
+  id                String          @id @default(uuid())
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+  deleted_at        DateTime?
+  chat_member_id    String
+  chat_room_id      String
+  content           String
+  media             String[]
+  message_type      ChatMessageType @default(TEXT)
+  chat_member       ChatMember      @relation(fields: [chat_member_id], references: [id])
+  chat_room         ChatRoom        @relation(fields: [chat_room_id], references: [id])
+  chat_room_message ChatRoom?       @relation(name: "LastMessageInChatRoom")
 }
 
 enum CategoryColor {

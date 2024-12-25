@@ -12,6 +12,28 @@ export class ChatRoomRepository {
       orderBy: {
         updated_at: "desc",
       },
+      include: {
+        last_message: {
+          include: {
+            chat_member: {
+              include: {
+                user: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+                admin: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -19,6 +41,28 @@ export class ChatRoomRepository {
     return await prisma.chatRoom.findMany({
       orderBy: {
         updated_at: "desc",
+      },
+      include: {
+        last_message: {
+          include: {
+            chat_member: {
+              include: {
+                user: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+                admin: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       where: {
         chat_members: {
@@ -36,6 +80,26 @@ export class ChatRoomRepository {
     return await prisma.chatRoom.findFirst({
       where: { id },
       include: {
+        last_message: {
+          include: {
+            chat_member: {
+              include: {
+                user: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+                admin: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         chat_members: {
           where: {
             left_at: null,
@@ -69,6 +133,9 @@ export class ChatRoomRepository {
         name: payload.name,
         is_group: payload.is_group || false,
       },
+      include: {
+        last_message: true,
+      },
     });
   }
 
@@ -86,11 +153,38 @@ export class ChatRoomRepository {
     });
   }
 
-  public async bumpToLatest(id: string, tx?: Prisma.TransactionClient) {
+  public async bumpToLatest(
+    id: string,
+    last_message_id?: string,
+    tx?: Prisma.TransactionClient
+  ) {
     const client = tx ? tx : prisma;
     return await client.chatRoom.update({
       data: {
         updated_at: new Date(),
+        last_message_id,
+      },
+      include: {
+        last_message: {
+          include: {
+            chat_member: {
+              include: {
+                user: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+                admin: {
+                  omit: {
+                    password: true,
+                    totp_key: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       where: { id },
     });

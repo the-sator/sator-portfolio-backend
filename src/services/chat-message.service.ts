@@ -78,6 +78,7 @@ export class ChatMessageService {
       const message = await this.chatMessageRepository.create(payload, tx);
       const updatedRoom = await this.chatRoomRepository.bumpToLatest(
         payload.chat_room_id,
+        message.id,
         tx
       );
       io.emit(`chat-room:${message.chat_room_id}`, message);

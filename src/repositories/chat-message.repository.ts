@@ -66,6 +66,7 @@ export class ChatMessageRepository {
         chat_member_id: payload.chat_member_id,
         chat_room_id: payload.chat_room_id,
         message_type: payload.message_type,
+        media: payload.media,
       },
 
       include: {

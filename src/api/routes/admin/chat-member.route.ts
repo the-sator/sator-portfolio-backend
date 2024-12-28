@@ -15,5 +15,5 @@ export default (app: Router) => {
   router.post("/join", protectedRoute(chatMemberController.join));
   router.post("/invite", protectedRoute(chatMemberController.invite));
   router.delete("/:id", protectedRoute(chatMemberController.remove));
-  router.post("/leave", protectedRoute(chatMemberController.leave));
+  router.post("/:id/leave", protectedRoute(chatMemberController.leave));
 };

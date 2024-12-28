@@ -1,17 +1,36 @@
+import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import type { InviteChatMember } from "@/types/chat-member.type";
 import type {
   ChangeChatRoomName,
+  ChatRoomFilter,
   CreateChatRoom,
 } from "@/types/chat-room.type";
 import type { Prisma } from "@prisma/client";
 
 export class ChatRoomRepository {
-  public async findAll() {
+  private buildFilter = (filter: ChatRoomFilter) => {
+    const where: Record<string, any> = {};
+    if (filter.chat_room_name) {
+      where.name = {
+        contains: filter.chat_room_name,
+        mode: "insensitive",
+      };
+    }
+    return where;
+  };
+  public async findAll(filter: ChatRoomFilter) {
+    const where = this.buildFilter(filter);
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
     return await prisma.chatRoom.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
       orderBy: {
         updated_at: "desc",
       },
+
+      where,
       include: {
         last_message: {
           include: {
@@ -37,8 +56,14 @@ export class ChatRoomRepository {
     });
   }
 
-  public async findUserChatRoom(user_id: string) {
+  public async findUserChatRoom(user_id: string, filter: ChatRoomFilter) {
+    const where = this.buildFilter(filter);
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+
     return await prisma.chatRoom.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
       orderBy: {
         updated_at: "desc",
       },
@@ -65,6 +90,7 @@ export class ChatRoomRepository {
         },
       },
       where: {
+        name: where.name,
         chat_members: {
           some: {
             user_id: {
@@ -76,9 +102,10 @@ export class ChatRoomRepository {
     });
   }
 
-  public async findById(id: string) {
+  public async findById(id: string, filter: ChatRoomFilter) {
+    const where = this.buildFilter(filter);
     return await prisma.chatRoom.findFirst({
-      where: { id },
+      where: { id, name: where.name },
       include: {
         last_message: {
           include: {
@@ -119,6 +146,29 @@ export class ChatRoomRepository {
                 password: true,
                 totp_key: true,
               },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  public async count(filter?: ChatRoomFilter) {
+    const where = this.buildFilter(filter || {});
+    return await prisma.chatRoom.count({
+      where,
+    });
+  }
+
+  public async countUser(user_id: string, filter?: ChatRoomFilter) {
+    const where = this.buildFilter(filter || {});
+    return await prisma.chatRoom.count({
+      where: {
+        name: where.name,
+        chat_members: {
+          some: {
+            user_id: {
+              startsWith: user_id,
             },
           },
         },

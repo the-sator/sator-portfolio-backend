@@ -144,11 +144,15 @@ export class ChatMemberService {
     });
   }
 
-  public async leave(req: Request) {
+  public async leave(req: Request, roomId: string) {
     const { auth } = await this.adminAuth.getAdmin(req);
     if (!auth) return ThrowUnauthorized();
     return await prisma.$transaction(async (tx) => {
-      const member = await this.chatMemberRepository.findByAdmin(auth.id, tx);
+      const member = await this.chatMemberRepository.findByAdmin(
+        auth.id,
+        roomId,
+        tx
+      );
       if (!member) return ThrowInternalServer("Member Cannot Be Found");
       const isNotSelf = member.admin_id !== auth.id;
       if (!!isNotSelf) return ThrowInternalServer("Invalid Auth ID");

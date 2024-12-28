@@ -1,6 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { ChatRoomService } from "../../services/chat-room.service";
-import { CreateChatRoomSchema } from "@/types/chat-room.type";
+import {
+  ChatRoomFilterSchema,
+  CreateChatRoomSchema,
+} from "@/types/chat-room.type";
 import { BaseModelSchema } from "@/types/base.type";
 
 export class ChatRoomController {
@@ -10,7 +13,22 @@ export class ChatRoomController {
   }
   public findAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const chatRooms = await this.chatRoomService.findAll();
+      const filter = ChatRoomFilterSchema.parse(req.query);
+      const chatRooms = await this.chatRoomService.findAll(filter);
+      res.json({ data: chatRooms });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public paginateAll = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const filter = ChatRoomFilterSchema.parse(req.query);
+      const chatRooms = await this.chatRoomService.findAll(filter);
       res.json({ data: chatRooms });
     } catch (error) {
       next(error);
@@ -22,7 +40,11 @@ export class ChatRoomController {
       const params = BaseModelSchema.parse({
         id: req.params.id,
       });
-      const chatRoom = await this.chatRoomService.findById(params.id as string);
+      const filter = ChatRoomFilterSchema.parse(req.query);
+      const chatRoom = await this.chatRoomService.findById(
+        params.id as string,
+        filter
+      );
       res.json({ data: chatRoom });
     } catch (error) {
       next(error);
@@ -35,7 +57,11 @@ export class ChatRoomController {
     next: NextFunction
   ) => {
     try {
-      const chatRooms = await this.chatRoomService.findUserChatRoom(req);
+      const filter = ChatRoomFilterSchema.parse(req.query);
+      const chatRooms = await this.chatRoomService.findUserChatRoom(
+        req,
+        filter
+      );
       res.json({ data: chatRooms });
     } catch (error) {
       next(error);

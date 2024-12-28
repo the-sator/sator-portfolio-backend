@@ -4,7 +4,6 @@ import prisma from "@/loaders/prisma";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { ChatMessageRepository } from "@/repositories/chat-message.repository";
 import { ChatRoomRepository } from "@/repositories/chat-room.repository";
-import { io } from "@/loaders/socket";
 import type {
   ChatMessageFilter,
   CreateChatMessage,
@@ -12,18 +11,22 @@ import type {
 import { ThrowUnauthorized } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
-import { WSEvent } from "@/enum/ws-event.enum";
+import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
+import { WSService } from "./ws.service";
+import { redisClient } from "@/loaders/redis";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatRoomRepository: ChatRoomRepository;
+  private wsService: WSService;
   private adminAuth: AdminAuth;
   private userAuth: UserAuth;
   constructor() {
     this.chatMessageRepository = new ChatMessageRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatRoomRepository = new ChatRoomRepository();
+    this.wsService = new WSService();
     this.userAuth = new UserAuth();
     this.adminAuth = new AdminAuth();
   }
@@ -81,8 +84,24 @@ export class ChatMessageService {
         message.id,
         tx
       );
-      io.emit(`chat-room:${message.chat_room_id}`, message);
-      io.emit(WSEvent.ADMIN_UPDATE_ROOM, updatedRoom);
+      const members = await this.chatMemberRepository.findByRoomId(
+        updatedRoom.id
+      );
+      const memberIds = members.map(
+        (member) => member.user_id || member.admin_id || ""
+      );
+      redisClient.set("user-id", message.chat_member_id);
+      this.wsService.broadcastToRoom(
+        updatedRoom.id,
+        WSEventType.NEW_MESSAGE,
+        message
+      );
+      this.wsService.broadcastToMany(
+        memberIds,
+        WSReceiver.MEMBER,
+        WSEventType.UPDATE_ROOM,
+        updatedRoom
+      );
       return message;
     });
   }

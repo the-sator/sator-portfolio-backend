@@ -7,7 +7,7 @@ const chatRoomController = new ChatRoomController();
 
 export default (app: Router) => {
   app.use("/chat-room", router);
-  router.get("/", protectedRoute(chatRoomController.findAll));
+  router.get("/", protectedRoute(chatRoomController.paginateAll));
   router.get("/:id", protectedRoute(chatRoomController.findById));
   router.post("/", protectedRoute(chatRoomController.create));
   router.post(

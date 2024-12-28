@@ -1,44 +1,72 @@
 import { UserAuth } from "@/authentication/user.auth";
 import prisma from "@/loaders/prisma";
-import { AdminRepository } from "@/repositories/admin.repository";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { ChatRoomRepository } from "@/repositories/chat-room.repository";
-import { UserRepository } from "@/repositories/user.repository";
 import type {
   ChangeChatRoomName,
+  ChatRoomFilter,
   CreateChatRoom,
 } from "@/types/chat-room.type";
-import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
+import { ThrowUnauthorized } from "@/utils/exception";
 import { ChatMemberRole } from "@prisma/client";
 import type { Request } from "express";
 import { ChatMemberService } from "./chat-member.service";
+import { getPaginationMetadata } from "@/utils/pagination";
+import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
+import { WSService } from "./ws.service";
 
 export class ChatRoomService {
   private chatRoomRepository: ChatRoomRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatMemberService: ChatMemberService;
+  private wsService: WSService;
   private userAuth: UserAuth;
   constructor() {
     this.chatRoomRepository = new ChatRoomRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatMemberService = new ChatMemberService();
+    this.wsService = new WSService();
     this.userAuth = new UserAuth();
   }
 
-  public async findAll() {
-    return this.chatRoomRepository.findAll();
+  public async findAll(filter: ChatRoomFilter) {
+    const count = await this.chatRoomRepository.count(filter);
+    const { page, current_page, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const chatRooms = await this.chatRoomRepository.findAll(filter);
+    return {
+      data: chatRooms,
+      metadata: { count, page, current_page, page_size },
+    };
   }
 
-  public async findById(id: string) {
-    return this.chatRoomRepository.findById(id);
+  public async findById(id: string, filter: ChatRoomFilter) {
+    return this.chatRoomRepository.findById(id, filter);
   }
 
-  public async findUserChatRoom(req: Request) {
+  public async findUserChatRoom(req: Request, filter: ChatRoomFilter) {
     const { auth } = await this.userAuth.getUser(req);
+
     if (!auth) {
       return ThrowUnauthorized();
     }
-    return this.chatRoomRepository.findUserChatRoom(auth.id!);
+    const count = await this.chatRoomRepository.countUser(auth.id!, filter);
+    const { page, current_page, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+
+    const chatRooms = await this.chatRoomRepository.findUserChatRoom(
+      auth.id!,
+      filter
+    );
+
+    return {
+      data: chatRooms,
+      metadata: { count, page, current_page, page_size },
+    };
   }
 
   public async create(payload: CreateChatRoom) {
@@ -48,7 +76,7 @@ export class ChatRoomService {
 
         const memberPromises = payload.chat_members!.map(async (memberId) => {
           const member = await this.chatMemberService.findMember(memberId);
-          return this.chatMemberRepository.create(
+          const chatMember = await this.chatMemberRepository.create(
             {
               chat_room_id: chatRoom.id,
               admin_id: member.type === "ADMIN" ? member.entity.id : undefined,
@@ -60,6 +88,15 @@ export class ChatRoomService {
             },
             tx
           );
+
+          this.wsService.broadcastToOne(
+            member.entity.id,
+            WSReceiver.MEMBER,
+            WSEventType.CHAT_ROOM_CREATED,
+            chatRoom
+          );
+
+          return chatMember;
         });
 
         await Promise.all(memberPromises);

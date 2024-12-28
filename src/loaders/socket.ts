@@ -1,8 +1,11 @@
 import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
+import { redisClient } from "./redis";
+import { CacheService } from "@/services/cache.service";
 
 let io: Server;
+const cacheService = new CacheService();
 
 export function socketLoader({ app }: { app: express.Application }) {
   const server = createServer(app);
@@ -21,19 +24,28 @@ export function socketLoader({ app }: { app: express.Application }) {
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);
+      socket._cleanup();
     });
 
     socket.on(`join-room`, (payload) => {
-      socket.join(payload.data.id);
+      // {jsdajsd: skdajksldjas}
+      // contsole.log(payload);
+      // socket.join(payload.id);
     });
 
     socket.on(`leave-room`, (msg) => {
       socket.broadcast.emit("message", msg);
     });
+
+    socket.on("online", (id: string) => {
+      // socket.join(id);
+      cacheService.saveOnlineUser(id, socket.id);
+      console.log("SOCKET ID is " + socket.id + "for User " + id);
+    });
   });
 
   // Start the server
-  const port = process.env.SOCKET_PORT || 8080; // Adjust as needed
+  const port = process.env.SOCKET_PORT || 8080;
   server.listen(port, () => {
     console.log(`Socket.IO server running on port ${port}`);
   });

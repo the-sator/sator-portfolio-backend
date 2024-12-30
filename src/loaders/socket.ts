@@ -20,11 +20,18 @@ export function socketLoader({ app }: { app: express.Application }) {
 
   // Handle WebSocket connections
   io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
+    if (socket.handshake.query.auth_id) {
+      cacheService.saveOnlineUser(
+        socket.handshake.query.auth_id as string,
+        socket.id
+      );
+    }
+    console.log(
+      `A user connected: ${socket.id}, auth id: ${socket.handshake.query.auth_id}`
+    );
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);
-      socket._cleanup();
     });
 
     socket.on(`join-room`, (payload) => {
@@ -37,11 +44,7 @@ export function socketLoader({ app }: { app: express.Application }) {
       socket.broadcast.emit("message", msg);
     });
 
-    socket.on("online", (id: string) => {
-      // socket.join(id);
-      cacheService.saveOnlineUser(id, socket.id);
-      console.log("SOCKET ID is " + socket.id + "for User " + id);
-    });
+    socket.on("online", (id: string) => {});
   });
 
   // Start the server

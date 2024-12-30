@@ -78,21 +78,26 @@ export class ChatMessageService {
 
   public async create(payload: CreateChatMessage) {
     return prisma.$transaction(async (tx) => {
-      const message = await this.chatMessageRepository.create(payload, tx);
+      const members = await this.chatMemberRepository.findByRoomId(
+        payload.chat_room_id
+      );
+      const memberIds = members.map(
+        (member) => member.user_id || member.admin_id || ""
+      );
+      const message = await this.chatMessageRepository.create(
+        payload,
+        memberIds,
+        tx
+      );
       const updatedRoom = await this.chatRoomRepository.bumpToLatest(
         payload.chat_room_id,
         message.id,
         tx
       );
-      const members = await this.chatMemberRepository.findByRoomId(
-        updatedRoom.id
-      );
-      const memberIds = members.map(
-        (member) => member.user_id || member.admin_id || ""
-      );
-      redisClient.set("user-id", message.chat_member_id);
-      this.wsService.broadcastToRoom(
-        updatedRoom.id,
+
+      this.wsService.broadcastToMany(
+        memberIds,
+        WSReceiver.MEMBER,
         WSEventType.NEW_MESSAGE,
         message
       );

@@ -105,7 +105,7 @@ export class ChatMemberService {
   public async join(payload: CreateChatMember) {
     const id = payload.admin_id || payload.user_id;
     if (!id) return ThrowInternalServer("Admin ID Or User ID Cannot Be Empty");
-    return await prisma.$transaction(async (tx) => {
+    const chatMember = await prisma.$transaction(async (tx) => {
       const member = await this.chatMemberRepository.isMember(
         id,
         payload.chat_room_id,
@@ -117,14 +117,14 @@ export class ChatMemberService {
           member.id,
           tx
         );
-        await this.broadcastJoin(chatMember);
         return chatMember;
       }
 
       const chatMember = await this.chatMemberRepository.create(payload, tx);
-      await this.broadcastJoin(chatMember);
       return chatMember;
     });
+    await this.broadcastJoin(chatMember);
+    return chatMember;
   }
 
   public async remove(req: Request, id: string) {
@@ -165,7 +165,7 @@ export class ChatMemberService {
     });
   }
 
-  /**BROADCAST EVENT */
+  /** BROADCAST EVENT */
 
   // Broadcast that the member has joined the chat
   private async broadcastJoin(member: ChatMemberWithAdminUser) {

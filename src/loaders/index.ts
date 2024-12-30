@@ -1,4 +1,5 @@
 import expressLoader from "./express";
+import { redisLoader } from "./redis";
 import { socketLoader } from "./socket";
 import Logger from "@/logger/logger";
 
@@ -13,8 +14,9 @@ export default async ({ expressApp }: any) => {
     Logger.info("✌️ Dependency Injector loaded");
 
     // Apply express loader
-    await expressLoader({ app: expressApp });
     await socketLoader({ app: expressApp });
+    await expressLoader({ app: expressApp });
+    await redisLoader();
 
     // Log after express loader
     Logger.info("✌️ Express loaded");

@@ -44,9 +44,13 @@ export class WSService {
     eventType: WSEventType,
     data: any
   ) {
-    ids.forEach((id) => {
+    ids.forEach(async (id) => {
       const event = `${audience}:${id}`;
-      this.io.emit(event, {
+      const sid = await this.cacheService.getSid(id);
+      if (!sid) {
+        return;
+      }
+      this.io.to(sid).emit(event, {
         type: eventType,
         data,
       });

@@ -52,7 +52,6 @@ export function socketLoader({ app }: { app: express.Application }) {
     });
 
     socket.on("mark-as-read", (payload) => {
-      console.log("payload:", payload);
       unreadMessageService.updateUnread(payload.id, 0);
     });
 

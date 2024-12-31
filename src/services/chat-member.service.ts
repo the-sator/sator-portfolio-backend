@@ -21,6 +21,7 @@ import {
 import type { Request } from "express";
 import { ChatMessageService } from "./chat-message.service";
 import prisma from "@/loaders/prisma";
+import { UnreadMessageService } from "./unread-message.service";
 
 type ChatMemberWithAdminUser = Prisma.ChatMemberGetPayload<{
   include: { admin: true; user: true };
@@ -31,6 +32,7 @@ export class ChatMemberService {
   private adminRepository: AdminRepository;
   private adminAuth: AdminAuth;
   private chatMessageService: ChatMessageService;
+  private unreadMessageService: UnreadMessageService;
 
   constructor() {
     this.chatMemberRepository = new ChatMemberRepository();
@@ -38,6 +40,7 @@ export class ChatMemberService {
     this.userRepository = new UserRepository();
     this.adminAuth = new AdminAuth();
     this.chatMessageService = new ChatMessageService();
+    this.unreadMessageService = new UnreadMessageService();
   }
 
   public async findAll() {
@@ -88,15 +91,20 @@ export class ChatMemberService {
   public async invite(payload: InviteChatMember) {
     const memberPromises = payload.chat_members!.map(async (memberId) => {
       const member = await this.findMember(memberId);
-      const chatMembers = await this.chatMemberRepository.create({
+      const chatMember = await this.chatMemberRepository.create({
         chat_room_id: payload.chat_room_id,
         admin_id: member.type === "ADMIN" ? member.entity.id : undefined,
         user_id: member.type === "USER" ? member.entity.id : undefined,
         role:
           member.type === "USER" ? ChatMemberRole.MEMBER : ChatMemberRole.ADMIN,
       });
-      await this.broadcastInvite(chatMembers);
-      return chatMembers;
+      await this.unreadMessageService.create({
+        chat_member_id: chatMember.id,
+        chat_room_id: payload.chat_room_id,
+        total_count: 0,
+      });
+      await this.broadcastInvite(chatMember);
+      return chatMember;
     });
     const members = await Promise.all(memberPromises);
     return members;

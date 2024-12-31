@@ -15,6 +15,10 @@ export class CacheService {
     this.redis.set(id, sid);
   }
 
+  public userOffline(id: string) {
+    this.redis.del(id);
+  }
+
   public async getSid(id: string) {
     return await this.redis.get(id);
   }

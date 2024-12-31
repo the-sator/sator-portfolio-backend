@@ -194,29 +194,31 @@ model FormAttempt {
 }
 
 model ChatRoom {
-  id              String        @id @default(uuid())
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  id              String          @id @default(uuid())
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
   name            String
   is_group        Boolean
-  last_message_id String?       @unique
-  last_message    ChatMessage?  @relation(fields: [last_message_id], references: [id], name: "LastMessageInChatRoom")
+  last_message_id String?         @unique
+  last_message    ChatMessage?    @relation(fields: [last_message_id], references: [id], name: "LastMessageInChatRoom")
   chat_members    ChatMember[]
   chat_messages   ChatMessage[]
+  unread_messages UnreadMessage[]
 }
 
 model ChatMember {
-  id            String         @id @default(uuid())
-  admin_id      String?
-  user_id       String?
-  chat_room_id  String
-  role          ChatMemberRole @default(MEMBER)
-  joined_at     DateTime       @default(now())
-  left_at       DateTime?
-  admin         Admin?         @relation(fields: [admin_id], references: [id], onDelete: Cascade)
-  user          User?          @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  chat_room     ChatRoom       @relation(fields: [chat_room_id], references: [id])
-  chat_messages ChatMessage[]
+  id              String          @id @default(uuid())
+  admin_id        String?
+  user_id         String?
+  chat_room_id    String
+  role            ChatMemberRole  @default(MEMBER)
+  joined_at       DateTime        @default(now())
+  left_at         DateTime?
+  admin           Admin?          @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  user            User?           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  chat_room       ChatRoom        @relation(fields: [chat_room_id], references: [id])
+  chat_messages   ChatMessage[]
+  unread_messages UnreadMessage[]
 }
 
 model ChatMessage {
@@ -232,6 +234,17 @@ model ChatMessage {
   chat_member       ChatMember      @relation(fields: [chat_member_id], references: [id])
   chat_room         ChatRoom        @relation(fields: [chat_room_id], references: [id])
   chat_room_message ChatRoom?       @relation(name: "LastMessageInChatRoom")
+}
+
+model UnreadMessage {
+  id             String     @id @default(uuid())
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt
+  chat_room_id   String
+  chat_member_id String
+  total_count    Int
+  chat_member    ChatMember @relation(fields: [chat_member_id], references: [id])
+  chat_room      ChatRoom   @relation(fields: [chat_room_id], references: [id])
 }
 
 enum CategoryColor {

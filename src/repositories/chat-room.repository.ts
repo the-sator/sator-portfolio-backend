@@ -32,6 +32,11 @@ export class ChatRoomRepository {
 
       where,
       include: {
+        unread_messages: {
+          include: {
+            chat_member: true,
+          },
+        },
         last_message: {
           include: {
             chat_member: {
@@ -68,6 +73,11 @@ export class ChatRoomRepository {
         updated_at: "desc",
       },
       include: {
+        unread_messages: {
+          include: {
+            chat_member: true,
+          },
+        },
         last_message: {
           include: {
             chat_member: {
@@ -107,6 +117,11 @@ export class ChatRoomRepository {
     return await prisma.chatRoom.findFirst({
       where: { id, name: where.name },
       include: {
+        unread_messages: {
+          include: {
+            chat_member: true,
+          },
+        },
         last_message: {
           include: {
             chat_member: {
@@ -184,6 +199,11 @@ export class ChatRoomRepository {
         is_group: payload.is_group || false,
       },
       include: {
+        unread_messages: {
+          include: {
+            chat_member: true,
+          },
+        },
         last_message: true,
       },
     });
@@ -215,6 +235,11 @@ export class ChatRoomRepository {
         last_message_id,
       },
       include: {
+        unread_messages: {
+          include: {
+            chat_member: true,
+          },
+        },
         last_message: {
           include: {
             chat_member: {

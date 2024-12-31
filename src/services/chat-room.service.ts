@@ -14,17 +14,20 @@ import { ChatMemberService } from "./chat-member.service";
 import { getPaginationMetadata } from "@/utils/pagination";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
+import { UnreadMessageService } from "./unread-message.service";
 
 export class ChatRoomService {
   private chatRoomRepository: ChatRoomRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatMemberService: ChatMemberService;
+  private unreadMessageService: UnreadMessageService;
   private wsService: WSService;
   private userAuth: UserAuth;
   constructor() {
     this.chatRoomRepository = new ChatRoomRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatMemberService = new ChatMemberService();
+    this.unreadMessageService = new UnreadMessageService();
     this.wsService = new WSService();
     this.userAuth = new UserAuth();
   }
@@ -88,6 +91,15 @@ export class ChatRoomService {
             },
             tx
           );
+          // Ensure chatMember is created before creating unreadMessage
+          await this.unreadMessageService.create(
+            {
+              chat_member_id: chatMember.id,
+              chat_room_id: chatRoom.id,
+              total_count: 0,
+            },
+            tx
+          );
 
           this.wsService.broadcastToOne(
             member.entity.id,
@@ -100,7 +112,6 @@ export class ChatRoomService {
         });
 
         await Promise.all(memberPromises);
-
         return chatRoom;
       });
     }

@@ -3,9 +3,11 @@ import { Server } from "socket.io";
 import { createServer } from "node:http";
 import { redisClient } from "./redis";
 import { CacheService } from "@/services/cache.service";
+import { UnreadMessageService } from "@/services/unread-message.service";
 
 let io: Server;
 const cacheService = new CacheService();
+const unreadMessageService = new UnreadMessageService();
 
 export function socketLoader({ app }: { app: express.Application }) {
   const server = createServer(app);
@@ -31,7 +33,12 @@ export function socketLoader({ app }: { app: express.Application }) {
     );
 
     socket.on("disconnect", () => {
-      console.log("A user disconnected:", socket.id);
+      if (socket.handshake.query.auth_id) {
+        cacheService.userOffline(socket.handshake.query.auth_id as string);
+      }
+      console.log(
+        `A user disconnected: ${socket.id}, auth id: ${socket.handshake.query.auth_id}`
+      );
     });
 
     socket.on(`join-room`, (payload) => {
@@ -42,6 +49,10 @@ export function socketLoader({ app }: { app: express.Application }) {
 
     socket.on(`leave-room`, (msg) => {
       socket.broadcast.emit("message", msg);
+    });
+
+    socket.on("mark-as-read", (payload) => {
+      unreadMessageService.updateUnread(payload.id, 0);
     });
 
     socket.on("online", (id: string) => {});

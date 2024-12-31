@@ -3,6 +3,7 @@ import user from "./routes/user.route";
 import chatRoom from "./routes/chat-room.route";
 import chatMessage from "./routes/chat-message.route";
 import chatMember from "./routes/chat-member.route";
+import unreadMessage from "./routes/unread-message.route";
 import adminRouteAdmin from "./routes/admin/admin.route";
 import adminRouteRole from "./routes/admin/role.route";
 import adminRouteResource from "./routes/admin/resource.route";
@@ -14,6 +15,7 @@ import adminRouteChatRoom from "./routes/admin/chat-room.route";
 import adminRouteChatMember from "./routes/admin/chat-member.route";
 import adminRouteChatMessage from "./routes/admin/chat-message.route";
 import adminRouteUser from "./routes/admin/user.route";
+import adminUnreadMessage from "./routes/admin/unread-message.route";
 
 // guaranteed to get dependencies
 
@@ -25,6 +27,7 @@ export default () => {
   chatRoom(app);
   chatMember(app);
   chatMessage(app);
+  unreadMessage(app);
 
   // Admin routes group
   const adminRouter = Router();
@@ -39,6 +42,7 @@ export default () => {
   adminRouteChatRoom(adminRouter);
   adminRouteChatMessage(adminRouter);
   adminRouteChatMember(adminRouter);
+  adminUnreadMessage(adminRouter);
   app.use("/admin", adminRouter);
 
   return app;

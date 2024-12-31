@@ -8,17 +8,20 @@ import type {
   ChatMessageFilter,
   CreateChatMessage,
 } from "@/types/chat-message.type";
-import { ThrowUnauthorized } from "@/utils/exception";
+import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
 import { redisClient } from "@/loaders/redis";
+import type { Prisma } from "@prisma/client";
+import { UnreadMessageService } from "./unread-message.service";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatRoomRepository: ChatRoomRepository;
+  private unreadMessageService: UnreadMessageService;
   private wsService: WSService;
   private adminAuth: AdminAuth;
   private userAuth: UserAuth;
@@ -27,6 +30,7 @@ export class ChatMessageService {
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatRoomRepository = new ChatRoomRepository();
     this.wsService = new WSService();
+    this.unreadMessageService = new UnreadMessageService();
     this.userAuth = new UserAuth();
     this.adminAuth = new AdminAuth();
   }
@@ -81,28 +85,42 @@ export class ChatMessageService {
       const members = await this.chatMemberRepository.findByRoomId(
         payload.chat_room_id
       );
-      const memberIds = members.map(
+      // Remove the sender id
+      const authIds = members.map(
         (member) => member.user_id || member.admin_id || ""
       );
-      const message = await this.chatMessageRepository.create(
-        payload,
-        memberIds,
-        tx
-      );
+
+      const message = await this.chatMessageRepository.create(payload, tx);
+      const authIdsExcludeSender = members
+        .filter((member) => member.id !== payload.chat_member_id)
+        .map((member) => member.user_id || member.admin_id || "");
+      for (const id of authIdsExcludeSender) {
+        const unread = await this.unreadMessageService.findByMember(
+          payload.chat_room_id,
+          id
+        );
+        if (!unread) return ThrowInternalServer();
+        await this.unreadMessageService.updateUnread(
+          unread.id,
+          (unread.total_count += 1)
+        );
+      }
+
       const updatedRoom = await this.chatRoomRepository.bumpToLatest(
         payload.chat_room_id,
         message.id,
         tx
       );
 
-      this.wsService.broadcastToMany(
-        memberIds,
+      await this.wsService.broadcastToMany(
+        authIds,
         WSReceiver.MEMBER,
         WSEventType.NEW_MESSAGE,
         message
       );
+
       this.wsService.broadcastToMany(
-        memberIds,
+        authIds,
         WSReceiver.MEMBER,
         WSEventType.UPDATE_ROOM,
         updatedRoom

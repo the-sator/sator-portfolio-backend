@@ -32,29 +32,35 @@ export class WSService {
     data: any
   ) {
     const event = `${audience}:${id}`;
-    this.io.to(id).emit(event, {
+    const sid = await this.cacheService.getSid(id);
+    if (!sid) {
+      return;
+    }
+    this.io.to(sid).emit(event, {
       type: eventType,
       data,
     });
   }
 
-  public broadcastToMany(
+  public async broadcastToMany(
     ids: string[],
     audience: WSReceiver,
     eventType: WSEventType,
     data: any
   ) {
-    ids.forEach(async (id) => {
-      const event = `${audience}:${id}`;
-      const sid = await this.cacheService.getSid(id);
-      if (!sid) {
-        return;
-      }
-      this.io.to(sid).emit(event, {
-        type: eventType,
-        data,
-      });
-    });
+    await Promise.all(
+      ids.map(async (id) => {
+        const event = `${audience}:${id}`;
+        const sid = await this.cacheService.getSid(id);
+        if (!sid) {
+          return;
+        }
+        this.io.to(sid).emit(event, {
+          type: eventType,
+          data,
+        });
+      })
+    );
   }
 
   public broadcastToRoom(id: string, eventType: WSEventType, data: any) {

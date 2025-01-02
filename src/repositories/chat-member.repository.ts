@@ -34,6 +34,15 @@ export class ChatMemberRepository {
       },
     });
   }
+  public async findByAuthId(auth_id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findFirst({
+      where: {
+        OR: [{ admin_id: auth_id }, { user_id: auth_id }],
+      },
+    });
+  }
+
   public async findByRoomId(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.chatMember.findMany({

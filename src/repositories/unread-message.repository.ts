@@ -26,6 +26,22 @@ export class UnreadMessageRepository {
       },
     });
   }
+  public async findByAuthId(auth_id: string) {
+    return await prisma.unreadMessage.findMany({
+      where: {
+        chat_member: {
+          OR: [
+            {
+              admin_id: auth_id,
+            },
+            {
+              user_id: auth_id,
+            },
+          ],
+        },
+      },
+    });
+  }
 
   public async checkIfExist(chat_room_id: string, chat_member_id: string) {
     return await prisma.unreadMessage.findFirst({

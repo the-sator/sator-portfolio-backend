@@ -7,5 +7,6 @@ const unreadMessageController = new UnreadMessageController();
 
 export default (app: Router) => {
   app.use("/unread", router);
+  router.get("/", protectedRoute(unreadMessageController.getByAuthId));
   router.post("/:id", protectedRoute(unreadMessageController.markAsRead));
 };

@@ -6,6 +6,20 @@ export class UnreadMessageController {
   constructor() {
     this.unreadMessageService = new UnreadMessageService();
   }
+
+  public getByAuthId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const unreadMessages = await this.unreadMessageService.findByAuth(req);
+      res.json({ data: unreadMessages });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public markAsRead = async (
     req: Request,
     res: Response,

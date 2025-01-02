@@ -168,6 +168,19 @@ export class ChatRoomRepository {
     });
   }
 
+  public async findByAuthId(auth_id: string) {
+    return prisma.chatRoom.findMany({
+      where: {
+        chat_members: {
+          some: {
+            user_id: auth_id,
+            admin_id: auth_id,
+          },
+        },
+      },
+    });
+  }
+
   public async count(filter?: ChatRoomFilter) {
     const where = this.buildFilter(filter || {});
     return await prisma.chatRoom.count({

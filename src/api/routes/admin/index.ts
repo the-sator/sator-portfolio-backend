@@ -1,0 +1,13 @@
+export { default as adminRouteAdmin } from "./admin.route";
+export { default as adminRouteRole } from "./role.route";
+export { default as adminRouteResource } from "./resource.route";
+export { default as adminRoutePortfolio } from "./portfolio.route";
+export { default as adminRouteCategory } from "./category.route";
+export { default as adminRouteBlog } from "./blog.route";
+export { default as adminRouteFormQuestion } from "./form-question.route";
+export { default as adminRouteChatRoom } from "./chat-room.route";
+export { default as adminRouteChatMember } from "./chat-member.route";
+export { default as adminRouteChatMessage } from "./chat-message.route";
+export { default as adminRouteUser } from "./user.route";
+export { default as adminUnreadMessage } from "./unread-message.route";
+export { default as adminSiteUser } from "./site-user.route";

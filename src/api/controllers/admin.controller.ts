@@ -85,6 +85,7 @@ export class AdminController {
       next(error);
     }
   };
+
   public updateAdminTotp = async (
     req: Request,
     res: Response,

@@ -6,7 +6,6 @@ const router = Router();
 const chatMessageController = new ChatMessageController();
 export default (app: Router) => {
   app.use("/chat-message", router);
-  router.get("/", protectedRoute(chatMessageController.paginateByRoomId));
   router.get(
     "/:roomId",
     protectedRoute(chatMessageController.paginateByRoomId)

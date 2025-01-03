@@ -1,21 +1,27 @@
 import { Router } from "express";
-import user from "./routes/user.route";
-import chatRoom from "./routes/chat-room.route";
-import chatMessage from "./routes/chat-message.route";
-import chatMember from "./routes/chat-member.route";
-import unreadMessage from "./routes/unread-message.route";
-import adminRouteAdmin from "./routes/admin/admin.route";
-import adminRouteRole from "./routes/admin/role.route";
-import adminRouteResource from "./routes/admin/resource.route";
-import adminRoutePortfolio from "./routes/admin/portfolio.route";
-import adminRouteCategory from "./routes/admin/category.route";
-import adminRouteBlog from "./routes/admin/blog.route";
-import adminRouteFormQuestion from "./routes/admin/form-question.route";
-import adminRouteChatRoom from "./routes/admin/chat-room.route";
-import adminRouteChatMember from "./routes/admin/chat-member.route";
-import adminRouteChatMessage from "./routes/admin/chat-message.route";
-import adminRouteUser from "./routes/admin/user.route";
-import adminUnreadMessage from "./routes/admin/unread-message.route";
+import {
+  adminRouteAdmin,
+  adminRouteBlog,
+  adminRouteCategory,
+  adminRouteChatMember,
+  adminRouteChatMessage,
+  adminRouteChatRoom,
+  adminRouteFormQuestion,
+  adminRoutePortfolio,
+  adminRouteResource,
+  adminRouteRole,
+  adminRouteUser,
+  adminSiteUser,
+  adminUnreadMessage,
+} from "./routes/admin";
+import {
+  chatMember,
+  chatMessage,
+  chatRoom,
+  unreadMessage,
+  user,
+} from "./routes";
+import { siteUser } from "./routes/site-user";
 
 // guaranteed to get dependencies
 
@@ -43,7 +49,13 @@ export default () => {
   adminRouteChatMessage(adminRouter);
   adminRouteChatMember(adminRouter);
   adminUnreadMessage(adminRouter);
+  adminSiteUser(adminRouter);
   app.use("/admin", adminRouter);
+
+  // Site user routes group
+  const siteUserRouter = Router();
+  siteUser(siteUserRouter);
+  app.use("/site-user", siteUserRouter);
 
   return app;
 };

@@ -22,6 +22,9 @@ export const Resource = [
   {
     name: "Chat",
   },
+  {
+    name: "Site User",
+  },
 ];
 
 type Resource = {

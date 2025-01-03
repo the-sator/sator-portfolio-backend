@@ -51,7 +51,6 @@ export class UserService {
       payload.email,
       payload.username
     );
-    user;
     if (!user) {
       return ThrowUnauthorized("Invalid User Credentials");
     }

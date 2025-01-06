@@ -24,20 +24,35 @@ export class PortfolioController {
     }
   };
 
-  public paginateAll = async (
+  public paginateByAdmin = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
       const filter = PortfolioFilterSchema.parse(req.query);
-      const { portfolios, page_size, page_count, page, current_page } =
-        await this.portfolioService.paginate(filter);
+      const portfolios = await this.portfolioService.paginateByAdmin(filter);
       res.json({
-        data: {
-          data: portfolios,
-          metadata: { page, page_size, page_count, current_page },
-        },
+        data: portfolios,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public paginateBySiteUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const filter = PortfolioFilterSchema.parse(req.query);
+      const portfolios = await this.portfolioService.paginateBySiteUser(
+        req,
+        filter
+      );
+      res.json({
+        data: portfolios,
       });
     } catch (error) {
       next(error);
@@ -88,7 +103,8 @@ export class PortfolioController {
       const validated = CreatePortfolioSchema.parse(req.body);
       const portfolio = await this.portfolioService.update(
         params.id as string,
-        validated
+        validated,
+        req
       );
       res.json({ data: portfolio });
     } catch (error) {

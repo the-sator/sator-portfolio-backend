@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "nodemon",
     "migrate": "bunx prisma migrate dev",
+    "push": "bunx prisma db push",
     "studio": "bunx prisma studio",
     "inspect": "nodemon --inspect src/index.ts",
     "reset-all": "bunx prisma db push --force-reset && bunx prisma db seed",

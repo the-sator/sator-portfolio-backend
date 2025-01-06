@@ -6,11 +6,21 @@ export class CategoryRepository {
     return await prisma.category.findMany();
   }
 
+  public async findBySiteUser(site_user_id: string) {
+    return await prisma.category.findMany({
+      where: {
+        site_user_id,
+      },
+    });
+  }
+
   public async create(payload: CreateCategory) {
     return await prisma.category.create({
       data: {
         name: payload.name,
         color: payload.color,
+        admin_id: payload.admin_id,
+        site_user_id: payload.site_user_id,
       },
     });
   }

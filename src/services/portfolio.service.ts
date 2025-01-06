@@ -1,32 +1,65 @@
+import { SiteUserAuth } from "@/authentication/site-user.auth";
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
 import { PortfolioRepository } from "@/repositories/portfolio.repository";
 import type { BaseFilter } from "@/types/base.type";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
-import { ThrowInternalServer } from "@/utils/exception";
+import {
+  ThrowForbidden,
+  ThrowInternalServer,
+  ThrowUnauthorized,
+} from "@/utils/exception";
+import { getPaginationMetadata } from "@/utils/pagination";
+import type { Request } from "express";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
+  private siteUserAuth: SiteUserAuth;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
+    this.siteUserAuth = new SiteUserAuth();
   }
 
   public async findAll() {
     return this.portfolioRepository.findAll();
   }
 
-  public async paginate(filter: PortfolioFilter) {
+  public async paginateByAdmin(filter: PortfolioFilter) {
     const count = await this.portfolioRepository.count(filter);
-    const current_page = filter.page ? Number(filter.page) : 1;
-    const page_size = filter.limit ? Number(filter.limit) : LIMIT;
-    const page_count = Math.ceil(count / page_size);
-    const page = count > current_page * page_size ? current_page + 1 : null;
-    const portfolios = await this.portfolioRepository.paginate(filter);
-    return { portfolios, page, page_count, page_size, current_page };
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const portfolios = await this.portfolioRepository.paginateAdmin(filter);
+    return {
+      data: portfolios,
+      metadata: { page, page_count, page_size, current_page },
+    };
+  }
+
+  public async paginateBySiteUser(req: Request, filter: PortfolioFilter) {
+    const { user } = await this.siteUserAuth.getSiteUser(req);
+    if (!user) return ThrowUnauthorized();
+    const count = await this.portfolioRepository.count(filter, {
+      site_user_id: user.id,
+    });
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const portfolios = await this.portfolioRepository.paginateBySiteUserId(
+      user.id,
+      filter
+    );
+
+    return {
+      data: portfolios,
+      metadata: { page, page_count, page_size, current_page },
+    };
   }
 
   public async findBySlug(slug: string) {
@@ -34,16 +67,18 @@ export class PortfolioService {
   }
 
   public async create(payload: CreatePortfolio) {
+    if (!payload.admin_id && !payload.site_user_id) return ThrowForbidden();
     if (payload.categories) {
       return await prisma.$transaction(async (tx) => {
         const portfolio = await this.portfolioRepository.create(payload, tx);
 
         for (const category of payload.categories!) {
+          const assignedBy = payload.admin_id || payload.site_user_id || "";
           await this.categoryOnPortfolioRepository.create(
             {
               category_id: category,
               portfolio_id: portfolio.id,
-              assignedBy: payload.admin_id,
+              assignedBy,
             },
             tx
           );
@@ -55,17 +90,25 @@ export class PortfolioService {
     return portfolio;
   }
 
-  public async update(id: string, payload: CreatePortfolio) {
+  public async update(id: string, payload: CreatePortfolio, req: Request) {
     return await prisma.$transaction(async (tx) => {
+      if (payload.site_user_id) {
+        const { user } = await this.siteUserAuth.getSiteUser(req);
+        if (!user) return ThrowUnauthorized();
+        const portfolio = await this.portfolioRepository.findById(id);
+        if (!portfolio) return ThrowInternalServer();
+        if (portfolio.site_user_id !== user.id) return ThrowForbidden();
+      }
       await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
       const portfolio = await this.portfolioRepository.update(id, payload, tx);
       if (payload.categories) {
         for (const category of payload.categories) {
+          const assignedBy = payload.admin_id || payload.site_user_id || "";
           await this.categoryOnPortfolioRepository.create(
             {
               category_id: category,
               portfolio_id: portfolio.id,
-              assignedBy: payload.admin_id,
+              assignedBy,
             },
             tx
           );

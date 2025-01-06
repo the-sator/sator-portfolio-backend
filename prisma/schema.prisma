@@ -34,6 +34,8 @@ model SiteUser {
   created_at      DateTime          @default(now())
   updated_at      DateTime          @updatedAt
   SiteUserSession SiteUserSession[]
+  Portfolio       Portfolio[]
+  Category        Category[]
 }
 
 model Admin {
@@ -52,6 +54,7 @@ model Admin {
   Portfolio   Portfolio[]
   Blog        Blog[]
   ChatMember  ChatMember[]
+  Category    Category[]
 }
 
 model Session {
@@ -110,6 +113,10 @@ model Category {
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   color              CategoryColor        @default(BLUE)
+  admin_id           String?
+  site_user_id       String?
+  admin              Admin?               @relation(fields: [admin_id], references: [id])
+  site_user          SiteUser?            @relation(fields: [site_user_id], references: [id])
   CategoryOnPorfolio CategoryOnPorfolio[]
   CategoryOnBlog     CategoryOnBlog[]
 }
@@ -138,17 +145,19 @@ model CategoryOnBlog {
 
 model Portfolio {
   id                 String               @id @default(uuid())
-  admin_id           String
+  admin_id           String?
+  site_user_id       String?
   title              String
   description        String
-  cover_url          String
+  cover_url          String?
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   published_at       DateTime?
   slug               String
   gallery            String[]
   content            Json?
-  admin              Admin                @relation(fields: [admin_id], references: [id])
+  admin              Admin?               @relation(fields: [admin_id], references: [id])
+  site_user          SiteUser?            @relation(fields: [site_user_id], references: [id])
   CategoryOnPorfolio CategoryOnPorfolio[]
 }
 

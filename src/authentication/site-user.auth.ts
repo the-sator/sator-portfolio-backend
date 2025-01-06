@@ -12,7 +12,7 @@ import type { SiteUser, SiteUserSession } from "@prisma/client";
 import { SiteUserSessionRepository } from "@/repositories/site-user-session.repository";
 
 export type SiteUserSessionValidationResult =
-  | { session: SiteUserSession; user: Partial<SiteUser> }
+  | { session: SiteUserSession; user: Omit<SiteUser, "password" | "totp_key"> }
   | { session: null; user: null };
 
 export class SiteUserAuth {

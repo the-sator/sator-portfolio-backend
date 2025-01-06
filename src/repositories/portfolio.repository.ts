@@ -31,7 +31,8 @@ export class PortfolioRepository {
     }
     return where;
   }
-  public async paginate(filter: PortfolioFilter) {
+
+  public async paginateAdmin(filter: PortfolioFilter) {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
     const where = this.buildFilter(filter);
@@ -48,7 +49,39 @@ export class PortfolioRepository {
           },
         },
       },
-      where,
+      where: {
+        admin_id: {
+          not: null,
+        },
+        ...where,
+      },
+    });
+  }
+
+  public async paginateBySiteUserId(
+    site_user_id: string,
+    filter: PortfolioFilter
+  ) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    const where = this.buildFilter(filter);
+    return await prisma.portfolio.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: "asc",
+      },
+      include: {
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      where: {
+        site_user_id,
+        ...where,
+      },
     });
   }
 
@@ -64,9 +97,27 @@ export class PortfolioRepository {
       },
     });
   }
-  public async count(filter: PortfolioFilter) {
-    const where = this.buildFilter(filter);
 
+  public async findById(id: string) {
+    return await prisma.portfolio.findFirst({
+      where: { id },
+      include: {
+        CategoryOnPorfolio: {
+          include: {
+            category: true,
+          },
+        },
+      },
+    });
+  }
+  public async count(
+    filter: PortfolioFilter,
+    customWhere: Record<string, any> = {}
+  ) {
+    const where = {
+      ...this.buildFilter(filter),
+      ...customWhere,
+    };
     return await prisma.portfolio.count({
       where,
     });
@@ -76,8 +127,9 @@ export class PortfolioRepository {
     return await client.portfolio.create({
       data: {
         admin_id: payload.admin_id,
+        site_user_id: payload.site_user_id,
         description: payload.description,
-        cover_url: payload.cover_url || "",
+        cover_url: payload.cover_url,
         content: payload.content ? JSON.parse(payload.content) : null,
         gallery: payload.gallery ? payload.gallery : [],
         title: payload.title,

@@ -153,7 +153,7 @@ model Portfolio {
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   published_at       DateTime?
-  slug               String
+  slug               String               @unique
   gallery            String[]
   content            Json?
   admin              Admin?               @relation(fields: [admin_id], references: [id])

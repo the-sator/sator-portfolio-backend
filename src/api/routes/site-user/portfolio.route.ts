@@ -10,7 +10,19 @@ export default (app: Router) => {
     "/",
     protectedSiteUserRoute(portfolioController.paginateBySiteUser)
   );
+  router.get(
+    "/:slug",
+    protectedSiteUserRoute(portfolioController.findPortfolioBySlug)
+  );
   router.post("/", protectedSiteUserRoute(portfolioController.createPortfolio));
+  router.post(
+    "/:id/publish",
+    protectedSiteUserRoute(portfolioController.publishPortfolio)
+  );
+  router.post(
+    "/:id/unpublish",
+    protectedSiteUserRoute(portfolioController.unpublishPortfolio)
+  );
   router.put(
     "/:id",
     protectedSiteUserRoute(portfolioController.updatePortfolio)

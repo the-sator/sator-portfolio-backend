@@ -11,7 +11,7 @@ export class PortfolioRepository {
   public buildFilter(filter: PortfolioFilter) {
     let where: Record<string, any> = {};
     if (filter.title) {
-      where.title = { search: filter.title };
+      where.title = { contains: filter.title, mode: "insensitive" };
     }
     const categoryArray = filter.categories
       ? Array.isArray(filter.categories)
@@ -21,7 +21,7 @@ export class PortfolioRepository {
     if (categoryArray && categoryArray.length > 0) {
       where = {
         CategoryOnPorfolio: {
-          every: {
+          some: {
             category_id: {
               in: categoryArray,
             },
@@ -124,8 +124,21 @@ export class PortfolioRepository {
   }
   public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
-    return await client.portfolio.create({
-      data: {
+    return await client.portfolio.upsert({
+      where: {
+        slug: payload.slug,
+      },
+      update: {
+        admin_id: payload.admin_id,
+        site_user_id: payload.site_user_id,
+        description: payload.description,
+        cover_url: payload.cover_url,
+        content: payload.content ? JSON.parse(payload.content) : null,
+        gallery: payload.gallery ? payload.gallery : [],
+        title: payload.title,
+        slug: payload.slug,
+      },
+      create: {
         admin_id: payload.admin_id,
         site_user_id: payload.site_user_id,
         description: payload.description,

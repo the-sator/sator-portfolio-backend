@@ -28,6 +28,8 @@ export class PortfolioService {
     return this.portfolioRepository.findAll();
   }
 
+  
+
   public async paginateByAdmin(filter: PortfolioFilter) {
     const count = await this.portfolioRepository.count(filter);
     const { current_page, page, page_count, page_size } = getPaginationMetadata(
@@ -42,17 +44,17 @@ export class PortfolioService {
   }
 
   public async paginateBySiteUser(req: Request, filter: PortfolioFilter) {
-    const { user } = await this.siteUserAuth.getSiteUser(req);
-    if (!user) return ThrowUnauthorized();
+    const { auth } = await this.siteUserAuth.getSiteUser(req);
+    if (!auth) return ThrowUnauthorized();
     const count = await this.portfolioRepository.count(filter, {
-      site_user_id: user.id,
+      site_user_id: auth.id,
     });
     const { current_page, page, page_count, page_size } = getPaginationMetadata(
       filter,
       count
     );
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
-      user.id,
+      auth.id,
       filter
     );
 
@@ -93,11 +95,11 @@ export class PortfolioService {
   public async update(id: string, payload: CreatePortfolio, req: Request) {
     return await prisma.$transaction(async (tx) => {
       if (payload.site_user_id) {
-        const { user } = await this.siteUserAuth.getSiteUser(req);
-        if (!user) return ThrowUnauthorized();
+        const { auth } = await this.siteUserAuth.getSiteUser(req);
+        if (!auth) return ThrowUnauthorized();
         const portfolio = await this.portfolioRepository.findById(id);
         if (!portfolio) return ThrowInternalServer();
-        if (portfolio.site_user_id !== user.id) return ThrowForbidden();
+        if (portfolio.site_user_id !== auth.id) return ThrowForbidden();
       }
       await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
       const portfolio = await this.portfolioRepository.update(id, payload, tx);

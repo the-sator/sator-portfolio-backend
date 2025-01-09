@@ -44,7 +44,7 @@ export class CategoryController {
     try {
       console.log("req.body:", req.body);
       const validated = CreateCategorySchema.parse(req.body);
-      const categories = await this.categoryService.create(validated);
+      const categories = await this.categoryService.create(req, validated);
       res.json({ data: categories });
     } catch (error) {
       Logger.error(error);

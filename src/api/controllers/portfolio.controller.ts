@@ -68,10 +68,10 @@ export class PortfolioController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      const resources = await this.portfolioService.findBySlug(
+      const portfolio = await this.portfolioService.findBySlug(
         validatedSlug.slug
       );
-      res.json({ data: resources });
+      res.json({ data: portfolio });
     } catch (error) {
       next(error);
     }

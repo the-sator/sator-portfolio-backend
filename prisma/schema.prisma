@@ -36,6 +36,7 @@ model SiteUser {
   SiteUserSession SiteUserSession[]
   Portfolio       Portfolio[]
   Category        Category[]
+  Blog            Blog[]
 }
 
 model Admin {
@@ -163,16 +164,20 @@ model Portfolio {
 
 model Blog {
   id             String           @id @default(uuid())
-  admin_id       String
-  name           String
+  admin_id       String?
+  site_user_id   String?
+  title          String
   created_at     DateTime         @default(now())
   updated_at     DateTime         @updatedAt
-  published_at   DateTime?        @default(now())
+  published_at   DateTime?
   slug           String
+  description    String
   content        Json?
+  cover_url      String?
   like           Int              @default(0)
   view           Int              @default(0)
-  admin          Admin            @relation(fields: [admin_id], references: [id])
+  admin          Admin?           @relation(fields: [admin_id], references: [id])
+  site_user      SiteUser?        @relation(fields: [site_user_id], references: [id])
   CategoryOnBlog CategoryOnBlog[]
 }
 

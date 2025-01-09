@@ -2,7 +2,8 @@ import { z } from "zod";
 import { BaseFilterSchema } from "./base.type";
 
 export const CreatePortfolioSchema = z.object({
-  admin_id: z.string().min(1, { message: "Admin ID is required" }),
+  admin_id: z.string().optional(),
+  site_user_id: z.string().optional(),
   title: z.string().min(1, { message: "Title is required" }),
   description: z
     .string()

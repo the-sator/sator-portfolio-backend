@@ -1,6 +1,6 @@
 import { BlogService } from "@/services/blog.service";
-import { BaseModelSchema } from "@/types/base.type";
-import { CreateBlogSchema } from "@/types/blog.type";
+import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
+import { BlogFilterSchema, CreateBlogSchema } from "@/types/blog.type";
 import type { NextFunction, Request, Response } from "express";
 
 export class BlogController {
@@ -16,6 +16,39 @@ export class BlogController {
       next(error);
     }
   };
+
+  public findBlogBySlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validatedSlug = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      const blog = await this.blogService.findBySlug(validatedSlug.slug);
+      res.json({ data: blog });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public paginateByAdmin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const filter = BlogFilterSchema.parse(req.query);
+      const blogs = await this.blogService.paginateByAdmin(filter);
+      res.json({
+        data: blogs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = CreateBlogSchema.parse(req.body);

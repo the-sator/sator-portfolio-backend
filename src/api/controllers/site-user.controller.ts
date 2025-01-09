@@ -37,7 +37,6 @@ export class SiteUserController {
   ) => {
     try {
       const sessionToken = req.cookies["session-site-user"];
-      console.log("sessionToken:", sessionToken);
       if (!sessionToken) {
         return ThrowUnauthorized();
       }

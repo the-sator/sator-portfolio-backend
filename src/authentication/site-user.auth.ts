@@ -12,8 +12,8 @@ import type { SiteUser, SiteUserSession } from "@prisma/client";
 import { SiteUserSessionRepository } from "@/repositories/site-user-session.repository";
 
 export type SiteUserSessionValidationResult =
-  | { session: SiteUserSession; user: Partial<SiteUser> }
-  | { session: null; user: null };
+  | { session: SiteUserSession; auth: Omit<SiteUser, "password" | "totp_key"> }
+  | { session: null; auth: null };
 
 export class SiteUserAuth {
   private siteUserSessionRepository: SiteUserSessionRepository;
@@ -36,7 +36,7 @@ export class SiteUserAuth {
 
     if (Date.now() >= session.expires_at.getTime()) {
       await this.siteUserSessionRepository.deleteSessionById(sessionId);
-      return { session: null, user: null };
+      return { session: null, auth: null };
     }
     if (Date.now() >= session.expires_at.getTime() - 1000 * 60 * 60 * 24 * 15) {
       session.expires_at = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
@@ -45,7 +45,7 @@ export class SiteUserAuth {
         session.expires_at
       );
     }
-    return { session, user: site_user };
+    return { session, auth: site_user };
   }
 
   public async createSession(

@@ -21,14 +21,30 @@ export class CategoryController {
       next(error);
     }
   };
+
+  public findCategoriesBySiteUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const categories = await this.categoryService.findBySiteUser(req);
+      res.json({ data: categories });
+    } catch (error) {
+      Logger.error(error);
+      next(error);
+    }
+  };
+
   public createCategory = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
+      console.log("req.body:", req.body);
       const validated = CreateCategorySchema.parse(req.body);
-      const categories = await this.categoryService.create(validated);
+      const categories = await this.categoryService.create(req, validated);
       res.json({ data: categories });
     } catch (error) {
       Logger.error(error);

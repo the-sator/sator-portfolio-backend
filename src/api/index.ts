@@ -21,7 +21,11 @@ import {
   unreadMessage,
   user,
 } from "./routes";
-import { siteUser } from "./routes/site-user";
+import {
+  siteUser,
+  siteUserCategory,
+  siteUserPortfolio,
+} from "./routes/site-user";
 
 // guaranteed to get dependencies
 
@@ -34,6 +38,13 @@ export default () => {
   chatMember(app);
   chatMessage(app);
   unreadMessage(app);
+
+  // Site user routes group
+  const siteUserRouter = Router();
+  siteUser(siteUserRouter);
+  siteUserPortfolio(siteUserRouter);
+  siteUserCategory(siteUserRouter);
+  app.use("/site-user", siteUserRouter);
 
   // Admin routes group
   const adminRouter = Router();
@@ -51,11 +62,6 @@ export default () => {
   adminUnreadMessage(adminRouter);
   adminSiteUser(adminRouter);
   app.use("/admin", adminRouter);
-
-  // Site user routes group
-  const siteUserRouter = Router();
-  siteUser(siteUserRouter);
-  app.use("/site-user", siteUserRouter);
 
   return app;
 };

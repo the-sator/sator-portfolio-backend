@@ -1,7 +1,8 @@
 import prisma from "@/loaders/prisma";
 import { BlogRepository } from "@/repositories/blog.repository";
 import { CategoryOnBlogRepository } from "@/repositories/category-on-blog.repository";
-import type { CreateBlog } from "@/types/blog.type";
+import type { BlogFilter, CreateBlog } from "@/types/blog.type";
+import { getPaginationMetadata } from "@/utils/pagination";
 
 export class BlogService {
   private blogRepository: BlogRepository;
@@ -16,16 +17,30 @@ export class BlogService {
   public async findBySlug(slug: string) {
     return this.blogRepository.findBySlug(slug);
   }
+
+  public async paginateByAdmin(filter: BlogFilter) {
+    const count = await this.blogRepository.count(filter);
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const blogs = await this.blogRepository.paginateAdmin(filter);
+    return {
+      data: blogs,
+      metadata: { page, page_count, page_size, current_page },
+    };
+  }
+
   public async create(payload: CreateBlog) {
     if (payload.categories) {
-      return await prisma.$transaction(async tx => {
+      return await prisma.$transaction(async (tx) => {
         const blog = await this.blogRepository.create(payload, tx);
         for (const category of payload.categories!) {
           await this.categoryOnBlogRepository.create(
             {
               category_id: category,
               blog_id: blog.id,
-              assignedBy: blog.admin_id,
+              assignedBy: blog.admin_id || blog.site_user_id || "",
             },
             tx
           );
@@ -37,7 +52,7 @@ export class BlogService {
     return blog;
   }
   public async update(id: string, payload: CreateBlog) {
-    return await prisma.$transaction(async tx => {
+    return await prisma.$transaction(async (tx) => {
       await this.categoryOnBlogRepository.deleteByBlogId(id);
       const blog = await this.blogRepository.update(id, payload, tx);
       if (payload.categories) {
@@ -46,7 +61,7 @@ export class BlogService {
             {
               category_id: category,
               blog_id: blog.id,
-              assignedBy: payload.admin_id,
+              assignedBy: blog.admin_id || blog.site_user_id || "",
             },
             tx
           );

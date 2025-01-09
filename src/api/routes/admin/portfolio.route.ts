@@ -7,7 +7,7 @@ const portfolioController = new PortfolioController();
 
 export default (app: Router) => {
   app.use("/portfolio", router);
-  router.get("/", protectedRoute(portfolioController.paginateAll));
+  router.get("/", protectedRoute(portfolioController.paginateByAdmin));
   router.get("/all", protectedRoute(portfolioController.findAll));
   router.get("/:slug", protectedRoute(portfolioController.findPortfolioBySlug));
   router.post("/", protectedRoute(portfolioController.createPortfolio));

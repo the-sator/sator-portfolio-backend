@@ -102,4 +102,22 @@ export class BlogController {
       next(error);
     }
   };
+
+  public increaseView = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validatedSlug = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      const blogs = await this.blogService.increaseView(validatedSlug.slug);
+      res.json({
+        data: blogs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

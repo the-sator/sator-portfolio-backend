@@ -1,15 +1,19 @@
 import prisma from "@/loaders/prisma";
+import { BlogMetricRepository } from "@/repositories/blog-metric.repository";
 import { BlogRepository } from "@/repositories/blog.repository";
 import { CategoryOnBlogRepository } from "@/repositories/category-on-blog.repository";
 import type { BlogFilter, CreateBlog } from "@/types/blog.type";
+import { ThrowForbidden } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
 
 export class BlogService {
   private blogRepository: BlogRepository;
   private categoryOnBlogRepository: CategoryOnBlogRepository;
+  private blogMetricRepository: BlogMetricRepository;
   constructor() {
     this.blogRepository = new BlogRepository();
     this.categoryOnBlogRepository = new CategoryOnBlogRepository();
+    this.blogMetricRepository = new BlogMetricRepository();
   }
   public async findAll() {
     return this.blogRepository.findAll();
@@ -78,5 +82,33 @@ export class BlogService {
   }
   public async unpublish(id: string) {
     return this.blogRepository.unpublish(id);
+  }
+
+  public async increaseView(slug: string) {
+    const blog = await this.blogRepository.findBySlug(slug);
+    if (!blog) return ThrowForbidden("No Record Found");
+    return await prisma.$transaction(async (tx) => {
+      const noteMetric = await this.blogMetricRepository.findByBlog(
+        blog.id,
+        tx
+      );
+      //If not found, then create new note metric
+      if (!noteMetric) {
+        await this.blogMetricRepository.createNoteMetric(
+          {
+            blog_id: blog.id,
+            view: 1,
+          },
+          tx
+        );
+        return blog;
+      }
+      await this.blogMetricRepository.increaseView(
+        noteMetric.id,
+        Number(noteMetric.view),
+        tx
+      );
+      return blog;
+    });
   }
 }

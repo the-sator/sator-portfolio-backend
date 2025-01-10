@@ -15,6 +15,7 @@ import {
   adminUnreadMessage,
 } from "./routes/admin";
 import {
+  blog,
   chatMember,
   chatMessage,
   chatRoom,
@@ -38,6 +39,7 @@ export default () => {
   chatMember(app);
   chatMessage(app);
   unreadMessage(app);
+  blog(app);
 
   // Site user routes group
   const siteUserRouter = Router();

@@ -179,6 +179,7 @@ model Blog {
   admin          Admin?           @relation(fields: [admin_id], references: [id])
   site_user      SiteUser?        @relation(fields: [site_user_id], references: [id])
   CategoryOnBlog CategoryOnBlog[]
+  BlogMetric     BlogMetric[]
 }
 
 model FormQuestion {
@@ -280,6 +281,16 @@ model UnreadMessage {
   total_count    Int
   chat_member    ChatMember @relation(fields: [chat_member_id], references: [id])
   chat_room      ChatRoom   @relation(fields: [chat_room_id], references: [id])
+}
+
+model BlogMetric {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  blog_id    String
+  view       BigInt
+  like       BigInt
+  blog       Blog     @relation(fields: [blog_id], references: [id])
 }
 
 enum CategoryColor {

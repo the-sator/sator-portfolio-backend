@@ -14,6 +14,23 @@ export class BlogMetricRepository {
       },
     });
   }
+  public async findByBlogToday(blog_id: string, tx?: Prisma.TransactionClient) {
+    const client = tx ? tx : prisma;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    return await client.blogMetric.findFirst({
+      where: {
+        blog_id,
+        created_at: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+    });
+  }
   public async createNoteMetric(
     payload: CreateBlogMetric,
     tx?: Prisma.TransactionClient

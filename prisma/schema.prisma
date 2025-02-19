@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["omitApi", "fullTextSearchPostgres"]
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -174,7 +174,6 @@ model Blog {
   description    String
   content        Json?
   cover_url      String?
-  like           Int              @default(0)
   view           Int              @default(0)
   admin          Admin?           @relation(fields: [admin_id], references: [id])
   site_user      SiteUser?        @relation(fields: [site_user_id], references: [id])
@@ -289,7 +288,6 @@ model BlogMetric {
   updated_at DateTime @updatedAt
   blog_id    String
   view       BigInt
-  like       BigInt
   blog       Blog     @relation(fields: [blog_id], references: [id])
 }
 

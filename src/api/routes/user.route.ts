@@ -10,5 +10,5 @@ const userController = new UserController();
 export default (app: Router) => {
   app.use("/user", router);
   router.post("/", userController.userLogin);
-  router.get("/me", userController.getUserSession);
+  router.get("/me", userController.getMe);
 };

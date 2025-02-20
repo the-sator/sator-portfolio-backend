@@ -38,7 +38,6 @@ export class BlogMetricRepository {
     const client = tx ? tx : prisma;
     return await client.blogMetric.create({
       data: {
-        like: payload.like || 0,
         view: payload.view || 0,
         blog_id: payload.blog_id,
       },

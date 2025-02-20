@@ -1,5 +1,6 @@
 import prisma from "@/loaders/prisma";
 import { type CreateUser, type UserFilter } from "@/types/user.type";
+import type { Prisma } from "@prisma/client";
 
 export class UserRepository {
   public buildFilter(filter: UserFilter) {
@@ -18,12 +19,7 @@ export class UserRepository {
     return where;
   }
   public async findAll() {
-    return prisma.user.findMany({
-      omit: {
-        password: true,
-        totp_key: true,
-      },
-    });
+    return prisma.user.findMany();
   }
 
   public async findById(id: string) {
@@ -35,10 +31,6 @@ export class UserRepository {
   public async paginate(filter: UserFilter) {
     const where = this.buildFilter(filter);
     return prisma.user.findMany({
-      omit: {
-        password: true,
-        totp_key: true,
-      },
       where,
     });
   }
@@ -48,18 +40,17 @@ export class UserRepository {
     return prisma.user.count({ where });
   }
 
-  public async addUser(payload: CreateUser) {
-    return prisma.user.create({
+  public async addUser(
+    payload: CreateUser,
+    auth_id: string,
+    tx: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return client.user.create({
       data: {
         username: payload.username,
-        email: payload.email,
-        password: payload.password,
+        auth_id,
       },
-    });
-  }
-  public async checkEmailAndUsername(email: string, username: string) {
-    return prisma.user.findUnique({
-      where: { email, username },
     });
   }
 }

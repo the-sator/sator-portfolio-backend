@@ -1,18 +1,15 @@
-import { UserAuth } from "@/authentication/user.auth";
-import logger from "@/logger/logger";
 import { UserService } from "@/services/user.service";
-import { LoginSchema } from "@/types/auth.type";
+import { LoginSchema, SignUpSchema } from "@/types/auth.type";
 import { CreateUserSchema, UserFilterSchema } from "@/types/user.type";
+import { getUserCookie } from "@/utils/cookie";
 import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
 
 export class UserController {
   private userService: UserService;
-  private userAuth: UserAuth;
 
   constructor() {
     this.userService = new UserService();
-    this.userAuth = new UserAuth();
   }
 
   public getUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -38,27 +35,23 @@ export class UserController {
     }
   };
 
-  public addUser = async (req: Request, res: Response, next: NextFunction) => {
+  public signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validated = CreateUserSchema.parse(req.body);
-      const user = await this.userService.createUser(validated);
+      const validated = SignUpSchema.parse(req.body);
+      const user = await this.userService.signup(validated);
       res.json({ data: user });
     } catch (error) {
       next(error);
     }
   };
 
-  public getUserSession = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  public getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessionToken = req.cookies["session-user"];
+      const sessionToken = getUserCookie(req);
       if (!sessionToken) {
         return ThrowUnauthorized();
       }
-      const auth = await this.userAuth.validateSessionToken(sessionToken);
+      const auth = await this.userService.getMe(sessionToken);
       res.json({ data: auth });
     } catch (error) {
       next(error);

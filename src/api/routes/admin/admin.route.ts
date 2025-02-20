@@ -3,7 +3,7 @@ import { Router } from "express";
 import { AdminController } from "../../controllers/admin.controller";
 import { AssignAdminRoleSchema, CreateAdminSchema } from "@/types/admin.type";
 import protectedRoute from "@/authentication/protected-route";
-import { LoginSchema } from "@/types/auth.type";
+import { LoginSchema, SignUpSchema } from "@/types/auth.type";
 const router = Router();
 const adminController = new AdminController();
 export default (app: Router) => {
@@ -15,13 +15,9 @@ export default (app: Router) => {
       action: "read",
     })
   );
-  router.get("/me", adminController.getAdminSession);
+  router.get("/me", adminController.getMe);
   // router.get("/", adminController.getAdmins);
-  router.post(
-    "/signup",
-    validateData(CreateAdminSchema),
-    adminController.signup
-  );
+  router.post("/signup", validateData(SignUpSchema), adminController.signup);
   router.post("/login", validateData(LoginSchema), adminController.login);
   router.post("/signout", adminController.signout);
   router.post("/totp", protectedRoute(adminController.updateAdminTotp));

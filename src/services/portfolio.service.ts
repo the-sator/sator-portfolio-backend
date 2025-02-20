@@ -1,4 +1,3 @@
-import { SiteUserAuth } from "@/authentication/site-user.auth";
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
@@ -12,23 +11,23 @@ import {
 } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
+import { SiteUserService } from "./site-user.service";
+import { getSiteUserCookie } from "@/utils/cookie";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
-  private siteUserAuth: SiteUserAuth;
+  private siteUserService: SiteUserService;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
-    this.siteUserAuth = new SiteUserAuth();
+    this.siteUserService = new SiteUserService();
   }
 
   public async findAll() {
     return this.portfolioRepository.findAll();
   }
-
-  
 
   public async paginateByAdmin(filter: PortfolioFilter) {
     const count = await this.portfolioRepository.count(filter);
@@ -44,17 +43,18 @@ export class PortfolioService {
   }
 
   public async paginateBySiteUser(req: Request, filter: PortfolioFilter) {
-    const { auth } = await this.siteUserAuth.getSiteUser(req);
-    if (!auth) return ThrowUnauthorized();
+    const sessionToken = getSiteUserCookie(req);
+    const siteUser = await this.siteUserService.getMe(sessionToken);
+    if (!siteUser) return ThrowUnauthorized();
     const count = await this.portfolioRepository.count(filter, {
-      site_user_id: auth.id,
+      site_user_id: siteUser.id,
     });
     const { current_page, page, page_count, page_size } = getPaginationMetadata(
       filter,
       count
     );
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
-      auth.id,
+      siteUser.id,
       filter
     );
 
@@ -95,11 +95,12 @@ export class PortfolioService {
   public async update(id: string, payload: CreatePortfolio, req: Request) {
     return await prisma.$transaction(async (tx) => {
       if (payload.site_user_id) {
-        const { auth } = await this.siteUserAuth.getSiteUser(req);
-        if (!auth) return ThrowUnauthorized();
+        const sessionToken = getSiteUserCookie(req);
+        const siteUser = await this.siteUserService.getMe(sessionToken);
+        if (!siteUser) return ThrowUnauthorized();
         const portfolio = await this.portfolioRepository.findById(id);
         if (!portfolio) return ThrowInternalServer();
-        if (portfolio.site_user_id !== auth.id) return ThrowForbidden();
+        if (portfolio.site_user_id !== siteUser.id) return ThrowForbidden();
       }
       await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
       const portfolio = await this.portfolioRepository.update(id, payload, tx);

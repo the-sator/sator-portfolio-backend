@@ -88,7 +88,8 @@ export class BlogService {
     const blog = await this.blogRepository.findBySlug(slug);
     if (!blog) return ThrowForbidden("No Record Found");
     return await prisma.$transaction(async (tx) => {
-      const noteMetric = await this.blogMetricRepository.findByBlog(
+      await this.blogRepository.increaseView(blog.id, blog.view, tx);
+      const noteMetric = await this.blogMetricRepository.findByBlogToday(
         blog.id,
         tx
       );

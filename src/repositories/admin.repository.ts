@@ -14,18 +14,9 @@ export interface EncryptedUpdateAdminTotp extends Omit<UpdateAdminTotp, "key"> {
 export class AdminRepository {
   public async findAll() {
     return await prisma.admin.findMany({
-      omit: {
-        password: true,
-        totp_key: true,
-      },
       include: {
         role: true,
       },
-    });
-  }
-  public async findByEmail(email: string) {
-    return prisma.admin.findUnique({
-      where: { email },
     });
   }
   public async findById(id: string) {
@@ -33,37 +24,16 @@ export class AdminRepository {
       where: { id },
     });
   }
-  public async checkEmailAndUsername(email: string, username: string) {
-    return prisma.admin.findUnique({
-      where: { email, username },
-    });
-  }
-  public async createAdmin(payload: CreateAdmin) {
+  public async createAdmin(payload: CreateAdmin, auth_id: string) {
     return prisma.admin.create({
       data: {
-        email: payload.email,
-        password: payload.password,
         username: payload.username,
         role_id: 1, //ADMIN By Defautl
+        auth_id,
       },
     });
   }
-  public async updateTotp(
-    payload: EncryptedUpdateAdminTotp,
-    tx: Prisma.TransactionClient
-  ) {
-    const encrypted = encryptToBuffer(payload.key);
-    return tx.admin.update({
-      where: { id: payload.id },
-      data: {
-        totp_key: encrypted,
-      },
-      omit: {
-        password: true,
-        totp_key: true,
-      },
-    });
-  }
+
   public async assignRole(id: string, payload: AssignAdminRole) {
     return await prisma.admin.update({
       where: { id },

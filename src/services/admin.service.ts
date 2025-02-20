@@ -1,81 +1,96 @@
 import { AdminRepository } from "@/repositories/admin.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
-import config from "@/config/environment";
 import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
 import { verifyTOTP } from "@oslojs/otp";
-import bcrypt from "bcrypt";
+import config from "@/config/environment";
 
-import type { BaseModel, ValidateSessionToken } from "@/types/base.type";
+import {
+  COOKIE,
+  type BaseModel,
+  type ValidateSessionToken,
+} from "@/types/base.type";
 import type { CreateAdmin, UpdateAdminTotp } from "@/types/admin.type";
-import { AdminAuth } from "@/authentication/admin.auth";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
 import { decrypt } from "@/utils/encryption";
 import type { AssignAdminRole } from "@/types/admin.type";
-import type { Login } from "@/types/auth.type";
+import type { Auth, Login, Signup } from "@/types/auth.type";
+import { AuthRepository } from "@/repositories/auth.repository";
+import {
+  decodeToSessionId,
+  generateSessionToken,
+  hashPassword,
+  verifyPassword,
+} from "@/utils/auth_util";
+import { SessionService } from "./session.service";
+import { setCookie } from "@/utils/cookie";
+import type { Response } from "express";
 
 export class AdminService {
   private adminRepository: AdminRepository;
   private sessionRepository: SessionRepository;
-  private adminAuth: AdminAuth;
+  private authRepository: AuthRepository;
+  private sessionService: SessionService;
+  // private adminAuth: AdminAuth;
 
   constructor() {
     this.adminRepository = new AdminRepository();
     this.sessionRepository = new SessionRepository();
-    this.adminAuth = new AdminAuth();
+    this.authRepository = new AuthRepository();
+    this.sessionService = new SessionService();
+    // this.adminAuth = new AdminAuth();
   }
 
   public async getAdmins() {
     return this.adminRepository.findAll();
   }
-  public async signUp(payload: CreateAdmin) {
-    const existingAdmin = await this.adminRepository.findByEmail(payload.email);
-    if (existingAdmin) {
-      return ThrowInternalServer("User Already Registered");
-    }
 
-    //Encrypt Password
-    const saltRounds = config.passwordSalt;
-    const passwordHash = await bcrypt.hash(
-      payload.password,
-      Number(saltRounds)
-    );
-
-    const admin = await this.adminRepository.createAdmin({
-      email: payload.email,
-      password: passwordHash,
-      username: payload.username,
-    });
-
-    return {
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        username: admin.username,
-      },
-    };
+  //Permission
+  public async assignRole(payload: AssignAdminRole) {
+    return this.adminRepository.assignRole(payload.admin_id, payload);
   }
 
-  public async login(payload: Login) {
-    const admin = await this.adminRepository.checkEmailAndUsername(
-      payload.email,
-      payload.username
-    );
-    if (!admin) {
+  //Auth
+  public async signUp(payload: Signup) {
+    const existingAdmin = await this.authRepository.checkByEmail(payload.email);
+    if (existingAdmin) {
+      return ThrowInternalServer("Admin Already Registered");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const hashedPassword = await hashPassword(payload.password);
+
+      const auth = await this.authRepository.createAuth(
+        {
+          email: payload.email,
+          password: hashedPassword,
+        },
+        tx
+      );
+      const admin = await this.adminRepository.createAdmin(
+        {
+          username: payload.username,
+        },
+        auth.id
+      );
+      return admin;
+    });
+  }
+
+  public async login(res: Response, payload: Login) {
+    const auth = await this.authRepository.checkByEmail(payload.email);
+    if (!auth) {
       return ThrowUnauthorized("Invalid User Credentials");
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      payload.password,
-      admin.password
-    );
+    const isPasswordValid = verifyPassword(payload.password, auth.password);
     if (!isPasswordValid) {
       return ThrowUnauthorized("Invalid User Credentials");
     }
 
-    if (admin.totp_key) {
-      const key = decrypt(Uint8Array.from(admin.totp_key));
+    if (auth.totp_key) {
+      const key = decrypt(Uint8Array.from(auth.totp_key));
       if (!verifyTOTP(key, 30, 6, String(payload.otp))) {
         return ThrowInternalServer("Invalid Code");
       }
@@ -85,30 +100,40 @@ export class AdminService {
       }
     }
 
-    const sessionToken = this.adminAuth.generateSessionToken();
+    if (!auth.admin) return ThrowUnauthorized("Admin cannot be found");
 
-    const session = await this.adminAuth.createSession(
-      sessionToken,
-      admin.id,
-      !!admin.totp_key
+    const sessionToken = generateSessionToken();
+    await this.sessionService.createSession(
+      {
+        token: sessionToken,
+        two_factor_verified: !!auth.totp_key,
+      },
+      { admin_id: auth.admin.id }
     );
 
-    return {
-      admin: {
-        id: admin.id,
-        email: admin.email,
-        username: admin.username,
-      },
-      session: {
-        id: session.id,
-        token: sessionToken,
-        expiredAt: session.expires_at,
-      },
-    };
+    setCookie(res, COOKIE.ADMIN, sessionToken);
+
+    return auth.admin;
   }
 
-  public async signout(payload: BaseModel) {
-    const result = await this.adminAuth.invalidateSession(String(payload.id));
+  public async getMe(token: string) {
+    const sessionId = decodeToSessionId(token);
+    const result = await this.sessionRepository.findSessionById(sessionId);
+    if (result === null) {
+      return ThrowUnauthorized();
+    }
+    const { admin, ...session } = result;
+    if (admin === null) {
+      return ThrowUnauthorized();
+    }
+    const time = session.expires_at.getTime();
+    await this.sessionService.checkAndExtendSession(sessionId, time);
+    return admin;
+  }
+
+  public async signout(token: string) {
+    const id = decodeToSessionId(token);
+    const result = await this.sessionService.invalidateSession(id);
     return result;
   }
 
@@ -131,7 +156,7 @@ export class AdminService {
           payload.sessionId,
           tx
         );
-        return await this.adminRepository.updateTotp(
+        return await this.authRepository.updateTotp(
           {
             code: payload.code,
             key: key,
@@ -149,8 +174,5 @@ export class AdminService {
         error instanceof Error ? error.message : String(error)
       );
     }
-  }
-  public async assignRole(payload: AssignAdminRole) {
-    return this.adminRepository.assignRole(payload.admin_id, payload);
   }
 }

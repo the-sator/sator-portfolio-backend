@@ -1,4 +1,3 @@
-import { AdminAuth } from "@/authentication/admin.auth";
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
 import {
@@ -6,18 +5,17 @@ import {
   CreateAdminSchema,
   UpdateAdminTotpSchema,
 } from "@/types/admin.type";
-import { LoginSchema } from "@/types/auth.type";
+import { LoginSchema, SignUpSchema } from "@/types/auth.type";
 import { BaseModelSchema, ValidateSessionTokenSchema } from "@/types/base.type";
+import { getAdminCookie } from "@/utils/cookie";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
 
 export class AdminController {
   private adminService: AdminService;
-  private adminAuth: AdminAuth;
 
   constructor() {
     this.adminService = new AdminService();
-    this.adminAuth = new AdminAuth();
   }
 
   public getAdmins = async (
@@ -36,7 +34,7 @@ export class AdminController {
 
   public signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validated = CreateAdminSchema.parse(req.body);
+      const validated = SignUpSchema.parse(req.body);
       const admin = await this.adminService.signUp(validated);
       res.json({ data: admin });
     } catch (error) {
@@ -47,7 +45,7 @@ export class AdminController {
   public login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = LoginSchema.parse(req.body);
-      const admin = await this.adminService.login(validated);
+      const admin = await this.adminService.login(res, validated);
       res.json({ data: admin });
     } catch (error) {
       next(error);
@@ -56,8 +54,8 @@ export class AdminController {
 
   public signout = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validated = BaseModelSchema.parse(req.body);
-      const result = await this.adminService.signout(validated);
+      const token = getAdminCookie(req);
+      const result = await this.adminService.signout(token);
       if (!result) {
         return ThrowInternalServer();
       }
@@ -69,17 +67,13 @@ export class AdminController {
     }
   };
 
-  public getAdminSession = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  public getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessionToken = req.cookies["session-admin"];
+      const sessionToken = getAdminCookie(req);
       if (!sessionToken) {
         return ThrowUnauthorized();
       }
-      const auth = await this.adminAuth.validateSessionToken(sessionToken);
+      const auth = await this.adminService.getMe(sessionToken);
       res.json({ data: auth });
     } catch (error) {
       next(error);

@@ -1,4 +1,3 @@
-import { UserAuth } from "@/authentication/user.auth";
 import prisma from "@/loaders/prisma";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { ChatRoomRepository } from "@/repositories/chat-room.repository";
@@ -15,21 +14,22 @@ import { getPaginationMetadata } from "@/utils/pagination";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
 import { UnreadMessageService } from "./unread-message.service";
+import { UserService } from "./user.service";
 
 export class ChatRoomService {
   private chatRoomRepository: ChatRoomRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatMemberService: ChatMemberService;
+  private userService: UserService;
   private unreadMessageService: UnreadMessageService;
   private wsService: WSService;
-  private userAuth: UserAuth;
   constructor() {
     this.chatRoomRepository = new ChatRoomRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatMemberService = new ChatMemberService();
+    this.userService = new UserService();
     this.unreadMessageService = new UnreadMessageService();
     this.wsService = new WSService();
-    this.userAuth = new UserAuth();
   }
 
   public async findAll(filter: ChatRoomFilter) {
@@ -49,20 +49,20 @@ export class ChatRoomService {
     return this.chatRoomRepository.findById(id, filter);
   }
 
-  public async findUserChatRoom(req: Request, filter: ChatRoomFilter) {
-    const { auth } = await this.userAuth.getUser(req);
+  public async findUserChatRoom(token: string, filter: ChatRoomFilter) {
+    const user = await this.userService.getMe(token);
 
-    if (!auth) {
+    if (!user) {
       return ThrowUnauthorized();
     }
-    const count = await this.chatRoomRepository.countUser(auth.id!, filter);
+    const count = await this.chatRoomRepository.countUser(user.id!, filter);
     const { page, current_page, page_size } = getPaginationMetadata(
       filter,
       count
     );
 
     const chatRooms = await this.chatRoomRepository.findUserChatRoom(
-      auth.id!,
+      user.id!,
       filter
     );
 

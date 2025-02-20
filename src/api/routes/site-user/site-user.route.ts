@@ -8,7 +8,7 @@ const siteUserController = new SiteUserController();
 
 export default (app: Router) => {
   app.use("/", router);
-  router.get("/me", siteUserController.getSiteUserSession);
+  router.get("/me", siteUserController.getMe);
   router.post(
     "/login",
     validateData(LoginSchema),

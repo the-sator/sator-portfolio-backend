@@ -1,10 +1,7 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import type { CreateSiteUser, SiteUserFilter } from "@/types/site-user.type";
-const omit = {
-  password: true,
-  totp_key: true,
-};
+import type { Prisma } from "@prisma/client";
 export class SiteUserRepository {
   private buildFilter = (filter: SiteUserFilter) => {
     const where: Record<string, any> = {};
@@ -33,30 +30,12 @@ export class SiteUserRepository {
         updated_at: "desc",
       },
       where,
-      omit,
     });
   }
   public async findById(id: string) {
     return await prisma.siteUser.findUnique({
       where: {
         id,
-      },
-      omit,
-    });
-  }
-  public async findByEmail(email: string) {
-    return await prisma.siteUser.findUnique({
-      where: {
-        email,
-      },
-    });
-  }
-
-  public async checkByEmailUsername(email: string, username: string) {
-    return await prisma.siteUser.findUnique({
-      where: {
-        email,
-        username,
       },
     });
   }
@@ -67,10 +46,17 @@ export class SiteUserRepository {
     });
   }
 
-  public async create(data: CreateSiteUser) {
-    return await prisma.siteUser.create({
-      data,
-      omit,
+  public async create(
+    payload: CreateSiteUser,
+    auth_id: string,
+    tx: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return client.siteUser.create({
+      data: {
+        username: payload.username,
+        auth_id,
+      },
     });
   }
 }

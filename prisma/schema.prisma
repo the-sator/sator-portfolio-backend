@@ -8,46 +8,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Auth {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  password   String
+  totp_key   Bytes?
+  last_login DateTime? // Last login timestamp
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  user       User?
+  siteUser   SiteUser?
+  admin      Admin?
+}
+
 model User {
   id           String        @id @default(uuid())
-  email        String        @unique
-  password     String
+  auth_id      String        @unique
   username     String        @unique @db.VarChar(20)
   profile_url  String? // Optional URL for profile picture
-  totp_key     Bytes?
-  last_login   DateTime? // Last login timestamp
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   form_attempt FormAttempt[]
   ChatMember   ChatMember[]
   Session      Session[]
+  auth         Auth          @relation(fields: [auth_id], references: [id])
 }
 
 model SiteUser {
-  id              String            @id @default(uuid())
-  email           String            @unique
-  password        String
-  username        String            @unique @db.VarChar(20)
-  profile_url     String? // Optional URL for profile picture
-  totp_key        Bytes?
-  last_login      DateTime? // Last login timestamp
-  created_at      DateTime          @default(now())
-  updated_at      DateTime          @updatedAt
-  SiteUserSession SiteUserSession[]
-  Portfolio       Portfolio[]
-  Category        Category[]
-  Blog            Blog[]
+  id          String      @id @default(uuid())
+  auth_id     String      @unique
+  username    String      @unique @db.VarChar(20)
+  profile_url String? // Optional URL for profile picture
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  Portfolio   Portfolio[]
+  Category    Category[]
+  Blog        Blog[]
+  Auth        Auth        @relation(fields: [auth_id], references: [id])
+  Session     Session[]
 }
 
 model Admin {
   id          String       @id @default(uuid())
   role_id     Int
-  email       String       @unique
-  password    String
+  auth_id     String       @unique
   username    String       @unique @db.VarChar(20)
   profile_url String? // Optional URL for profile picture
-  totp_key    Bytes?
-  last_login  DateTime? // Last login timestamp
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
   sessions    Session[]
@@ -56,25 +62,19 @@ model Admin {
   Blog        Blog[]
   ChatMember  ChatMember[]
   Category    Category[]
+  Auth        Auth         @relation(references: [id], fields: [auth_id])
 }
 
 model Session {
-  id                  String   @id
+  id                  String    @id
   admin_id            String?
   user_id             String?
+  site_user_id        String?
   expires_at          DateTime
-  two_factor_verified Boolean  @default(false)
-
-  admin Admin? @relation(references: [id], fields: [admin_id], onDelete: Cascade)
-  user  User?  @relation(references: [id], fields: [user_id], onDelete: Cascade)
-}
-
-model SiteUserSession {
-  id                  String   @id
-  site_user_id        String
-  expires_at          DateTime
-  two_factor_verified Boolean  @default(false)
-  site_user           SiteUser @relation(references: [id], fields: [site_user_id], onDelete: Cascade)
+  two_factor_verified Boolean   @default(false)
+  admin               Admin?    @relation(references: [id], fields: [admin_id], onDelete: Cascade)
+  user                User?     @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  site_user           SiteUser? @relation(references: [id], fields: [site_user_id], onDelete: Cascade)
 }
 
 model Role {

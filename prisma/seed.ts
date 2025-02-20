@@ -127,41 +127,68 @@ async function main() {
   const saltRounds = process.env.PASSWORD_SALT;
 
   const superPasswordHash = await bcrypt.hash("super123", Number(saltRounds));
-  const superAdminTest = await prisma.admin.upsert({
-    where: { email: "super@test.com" },
-    update: {},
-    create: {
-      email: "super@test.com",
-      username: "super",
-      password: superPasswordHash,
-      role_id: superAdminRole.id,
-    },
+  await prisma.$transaction(async (tx) => {
+    const superAdminAuth = await tx.auth.upsert({
+      where: { email: "super@test.com" },
+      update: {},
+      create: {
+        email: "super@test.com",
+        password: superPasswordHash,
+      },
+    });
+    const superAdminTest = await tx.admin.upsert({
+      where: { auth_id: superAdminAuth.id },
+      update: {},
+      create: {
+        username: "super",
+        auth_id: superAdminAuth.id,
+        role_id: superAdminRole.id,
+      },
+    });
+    console.log("Super Admin ", superAdminTest.username, " Created ✅");
   });
-  console.log("Super Admin ", superAdminTest.username, " Created ✅");
 
   const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
-  const adminTest = await prisma.admin.upsert({
-    where: { email: "admin@test.com" },
-    update: {},
-    create: {
-      email: "admin@test.com",
-      username: "admin",
-      password: passwordHash,
-      role_id: adminRole.id,
-    },
+  await prisma.$transaction(async (tx) => {
+    const adminAuth = await tx.auth.upsert({
+      where: { email: "admin@test.com" },
+      update: {},
+      create: {
+        email: "admin@test.com",
+        password: passwordHash,
+      },
+    });
+    const adminTest = await tx.admin.upsert({
+      where: { auth_id: adminAuth.id },
+      update: {},
+      create: {
+        username: "admin",
+        auth_id: adminAuth.id,
+        role_id: adminRole.id,
+      },
+    });
+    console.log("Super Admin ", adminTest.username, " Created ✅");
   });
-  console.log("Admin ", adminTest.username, " Created ✅");
 
-  const user = await prisma.user.upsert({
-    where: { email: "user@test.com" },
-    update: {},
-    create: {
-      email: "user@test.com",
-      username: "user",
-      password: passwordHash,
-    },
+  await prisma.$transaction(async (tx) => {
+    const userAuth = await tx.auth.upsert({
+      where: { email: "user@test.com" },
+      update: {},
+      create: {
+        email: "user@test.com",
+        password: passwordHash,
+      },
+    });
+    const user = await tx.user.upsert({
+      where: { auth_id: userAuth.id },
+      update: {},
+      create: {
+        username: "user",
+        auth_id: userAuth.id,
+      },
+    });
+    console.log("User ", user.username, " Created ✅");
   });
-  console.log("User ", user.username, " Created ✅");
 }
 main()
   .then(async () => {

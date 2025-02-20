@@ -1,4 +1,3 @@
-import { AdminAuth } from "@/authentication/admin.auth";
 import { io } from "@/loaders/socket";
 import { AdminRepository } from "@/repositories/admin.repository";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
@@ -22,6 +21,7 @@ import type { Request } from "express";
 import { ChatMessageService } from "./chat-message.service";
 import prisma from "@/loaders/prisma";
 import { UnreadMessageService } from "./unread-message.service";
+import { AdminService } from "./admin.service";
 
 type ChatMemberWithAdminUser = Prisma.ChatMemberGetPayload<{
   include: { admin: true; user: true };
@@ -30,15 +30,15 @@ export class ChatMemberService {
   private chatMemberRepository: ChatMemberRepository;
   private userRepository: UserRepository;
   private adminRepository: AdminRepository;
-  private adminAuth: AdminAuth;
+  private adminService: AdminService;
   private chatMessageService: ChatMessageService;
   private unreadMessageService: UnreadMessageService;
 
   constructor() {
     this.chatMemberRepository = new ChatMemberRepository();
-    this.adminRepository = new AdminRepository();
     this.userRepository = new UserRepository();
-    this.adminAuth = new AdminAuth();
+    this.adminRepository = new AdminRepository();
+    this.adminService = new AdminService();
     this.chatMessageService = new ChatMessageService();
     this.unreadMessageService = new UnreadMessageService();
   }
@@ -135,13 +135,13 @@ export class ChatMemberService {
     return chatMember;
   }
 
-  public async remove(req: Request, id: string) {
-    const { auth } = await this.adminAuth.getAdmin(req);
-    if (!auth) return ThrowUnauthorized();
+  public async remove(token: string, id: string) {
+    const admin = await this.adminService.getMe(token);
+    if (!admin) return ThrowUnauthorized();
     return await prisma.$transaction(async (tx) => {
       const member = await this.chatMemberRepository.findById(id, tx);
       if (!member) return ThrowInternalServer("Member Cannot Be Found");
-      const isSelf = member.admin_id === auth.id;
+      const isSelf = member.admin_id === admin.id;
       if (!!isSelf) return ThrowInternalServer("You cannot remove yourself");
       const chatMember = await this.chatMemberRepository.softDelete(
         member.id,
@@ -152,17 +152,17 @@ export class ChatMemberService {
     });
   }
 
-  public async leave(req: Request, roomId: string) {
-    const { auth } = await this.adminAuth.getAdmin(req);
-    if (!auth) return ThrowUnauthorized();
+  public async leave(token: string, roomId: string) {
+    const admin = await this.adminService.getMe(token);
+    if (!admin) return ThrowUnauthorized();
     return await prisma.$transaction(async (tx) => {
       const member = await this.chatMemberRepository.findByAdmin(
-        auth.id,
+        admin.id,
         roomId,
         tx
       );
       if (!member) return ThrowInternalServer("Member Cannot Be Found");
-      const isNotSelf = member.admin_id !== auth.id;
+      const isNotSelf = member.admin_id !== admin.id;
       if (!!isNotSelf) return ThrowInternalServer("Invalid Auth ID");
       const chatMember = await this.chatMemberRepository.softDelete(
         member.id,

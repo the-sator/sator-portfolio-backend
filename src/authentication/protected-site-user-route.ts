@@ -1,11 +1,7 @@
-import { ThrowForbidden, ThrowUnauthorized } from "@/utils/exception";
+import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
-import { AdminAuth } from "./admin.auth";
-import type { Admin, Session } from "@prisma/client";
-import { RoleRepository } from "@/repositories/role.repository";
-import { ResourceRepository } from "@/repositories/resource.repository";
-import { UserAuth } from "./user.auth";
-import { SiteUserAuth } from "./site-user.auth";
+import { getSiteUserCookie } from "@/utils/cookie";
+import { SiteUserService } from "@/services/site-user.service";
 
 type ProtectedRouteHandler = (
   req: Request,
@@ -14,7 +10,7 @@ type ProtectedRouteHandler = (
 ) => void | Promise<void>;
 
 function protectedSiteUserRoute(handler: ProtectedRouteHandler) {
-  const siteUserAuth = new SiteUserAuth(); // Instantiate AdminAuth
+  const siteUserService = new SiteUserService();
 
   return async (
     req: Request,
@@ -22,14 +18,12 @@ function protectedSiteUserRoute(handler: ProtectedRouteHandler) {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const sessionToken = req.cookies["session-site-user"];
+      const sessionToken = getSiteUserCookie(req);
       if (!sessionToken) {
         return ThrowUnauthorized(); // Handle unauthorized access
       }
-      const { session, user } = await siteUserAuth.validateSessionToken(
-        sessionToken
-      );
-      if (!session || !user) {
+      const siteUser = await siteUserService.getMe(sessionToken);
+      if (!siteUser) {
         return ThrowUnauthorized();
       }
       await handler(req, res, next);

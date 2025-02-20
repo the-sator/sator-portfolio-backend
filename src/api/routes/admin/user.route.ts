@@ -23,5 +23,5 @@ export default (app: Router) => {
       action: "read",
     })
   );
-  router.post("/", validateData(CreateUserSchema), userController.addUser);
+  router.post("/", validateData(CreateUserSchema), userController.signup);
 };

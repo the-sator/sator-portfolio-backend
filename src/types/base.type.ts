@@ -1,6 +1,18 @@
 import type { Admin, Session } from "@prisma/client";
 import { z } from "zod";
 
+export type EntityID = {
+  user_id?: string | null;
+  site_user_id?: string | null;
+  admin_id?: string | null;
+};
+
+export enum COOKIE {
+  ADMIN = "admin_token",
+  USER = "user_token",
+  SITE_USER = "site_user_token",
+}
+
 export type AdminSessionValidationResult =
   | { session: Session; admin: Admin }
   | { session: null; admin: null };

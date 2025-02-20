@@ -1,32 +1,36 @@
-import { AdminAuth } from "@/authentication/admin.auth";
-import { SiteUserAuth } from "@/authentication/site-user.auth";
 import { CategoryRepository } from "@/repositories/category.repository";
 import type { CreateCategory } from "@/types/category.type";
-import { ThrowForbidden, ThrowUnauthorized } from "@/utils/exception";
+import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request } from "express";
+import { SiteUserService } from "./site-user.service";
+import { AdminService } from "./admin.service";
+import { getAdminCookie, getSiteUserCookie } from "@/utils/cookie";
+import config from "@/config/environment";
 
 export class CategoryService {
   private categoryRepository: CategoryRepository;
-  private siteUserAuth: SiteUserAuth;
-  private adminAuth: AdminAuth;
+  private siteUserService: SiteUserService;
+  private adminService: AdminService;
   constructor() {
     this.categoryRepository = new CategoryRepository();
-    this.siteUserAuth = new SiteUserAuth();
-    this.adminAuth = new AdminAuth();
+    this.siteUserService = new SiteUserService();
+    this.adminService = new AdminService();
   }
   public async findAll() {
     return this.categoryRepository.findAll();
   }
   public async findBySiteUser(req: Request) {
-    const { auth } = await this.siteUserAuth.getSiteUser(req);
-    if (!auth) return ThrowUnauthorized();
-    return this.categoryRepository.findBySiteUser(auth.id!);
+    const sessionToken = getSiteUserCookie(req);
+    const siteUser = await this.siteUserService.getMe(sessionToken);
+    if (!siteUser) return ThrowUnauthorized();
+    return this.categoryRepository.findBySiteUser(siteUser.id!);
   }
   public async create(req: Request, payload: CreateCategory) {
-    const isAdmin = req.originalUrl.startsWith("/api/admin");
-    const { auth } = isAdmin
-      ? await this.adminAuth.getAdmin(req)
-      : await this.siteUserAuth.getSiteUser(req);
+    const isAdmin = req.originalUrl.startsWith(`${config.api.prefix}/admin`);
+    const sessionToken = isAdmin ? getAdminCookie(req) : getSiteUserCookie(req);
+    const auth = isAdmin
+      ? await this.adminService.getMe(sessionToken)
+      : await this.siteUserService.getMe(sessionToken);
     if (!auth) return ThrowUnauthorized();
     return this.categoryRepository.create(auth.id, isAdmin, payload);
   }

@@ -1,18 +1,8 @@
-import type {
-  ErrorRequestHandler,
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import type { ErrorRequestHandler } from "express";
 import logger from "@/logger/logger";
-import createHttpError, { isHttpError } from "http-errors";
+import { isHttpError } from "http-errors";
 import { ZodError } from "zod";
-const errorMiddleware: ErrorRequestHandler = (
-  error,
-  request,
-  response,
-  next
-) => {
+const errorMiddleware: ErrorRequestHandler = (error, request, response) => {
   // Log the error details for debugging
   logger.error("🔥 Error occurred: %o", error);
   let statusCode = 500;

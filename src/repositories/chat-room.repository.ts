@@ -1,6 +1,5 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { InviteChatMember } from "@/types/chat-member.type";
 import type {
   ChangeChatRoomName,
   ChatRoomFilter,
@@ -10,7 +9,7 @@ import type { Prisma } from "@prisma/client";
 
 export class ChatRoomRepository {
   private buildFilter = (filter: ChatRoomFilter) => {
-    const where: Record<string, any> = {};
+    const where: Record<string, unknown> = {};
     if (filter.chat_room_name) {
       where.name = {
         contains: filter.chat_room_name,
@@ -41,18 +40,8 @@ export class ChatRoomRepository {
           include: {
             chat_member: {
               include: {
-                user: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
-                admin: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
+                user: true,
+                admin: true,
               },
             },
           },
@@ -82,25 +71,15 @@ export class ChatRoomRepository {
           include: {
             chat_member: {
               include: {
-                user: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
-                admin: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
+                user: true,
+                admin: true,
               },
             },
           },
         },
       },
       where: {
-        name: where.name,
+        name: where.name as string,
         chat_members: {
           some: {
             user_id: {
@@ -115,7 +94,7 @@ export class ChatRoomRepository {
   public async findById(id: string, filter: ChatRoomFilter) {
     const where = this.buildFilter(filter);
     return await prisma.chatRoom.findFirst({
-      where: { id, name: where.name },
+      where: { id, name: where.name as string },
       include: {
         unread_messages: {
           include: {
@@ -126,18 +105,8 @@ export class ChatRoomRepository {
           include: {
             chat_member: {
               include: {
-                user: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
-                admin: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
+                user: true,
+                admin: true,
               },
             },
           },
@@ -150,18 +119,8 @@ export class ChatRoomRepository {
             role: "asc",
           },
           include: {
-            admin: {
-              omit: {
-                password: true,
-                totp_key: true,
-              },
-            },
-            user: {
-              omit: {
-                password: true,
-                totp_key: true,
-              },
-            },
+            admin: true,
+            user: true,
           },
         },
       },
@@ -192,7 +151,7 @@ export class ChatRoomRepository {
     const where = this.buildFilter(filter || {});
     return await prisma.chatRoom.count({
       where: {
-        name: where.name,
+        name: where.name as string,
         chat_members: {
           some: {
             user_id: {
@@ -257,18 +216,8 @@ export class ChatRoomRepository {
           include: {
             chat_member: {
               include: {
-                user: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
-                admin: {
-                  omit: {
-                    password: true,
-                    totp_key: true,
-                  },
-                },
+                user: true,
+                admin: true,
               },
             },
           },

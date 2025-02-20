@@ -21,11 +21,6 @@ export default {
    */
   databaseURL: process.env.DB_URI,
 
-  /**
-   * Your secret sauce
-   */
-  jwtSecret: process.env.JWT_SECRET,
-  jwtAlgorithm: process.env.JWT_ALGO,
   passwordSalt: process.env.PASSWORD_SALT || 10,
 
   /**
@@ -39,7 +34,7 @@ export default {
    * API configs
    */
   api: {
-    prefix: "/api",
+    prefix: "/api/v1",
   },
 
   encryptionCode: process.env.ENCRYPTION_KEY || "",

@@ -1,20 +1,14 @@
-import { SiteUserAuth } from "@/authentication/site-user.auth";
 import { SiteUserService } from "@/services/site-user.service";
-import { LoginSchema } from "@/types/auth.type";
-import { BaseModelSchema } from "@/types/base.type";
-import {
-  CreateSiteUserSchema,
-  SiteUserFilterSchema,
-} from "@/types/site-user.type";
+import { LoginSchema, SignUpSchema } from "@/types/auth.type";
+import { SiteUserFilterSchema } from "@/types/site-user.type";
+import { getSiteUserCookie } from "@/utils/cookie";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import type { NextFunction, Request, Response } from "express";
 
 export class SiteUserController {
-  private siteUserService: SiteUserService;
-  private siteUserAuth: SiteUserAuth;
+  private _siteUserService: SiteUserService;
   constructor() {
-    this.siteUserService = new SiteUserService();
-    this.siteUserAuth = new SiteUserAuth();
+    this._siteUserService = new SiteUserService();
   }
   public paginateSiteUsers = async (
     req: Request,
@@ -23,24 +17,20 @@ export class SiteUserController {
   ) => {
     try {
       const filter = SiteUserFilterSchema.parse(req.query);
-      const siteUsers = await this.siteUserService.paginateSiteUsers(filter);
+      const siteUsers = await this._siteUserService.paginateSiteUsers(filter);
       res.json({ data: siteUsers });
     } catch (error) {
       next(error);
     }
   };
 
-  public getSiteUserSession = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  public getMe = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessionToken = req.cookies["session-site-user"];
+      const sessionToken = getSiteUserCookie(req);
       if (!sessionToken) {
         return ThrowUnauthorized();
       }
-      const auth = await this.siteUserAuth.validateSessionToken(sessionToken);
+      const auth = await this._siteUserService.getMe(sessionToken);
       res.json({ data: auth });
     } catch (error) {
       next(error);
@@ -53,8 +43,8 @@ export class SiteUserController {
     next: NextFunction
   ) => {
     try {
-      const validated = CreateSiteUserSchema.parse(req.body);
-      const siteUser = await this.siteUserService.create(validated);
+      const validated = SignUpSchema.parse(req.body);
+      const siteUser = await this._siteUserService.create(validated);
       res.json({ data: siteUser });
     } catch (error) {
       next(error);
@@ -68,7 +58,7 @@ export class SiteUserController {
   ) => {
     try {
       const valdiated = LoginSchema.parse(req.body);
-      const siteUser = await this.siteUserService.siteUserlogin(valdiated);
+      const siteUser = await this._siteUserService.siteUserlogin(valdiated);
       res.json({ data: siteUser });
     } catch (error) {
       next(error);
@@ -81,7 +71,8 @@ export class SiteUserController {
     next: NextFunction
   ) => {
     try {
-      const result = await this.siteUserService.siteUserSignout(req);
+      const token = getSiteUserCookie(req);
+      const result = await this._siteUserService.signout(token);
       if (!result) {
         return ThrowInternalServer();
       }

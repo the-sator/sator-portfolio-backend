@@ -1,5 +1,5 @@
 import prisma from "@/loaders/prisma";
-import type { AdminRepository } from "@/repositories/admin.repository";
+import Logger from "@/logger/logger";
 import { PermissionFlagRepository } from "@/repositories/permission-flag.repository";
 import { ResourceRepository } from "@/repositories/resource.repository";
 import { RoleRepository } from "@/repositories/role.repository";
@@ -38,6 +38,7 @@ export class RoleService {
         return role;
       });
     } catch (error) {
+      Logger.error(error);
       return ThrowInternalServer();
     }
   }
@@ -56,6 +57,7 @@ export class RoleService {
         return role;
       });
     } catch (error) {
+      Logger.error(error);
       return ThrowInternalServer();
     }
   }

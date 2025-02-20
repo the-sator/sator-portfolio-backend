@@ -1,70 +1,89 @@
 import { UserRepository } from "@/repositories/user.repository";
-import { type CreateUser, type UserFilter } from "@/types/user.type";
+import { type UserFilter } from "@/types/user.type";
 import config from "@/config/environment";
 import bcrypt from "bcrypt";
-import { LIMIT } from "@/constant/base";
 import { getPaginationMetadata } from "@/utils/pagination";
-import type { Login } from "@/types/auth.type";
+import type { Login, Signup } from "@/types/auth.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
 import { decrypt } from "@/utils/encryption";
-import { UserAuth } from "@/authentication/user.auth";
+import { CacheService } from "./cache.service";
+import Logger from "@/logger/logger";
+import {
+  decodeToSessionId,
+  generateSessionToken,
+  hashPassword,
+} from "@/utils/auth_util";
+import { AuthRepository } from "@/repositories/auth.repository";
+import { SessionService } from "./session.service";
+import prisma from "@/loaders/prisma";
+import { SessionRepository } from "@/repositories/session.repository";
 
 export class UserService {
-  private userRepository: UserRepository;
-  private userAuth: UserAuth;
+  private _userRepository: UserRepository;
+  private _authRepository: AuthRepository;
+  private _sessionRepository: SessionRepository;
+  private _sessionService: SessionService;
+  private _cacheService: CacheService;
 
   constructor() {
-    this.userRepository = new UserRepository();
-    this.userAuth = new UserAuth();
+    this._userRepository = new UserRepository();
+    this._authRepository = new AuthRepository();
+    this._sessionRepository = new SessionRepository();
+    this._sessionService = new SessionService();
+    this._cacheService = new CacheService();
   }
 
   public async getUsers() {
-    return await this.userRepository.findAll();
+    return await this._userRepository.findAll();
   }
 
   public async paginateUsers(filter: UserFilter) {
-    const count = await this.userRepository.count(filter);
+    const count = await this._userRepository.count(filter);
     const { current_page, page_size, page } = getPaginationMetadata(
       filter,
       count
     );
-    const users = await this.userRepository.paginate(filter);
+    const users = await this._userRepository.paginate(filter);
     return { data: users, metadata: { count, current_page, page_size, page } };
   }
 
-  public async createUser(payload: CreateUser) {
-    const saltRounds = config.passwordSalt;
-    const passwordHash = await bcrypt.hash(
-      payload.password,
-      Number(saltRounds)
-    );
-    return this.userRepository.addUser({
-      email: payload.email,
-      password: passwordHash,
-      username: payload.username,
+  public async signup(payload: Signup) {
+    const passwordHash = await hashPassword(payload.password);
+    return prisma.$transaction(async (tx) => {
+      const auth = await this._authRepository.createAuth(
+        {
+          email: payload.email,
+          password: passwordHash,
+        },
+        tx
+      );
+      return this._userRepository.addUser(
+        {
+          username: payload.username,
+        },
+        auth.id,
+        tx
+      );
     });
   }
 
   public async login(payload: Login) {
-    const user = await this.userRepository.checkEmailAndUsername(
-      payload.email,
-      payload.username
-    );
-    if (!user) {
-      return ThrowUnauthorized("Invalid User Credentials");
+    const auth = await this._authRepository.checkByEmail(payload.email);
+    if (!auth) {
+      return ThrowUnauthorized("Invalid Credentials");
     }
 
     const isPasswordValid = await bcrypt.compare(
       payload.password,
-      user.password
+      auth.password
     );
     if (!isPasswordValid) {
-      return ThrowUnauthorized("Invalid User Credentials");
+      return ThrowUnauthorized("Invalid Credentials");
     }
 
-    if (user.totp_key) {
-      const key = decrypt(Uint8Array.from(user.totp_key));
+    if (auth.totp_key) {
+      const key = decrypt(Uint8Array.from(auth.totp_key));
       if (!verifyTOTP(key, 30, 6, String(payload.otp))) {
         return ThrowInternalServer("Invalid Code");
       }
@@ -74,25 +93,38 @@ export class UserService {
       }
     }
 
-    const sessionToken = this.userAuth.generateSessionToken();
+    const sessionToken = generateSessionToken();
 
-    const session = await this.userAuth.createSession(
-      sessionToken,
-      user.id,
-      !!user.totp_key
+    try {
+      this._cacheService.saveAuth(sessionToken, auth);
+    } catch (error) {
+      Logger.error(error);
+    }
+    if (!auth.user) return ThrowUnauthorized("User cannot be found");
+
+    await this._sessionService.createSession(
+      {
+        token: sessionToken,
+        two_factor_verified: !!auth.totp_key,
+      },
+      { user_id: auth.user.id }
     );
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-      },
-      session: {
-        id: session.id,
-        token: sessionToken,
-        expiredAt: session.expires_at,
-      },
-    };
+    return auth.user;
+  }
+
+  public async getMe(token: string) {
+    const sessionId = decodeToSessionId(token);
+    const result = await this._sessionRepository.findSessionById(sessionId);
+    if (result === null) {
+      return ThrowUnauthorized();
+    }
+    const { user, ...session } = result;
+    if (user === null) {
+      return ThrowUnauthorized();
+    }
+    const time = session.expires_at.getTime();
+    await this._sessionService.checkAndExtendSession(sessionId, time);
+    return user;
   }
 }

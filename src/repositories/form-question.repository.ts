@@ -1,6 +1,5 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { BaseFilter } from "@/types/base.type";
 import type {
   CreateFormQuestion,
   PortfolioFormFilter,
@@ -20,7 +19,7 @@ export class FormQuestionRepository {
   }
 
   public buildFilter(filter: PortfolioFormFilter) {
-    let where: Record<string, any> = {};
+    const where: Record<string, unknown> = {};
 
     if (filter.order) {
       where.order = Number(filter.order);

@@ -1,5 +1,3 @@
-import { AdminAuth } from "@/authentication/admin.auth";
-import { UserAuth } from "@/authentication/user.auth";
 import prisma from "@/loaders/prisma";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { ChatMessageRepository } from "@/repositories/chat-message.repository";
@@ -13,37 +11,39 @@ import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
-import { redisClient } from "@/loaders/redis";
-import type { Prisma } from "@prisma/client";
 import { UnreadMessageService } from "./unread-message.service";
+import { UserService } from "./user.service";
+import { AdminService } from "./admin.service";
+import { getAdminCookie, getUserCookie } from "@/utils/cookie";
+import config from "@/config/environment";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatRoomRepository: ChatRoomRepository;
   private unreadMessageService: UnreadMessageService;
+  private adminService: AdminService;
+  private userService: UserService;
   private wsService: WSService;
-  private adminAuth: AdminAuth;
-  private userAuth: UserAuth;
   constructor() {
     this.chatMessageRepository = new ChatMessageRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.chatRoomRepository = new ChatRoomRepository();
+    this.adminService = new AdminService();
+    this.userService = new UserService();
     this.wsService = new WSService();
     this.unreadMessageService = new UnreadMessageService();
-    this.userAuth = new UserAuth();
-    this.adminAuth = new AdminAuth();
   }
   public async findAll() {
     return this.chatMessageRepository.findAll();
   }
 
-  public async findByRoomId(req: Request, id: string) {
-    const { auth } = await this.adminAuth.getAdmin(req);
-    if (!auth) {
+  public async findByRoomId(token: string, id: string) {
+    const admin = await this.adminService.getMe(token);
+    if (!admin) {
       return ThrowUnauthorized();
     }
-    const member = await this.chatMemberRepository.isMemberActive(auth.id, id);
+    const member = await this.chatMemberRepository.isMemberActive(admin.id, id);
     if (!member) {
       return ThrowUnauthorized("You are not a member of the chat room");
     }
@@ -56,10 +56,13 @@ export class ChatMessageService {
     id: string,
     filter: ChatMessageFilter
   ) {
-    const isAdminRoute = req.originalUrl.startsWith("/api/admin");
-    const { auth } = isAdminRoute
-      ? await this.adminAuth.getAdmin(req)
-      : await this.userAuth.getUser(req);
+    const isAdminRoute = `${config.api.prefix}/admin`;
+    const sessionToken = isAdminRoute
+      ? getAdminCookie(req)
+      : getUserCookie(req);
+    const auth = isAdminRoute
+      ? await this.adminService.getMe(sessionToken)
+      : await this.userService.getMe(sessionToken);
     if (!auth) {
       return ThrowUnauthorized();
     }

@@ -1,7 +1,6 @@
 import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
-import { redisClient } from "./redis";
 import { CacheService } from "@/services/cache.service";
 import { UnreadMessageService } from "@/services/unread-message.service";
 
@@ -41,12 +40,6 @@ export function socketLoader({ app }: { app: express.Application }) {
       );
     });
 
-    socket.on(`join-room`, (payload) => {
-      // {jsdajsd: skdajksldjas}
-      // contsole.log(payload);
-      // socket.join(payload.id);
-    });
-
     socket.on(`leave-room`, (msg) => {
       socket.broadcast.emit("message", msg);
     });
@@ -55,7 +48,7 @@ export function socketLoader({ app }: { app: express.Application }) {
       unreadMessageService.updateUnread(payload.id, 0);
     });
 
-    socket.on("online", (id: string) => {});
+    // socket.on("online", (id: string) => {});
   });
 
   // Start the server

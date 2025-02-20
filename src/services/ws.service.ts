@@ -2,7 +2,6 @@ import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { io } from "@/loaders/socket";
 import { Server } from "socket.io";
 import { CacheService } from "./cache.service";
-import { ThrowInternalServer } from "@/utils/exception";
 
 export class WSService {
   private cacheService: CacheService;
@@ -18,7 +17,7 @@ export class WSService {
     return io;
   }
 
-  public broadcastAll(event: WSEventType, data: any) {
+  public broadcastAll(event: WSEventType, data: unknown) {
     this.io.emit(WSReceiver.ALL, {
       type: event,
       data,
@@ -29,7 +28,7 @@ export class WSService {
     id: string,
     audience: WSReceiver,
     eventType: WSEventType,
-    data: any
+    data: unknown
   ) {
     const event = `${audience}:${id}`;
     const sid = await this.cacheService.getSid(id);
@@ -46,7 +45,7 @@ export class WSService {
     ids: string[],
     audience: WSReceiver,
     eventType: WSEventType,
-    data: any
+    data: unknown
   ) {
     await Promise.all(
       ids.map(async (id) => {
@@ -63,7 +62,7 @@ export class WSService {
     );
   }
 
-  public broadcastToRoom(id: string, eventType: WSEventType, data: any) {
+  public broadcastToRoom(id: string, eventType: WSEventType, data: unknown) {
     const event = `${WSReceiver.CHAT_ROOM}:${id}`;
     this.io.emit(event, {
       type: eventType,

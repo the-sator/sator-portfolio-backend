@@ -1,6 +1,5 @@
 import prisma from "@/loaders/prisma";
-import type { BaseModel } from "@/types/base.type";
-import type { CreateRole, UpdateRole } from "@/types/role.type";
+import type { CreateRole } from "@/types/role.type";
 import type { Prisma } from "@prisma/client";
 
 export class RoleRepository {

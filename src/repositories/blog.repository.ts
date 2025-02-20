@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 
 export class BlogRepository {
   public buildFilter(filter: BlogFilter) {
-    let where: Record<string, any> = {};
+    let where: Record<string, unknown> = {};
     if (filter.title) {
       where.title = { contains: filter.title, mode: "insensitive" };
     }
@@ -29,12 +29,23 @@ export class BlogRepository {
   }
 
   public async findAll() {
-    return await prisma.blog.findMany();
+    return await prisma.blog.findMany({
+      where: {
+        published_at: {
+          not: null,
+        },
+      },
+    });
   }
 
   public async findBySlug(slug: string) {
     return await prisma.blog.findFirst({
-      where: { slug },
+      where: {
+        slug,
+        published_at: {
+          not: null,
+        },
+      },
       include: {
         CategoryOnBlog: true,
       },
@@ -69,7 +80,7 @@ export class BlogRepository {
 
   public async count(
     filter: BlogFilter,
-    customWhere: Record<string, any> = {}
+    customWhere: Record<string, unknown> = {}
   ) {
     const where = {
       ...this.buildFilter(filter),
@@ -139,6 +150,20 @@ export class BlogRepository {
         id,
       },
       data: { published_at: null },
+    });
+  }
+
+  public async increaseView(
+    id: string,
+    view: number,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.blog.update({
+      where: {
+        id,
+      },
+      data: { view: (view += 1) },
     });
   }
 }

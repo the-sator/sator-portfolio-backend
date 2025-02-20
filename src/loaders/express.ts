@@ -1,10 +1,5 @@
 import express from "express";
-import type {
-  Request,
-  Response,
-  NextFunction,
-  ErrorRequestHandler,
-} from "express";
+import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import methodOverride from "method-override";
 import { OpticMiddleware } from "@useoptic/express-middleware";
@@ -25,14 +20,16 @@ export default function configureExpress({
   app.use(cookieParser());
   app.use(express.json());
 
-  // Health check endpoints
-  app.get("/status", (req: Request, res: Response) => {
-    res.status(200).end();
-  });
-  app.head("/status", (req: Request, res: Response) => {
-    res.status(200).end();
-  });
+  //Health Check
+  app.get("/health-check", (_req: Request, res: Response) => {
+    const data = {
+      uptime: process.uptime(),
+      message: "OK",
+      date: new Date(),
+    };
 
+    res.status(200).send(data);
+  });
   // API routes
   app.use(config.api.prefix, routes());
 

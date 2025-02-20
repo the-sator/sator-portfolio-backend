@@ -1,10 +1,12 @@
 import { ThrowForbidden, ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
-import { AdminAuth } from "./admin.auth";
-import type { Admin, Session } from "@prisma/client";
+import type { Admin } from "@prisma/client";
 import { RoleRepository } from "@/repositories/role.repository";
 import { ResourceRepository } from "@/repositories/resource.repository";
-import { UserAuth } from "./user.auth";
+import { getAdminCookie, getUserCookie } from "@/utils/cookie";
+import { AdminService } from "@/services/admin.service";
+import { UserService } from "@/services/user.service";
+import config from "@/config/environment";
 
 type ProtectedRouteHandler = (
   req: Request,
@@ -19,8 +21,8 @@ function protectedRoute(
     action: "read" | "write" | "delete";
   }
 ) {
-  const adminAuth = new AdminAuth(); // Instantiate AdminAuth
-  const userAuth = new UserAuth(); // Instantiate AdminAuth
+  const userService = new UserService(); // Instantiate AdminAuth
+  const adminService = new AdminService(); // Instantiate AdminAuth
   const roleRepository = new RoleRepository(); // Instantiate AdminAuth
   const resourceRepository = new ResourceRepository(); // Instantiate AdminAuth
 
@@ -30,18 +32,20 @@ function protectedRoute(
     next: NextFunction
   ): Promise<void> => {
     try {
-      const isAdminRoute = req.originalUrl.startsWith("/api/admin");
+      const isAdminRoute = req.originalUrl.startsWith(
+        `${config.api.prefix}/admin`
+      );
       const sessionToken = isAdminRoute
-        ? req.cookies["session-admin"]
-        : req.cookies["session-user"];
+        ? getAdminCookie(req)
+        : getUserCookie(req);
 
       if (!sessionToken) {
         return ThrowUnauthorized(); // Handle unauthorized access
       }
-      const { session, auth } = isAdminRoute
-        ? await adminAuth.validateSessionToken(sessionToken)
-        : await userAuth.validateSessionToken(sessionToken);
-      if (!session || !auth) {
+      const auth = isAdminRoute
+        ? await adminService.getMe(sessionToken)
+        : await userService.getMe(sessionToken);
+      if (!auth) {
         return ThrowUnauthorized();
       }
 

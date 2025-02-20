@@ -13,17 +13,19 @@
     "reset-all": "bunx prisma db push --force-reset && bunx prisma db seed",
     "db-diff": "bunx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url",
     "test": "jest",
-    "lint": "npm run lint:js ",
-    "lint:eslint": "eslint --ignore-path .gitignore --ext .ts",
+    "lint": "npm run lint:js",
+    "lint:eslint": "eslint --ignore-pattern .gitignore",
     "lint:js": "npm run lint:eslint src/",
-    "lint:fix": "npm run lint:js -- --fix"
+    "lint:fix": "npm run lint:js -- --fix",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm ./prisma/seed.ts",
     "purge": "node --loader ts-node/esm ./prisma/purge.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prisma": "^6.4.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -32,7 +34,7 @@
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@oslojs/otp": "^1.0.0",
-    "@prisma/client": "^6.1.0",
+    "@prisma/client": "^6.4.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
@@ -47,9 +49,9 @@
     "express": "^4.21.1",
     "http-errors": "^2.0.0",
     "http-status-codes": "^2.3.0",
+    "husky": "^9.1.7",
     "method-override": "^3.0.0",
     "nodemon": "^3.1.7",
-    "prisma": "^6.1.0",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1",

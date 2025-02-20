@@ -1,4 +1,3 @@
-import prisma from "@/loaders/prisma";
 import { ResourceRepository } from "@/repositories/resource.repository";
 
 export class ResourceService {

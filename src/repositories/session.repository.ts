@@ -8,22 +8,9 @@ export class SessionRepository {
         id: sessionId,
       },
       include: {
-        admin: {
-          include: {
-            role: true,
-          },
-          omit: {
-            password: true,
-            totp_key: true,
-          },
-        },
-
-        user: {
-          omit: {
-            password: true,
-            totp_key: true,
-          },
-        },
+        admin: true,
+        user: true,
+        site_user: true,
       },
     });
   }

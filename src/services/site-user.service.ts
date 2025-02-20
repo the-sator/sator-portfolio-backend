@@ -1,29 +1,39 @@
 import { SiteUserRepository } from "@/repositories/site-user.repository";
-import type { CreateSiteUser, SiteUserFilter } from "@/types/site-user.type";
+import type { SiteUserFilter } from "@/types/site-user.type";
 import { getPaginationMetadata } from "@/utils/pagination";
 import config from "@/config/environment";
-import bcrypt from "bcrypt";
-import type { Login } from "@/types/auth.type";
+import type { Login, Signup } from "@/types/auth.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
 import { decrypt } from "@/utils/encryption";
-import { SiteUserAuth } from "@/authentication/site-user.auth";
-import type { BaseModel } from "@/types/base.type";
-import type { Request } from "express";
+import {
+  decodeToSessionId,
+  generateSessionToken,
+  hashPassword,
+  verifyPassword,
+} from "@/utils/auth_util";
+import prisma from "@/loaders/prisma";
+import { AuthRepository } from "@/repositories/auth.repository";
+import { SessionRepository } from "@/repositories/session.repository";
+import { SessionService } from "./session.service";
 export class SiteUserService {
-  private siteUserRepository: SiteUserRepository;
-  private siteUserAuth: SiteUserAuth;
+  private _siteUserRepository: SiteUserRepository;
+  private _sessionRepository: SessionRepository;
+  private _sessionService: SessionService;
+  private _authRepository: AuthRepository;
   constructor() {
-    this.siteUserRepository = new SiteUserRepository();
-    this.siteUserAuth = new SiteUserAuth();
+    this._siteUserRepository = new SiteUserRepository();
+    this._sessionRepository = new SessionRepository();
+    this._sessionService = new SessionService();
+    this._authRepository = new AuthRepository();
   }
   public async paginateSiteUsers(filter: SiteUserFilter) {
-    const count = await this.siteUserRepository.count(filter);
+    const count = await this._siteUserRepository.count(filter);
     const { current_page, page, page_count, page_size } = getPaginationMetadata(
       filter,
       count
     );
-    const siteUsers = await this.siteUserRepository.paginate(filter);
+    const siteUsers = await this._siteUserRepository.paginate(filter);
     return {
       data: siteUsers,
       metadata: {
@@ -35,35 +45,37 @@ export class SiteUserService {
       },
     };
   }
-  public async create(payload: CreateSiteUser) {
-    const saltRounds = config.passwordSalt;
-    const passwordHash = await bcrypt.hash(
-      payload.password,
-      Number(saltRounds)
-    );
-    return this.siteUserRepository.create({
-      ...payload,
-      password: passwordHash,
+  public async create(payload: Signup) {
+    const passwordHash = await hashPassword(payload.password);
+    return prisma.$transaction(async (tx) => {
+      const auth = await this._authRepository.createAuth(
+        {
+          email: payload.email,
+          password: passwordHash,
+        },
+        tx
+      );
+      return this._siteUserRepository.create(
+        {
+          username: payload.username,
+        },
+        auth.id,
+        tx
+      );
     });
   }
   public async siteUserlogin(payload: Login) {
-    const siteUser = await this.siteUserRepository.checkByEmailUsername(
-      payload.email,
-      payload.username
-    );
-    if (!siteUser) {
-      return ThrowUnauthorized("Invalid User Credentials");
+    const auth = await this._authRepository.checkByEmail(payload.email);
+    if (!auth) {
+      return ThrowUnauthorized("Invalid Credentials");
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      payload.password,
-      siteUser.password
-    );
+    const isPasswordValid = verifyPassword(payload.password, auth.password);
     if (!isPasswordValid) {
-      return ThrowUnauthorized("Invalid User Credentials");
+      return ThrowUnauthorized("Invalid Credentials");
     }
-    if (siteUser.totp_key) {
-      const key = decrypt(Uint8Array.from(siteUser.totp_key));
+    if (auth.totp_key) {
+      const key = decrypt(Uint8Array.from(auth.totp_key));
       if (!verifyTOTP(key, 30, 6, String(payload.otp))) {
         return ThrowInternalServer("Invalid Code");
       }
@@ -73,32 +85,37 @@ export class SiteUserService {
       }
     }
 
-    const sessionToken = this.siteUserAuth.generateSessionToken();
+    const sessionToken = generateSessionToken();
+    if (!auth.siteUser) return ThrowUnauthorized("SiteUser cannot be found");
 
-    const session = await this.siteUserAuth.createSession(
-      sessionToken,
-      siteUser.id,
-      !!siteUser.totp_key
-    );
-
-    return {
-      user: {
-        id: siteUser.id,
-        email: siteUser.email,
-        username: siteUser.username,
-      },
-      session: {
-        id: session.id,
+    await this._sessionService.createSession(
+      {
         token: sessionToken,
-        expiredAt: session.expires_at,
+        two_factor_verified: !!auth.totp_key,
       },
-    };
+      { user_id: auth.siteUser.id }
+    );
+    return auth.siteUser;
   }
 
-  public async siteUserSignout(req: Request) {
-    const { session } = await this.siteUserAuth.getSiteUser(req);
-    if (!session) return ThrowUnauthorized();
-    const result = await this.siteUserAuth.invalidateSession(session.id);
+  public async getMe(token: string) {
+    const sessionId = decodeToSessionId(token);
+    const result = await this._sessionRepository.findSessionById(sessionId);
+    if (result === null) {
+      return ThrowUnauthorized();
+    }
+    const { site_user, ...session } = result;
+    if (site_user === null) {
+      return ThrowUnauthorized();
+    }
+    const time = session.expires_at.getTime();
+    await this._sessionService.checkAndExtendSession(sessionId, time);
+    return site_user;
+  }
+
+  public async signout(token: string) {
+    const id = decodeToSessionId(token);
+    const result = await this._sessionService.invalidateSession(id);
     return result;
   }
 }

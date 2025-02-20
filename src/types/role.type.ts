@@ -1,4 +1,3 @@
-import type { Role } from "@prisma/client";
 import { z } from "zod";
 
 export const CreateRoleSchema = z.object({

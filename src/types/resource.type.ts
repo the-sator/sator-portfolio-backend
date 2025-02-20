@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-type Resource = {
+export type Resource = {
   id: number;
   name: string;
   created_at: Date;

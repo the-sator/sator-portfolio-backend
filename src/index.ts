@@ -1,17 +1,19 @@
 import "reflect-metadata"; // We need this in order to use @Decorators
 import express from "express";
-import Logger from "@/logger/logger";
 import config from "@/config/environment";
+import Logger from "@/logger/logger";
 
-async function startServer() {
+// Export the app and startServer function
+export const app = express();
+
+export async function startServer() {
   console.log("Starting server initialization...");
 
   try {
-    const app = express();
-
     console.log("Applying loaders...");
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    await require("./loaders").default({ expressApp: app });
+    const loaders = await import("./loaders");
+    await loaders.default({ expressApp: app });
 
     const server = app.listen(config.port, () => {
       Logger.info(`
@@ -37,10 +39,14 @@ async function startServer() {
 
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
+    return server;
   } catch (error) {
     console.error("Catastrophic server initialization error:", error);
     process.exit(1);
   }
 }
 
-startServer();
+// Start the server only if this file is run directly
+if (require.main === module) {
+  startServer();
+}

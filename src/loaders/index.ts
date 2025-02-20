@@ -1,10 +1,10 @@
+import Logger from "@/logger/logger";
 import expressLoader from "./express";
 import { redisLoader } from "./redis";
 import { socketLoader } from "./socket";
-import Logger from "@/logger/logger";
 import type { Express } from "express";
 
-export default async (expressApp: Express) => {
+export default async ({ expressApp }: { expressApp: Express }) => {
   try {
     console.log("Starting loader process...");
 

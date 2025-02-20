@@ -1,4 +1,4 @@
-import { Router, type Response, type Request } from "express";
+import { Router } from "express";
 import {
   adminRouteAdmin,
   adminRouteBlog,
@@ -32,17 +32,6 @@ import {
 
 export default () => {
   const app = Router();
-
-  //Health Check
-  app.get("/health-check", (_req: Request, res: Response) => {
-    const data = {
-      uptime: process.uptime(),
-      message: "OK",
-      date: new Date(),
-    };
-
-    res.status(200).send(data);
-  });
 
   // User routes remain top-level
   user(app);

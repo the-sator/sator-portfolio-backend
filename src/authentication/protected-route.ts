@@ -39,7 +39,6 @@ function protectedRoute(
         ? getAdminCookie(req)
         : getUserCookie(req);
 
-      console.log("sessionToken:", sessionToken);
       if (!sessionToken) {
         return ThrowUnauthorized(); // Handle unauthorized access
       }

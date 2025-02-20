@@ -1,4 +1,3 @@
-import { SESSION_EXPIRES_DATE_MS } from "@/constant/base";
 import { sha256 } from "@oslojs/crypto/sha2";
 import config from "@/config/environment";
 import bcrypt from "bcrypt";
@@ -7,7 +6,6 @@ import {
   encodeBase32LowerCaseNoPadding,
   encodeHexLowerCase,
 } from "@oslojs/encoding";
-import type { Session } from "@prisma/client";
 
 export function decodeToSessionId(token: string) {
   return encodeHexLowerCase(sha256(new TextEncoder().encode(token)));

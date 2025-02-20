@@ -1,6 +1,6 @@
 import { UserService } from "@/services/user.service";
 import { LoginSchema, SignUpSchema } from "@/types/auth.type";
-import { CreateUserSchema, UserFilterSchema } from "@/types/user.type";
+import { UserFilterSchema } from "@/types/user.type";
 import { getUserCookie } from "@/utils/cookie";
 import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";

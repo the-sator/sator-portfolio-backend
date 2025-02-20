@@ -1,5 +1,5 @@
 import { FormQuestionService } from "@/services/form-question.service";
-import { BaseFilterSchema, BaseModelSchema } from "@/types/base.type";
+import { BaseModelSchema } from "@/types/base.type";
 import {
   CreateFormQuestionSchema,
   PortfolioFormFilterSchema,
@@ -7,7 +7,6 @@ import {
 import { ThrowInternalServer } from "@/utils/exception";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { NextFunction, Request, Response } from "express";
-import { ZodError } from "zod";
 
 export class FormQuestionController {
   private formQuestionService: FormQuestionService;

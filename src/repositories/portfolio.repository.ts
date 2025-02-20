@@ -1,6 +1,5 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { BaseFilter } from "@/types/base.type";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
 import type { Prisma } from "@prisma/client";
 
@@ -9,7 +8,7 @@ export class PortfolioRepository {
     return await prisma.portfolio.findMany();
   }
   public buildFilter(filter: PortfolioFilter) {
-    let where: Record<string, any> = {};
+    let where: Record<string, unknown> = {};
     if (filter.title) {
       where.title = { contains: filter.title, mode: "insensitive" };
     }
@@ -112,7 +111,7 @@ export class PortfolioRepository {
   }
   public async count(
     filter: PortfolioFilter,
-    customWhere: Record<string, any> = {}
+    customWhere: Record<string, unknown> = {}
   ) {
     const where = {
       ...this.buildFilter(filter),

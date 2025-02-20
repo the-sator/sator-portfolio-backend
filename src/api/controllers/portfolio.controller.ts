@@ -1,9 +1,5 @@
 import { PortfolioService } from "@/services/portfolio.service";
-import {
-  BaseFilterSchema,
-  BaseModelSchema,
-  ValidatedSlugSchema,
-} from "@/types/base.type";
+import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
 import {
   CreatePortfolioSchema,
   PortfolioFilterSchema,

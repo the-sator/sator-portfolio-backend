@@ -3,7 +3,6 @@ import type { Signup } from "@/types/auth.type";
 import type { Prisma } from "@prisma/client";
 import type { EncryptedUpdateAdminTotp } from "./admin.repository";
 import { encryptToBuffer } from "@/utils/encryption";
-import type { EntityID } from "@/types/base.type";
 
 export class AuthRepository {
   public async checkByEmail(email: string) {

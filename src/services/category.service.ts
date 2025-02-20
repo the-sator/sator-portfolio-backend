@@ -1,6 +1,6 @@
 import { CategoryRepository } from "@/repositories/category.repository";
 import type { CreateCategory } from "@/types/category.type";
-import { ThrowForbidden, ThrowUnauthorized } from "@/utils/exception";
+import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request } from "express";
 import { SiteUserService } from "./site-user.service";
 import { AdminService } from "./admin.service";

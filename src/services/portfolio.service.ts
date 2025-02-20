@@ -1,8 +1,6 @@
-import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
 import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
 import { PortfolioRepository } from "@/repositories/portfolio.repository";
-import type { BaseFilter } from "@/types/base.type";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
 import {
   ThrowForbidden,

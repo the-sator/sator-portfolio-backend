@@ -1,6 +1,5 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
-import type { BaseFilter } from "@/types/base.type";
 import type {
   CreateFormQuestion,
   PortfolioFormFilter,

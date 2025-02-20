@@ -1,21 +1,17 @@
 import { AdminRepository } from "@/repositories/admin.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
-import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
+import { decodeBase64 } from "@oslojs/encoding";
 import { verifyTOTP } from "@oslojs/otp";
 import config from "@/config/environment";
 
-import {
-  COOKIE,
-  type BaseModel,
-  type ValidateSessionToken,
-} from "@/types/base.type";
-import type { CreateAdmin, UpdateAdminTotp } from "@/types/admin.type";
+import { COOKIE } from "@/types/base.type";
+import type { UpdateAdminTotp } from "@/types/admin.type";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
 import { decrypt } from "@/utils/encryption";
 import type { AssignAdminRole } from "@/types/admin.type";
-import type { Auth, Login, Signup } from "@/types/auth.type";
+import type { Login, Signup } from "@/types/auth.type";
 import { AuthRepository } from "@/repositories/auth.repository";
 import {
   decodeToSessionId,

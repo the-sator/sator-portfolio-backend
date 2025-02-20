@@ -1,4 +1,3 @@
-import { io } from "@/loaders/socket";
 import { AdminRepository } from "@/repositories/admin.repository";
 import { ChatMemberRepository } from "@/repositories/chat-member.repository";
 import { UserRepository } from "@/repositories/user.repository";
@@ -6,18 +5,8 @@ import type {
   CreateChatMember,
   InviteChatMember,
 } from "@/types/chat-member.type";
-import {
-  ThrowForbidden,
-  ThrowInternalServer,
-  ThrowUnauthorized,
-} from "@/utils/exception";
-import {
-  ChatMemberRole,
-  ChatMessageType,
-  Prisma,
-  type ChatMember,
-} from "@prisma/client";
-import type { Request } from "express";
+import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
+import { ChatMemberRole, ChatMessageType, Prisma } from "@prisma/client";
 import { ChatMessageService } from "./chat-message.service";
 import prisma from "@/loaders/prisma";
 import { UnreadMessageService } from "./unread-message.service";

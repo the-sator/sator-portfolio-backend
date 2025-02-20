@@ -11,6 +11,7 @@ async function startServer() {
     const app = express();
 
     console.log("Applying loaders...");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     await require("./loaders").default({ expressApp: app });
 
     app

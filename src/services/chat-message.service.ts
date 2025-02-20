@@ -11,8 +11,6 @@ import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
-import { redisClient } from "@/loaders/redis";
-import type { Prisma } from "@prisma/client";
 import { UnreadMessageService } from "./unread-message.service";
 import { UserService } from "./user.service";
 import { AdminService } from "./admin.service";

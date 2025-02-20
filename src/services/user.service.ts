@@ -1,10 +1,9 @@
 import { UserRepository } from "@/repositories/user.repository";
-import { type CreateUser, type UserFilter } from "@/types/user.type";
+import { type UserFilter } from "@/types/user.type";
 import config from "@/config/environment";
 import bcrypt from "bcrypt";
-import { LIMIT } from "@/constant/base";
 import { getPaginationMetadata } from "@/utils/pagination";
-import type { Auth, Login, Signup } from "@/types/auth.type";
+import type { Login, Signup } from "@/types/auth.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
 import { decrypt } from "@/utils/encryption";

@@ -1,4 +1,4 @@
-import type { Admin, Session, User } from "@prisma/client";
+import type { Admin, User } from "@prisma/client";
 import { z } from "zod";
 
 export const SignUpSchema = z.object({

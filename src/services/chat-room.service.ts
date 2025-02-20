@@ -8,7 +8,6 @@ import type {
 } from "@/types/chat-room.type";
 import { ThrowUnauthorized } from "@/utils/exception";
 import { ChatMemberRole } from "@prisma/client";
-import type { Request } from "express";
 import { ChatMemberService } from "./chat-member.service";
 import { getPaginationMetadata } from "@/utils/pagination";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";

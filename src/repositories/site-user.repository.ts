@@ -4,7 +4,7 @@ import type { CreateSiteUser, SiteUserFilter } from "@/types/site-user.type";
 import type { Prisma } from "@prisma/client";
 export class SiteUserRepository {
   private buildFilter = (filter: SiteUserFilter) => {
-    const where: Record<string, any> = {};
+    const where: Record<string, unknown> = {};
     if (filter.email) {
       where.email = {
         contains: filter.email,

@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 
 export class BlogRepository {
   public buildFilter(filter: BlogFilter) {
-    let where: Record<string, any> = {};
+    let where: Record<string, unknown> = {};
     if (filter.title) {
       where.title = { contains: filter.title, mode: "insensitive" };
     }
@@ -80,7 +80,7 @@ export class BlogRepository {
 
   public async count(
     filter: BlogFilter,
-    customWhere: Record<string, any> = {}
+    customWhere: Record<string, unknown> = {}
   ) {
     const where = {
       ...this.buildFilter(filter),

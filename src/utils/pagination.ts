@@ -1,7 +1,7 @@
 import { LIMIT } from "@/constant/base";
 
 export const getPaginationMetadata = (
-  filter: Record<string, any>,
+  filter: Record<string, unknown>,
   count: number
 ) => {
   const current_page = filter.page ? Number(filter.page) : 1;

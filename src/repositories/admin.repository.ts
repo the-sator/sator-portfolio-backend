@@ -4,8 +4,6 @@ import type {
   CreateAdmin,
   UpdateAdminTotp,
 } from "@/types/admin.type";
-import { encryptToBuffer } from "@/utils/encryption";
-import type { Prisma } from "@prisma/client";
 
 export interface EncryptedUpdateAdminTotp extends Omit<UpdateAdminTotp, "key"> {
   key: Uint8Array;

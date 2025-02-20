@@ -1,14 +1,11 @@
 import { SiteUserRepository } from "@/repositories/site-user.repository";
-import type { CreateSiteUser, SiteUserFilter } from "@/types/site-user.type";
+import type { SiteUserFilter } from "@/types/site-user.type";
 import { getPaginationMetadata } from "@/utils/pagination";
 import config from "@/config/environment";
-import bcrypt from "bcrypt";
 import type { Login, Signup } from "@/types/auth.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
 import { decrypt } from "@/utils/encryption";
-import type { BaseModel } from "@/types/base.type";
-import type { Request } from "express";
 import {
   decodeToSessionId,
   generateSessionToken,
@@ -17,7 +14,6 @@ import {
 } from "@/utils/auth_util";
 import prisma from "@/loaders/prisma";
 import { AuthRepository } from "@/repositories/auth.repository";
-import type { siteUser } from "@/api/routes/site-user";
 import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
 export class SiteUserService {

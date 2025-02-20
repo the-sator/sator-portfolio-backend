@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 
 export class UserRepository {
   public buildFilter(filter: UserFilter) {
-    let where: Record<string, any> = {};
+    const where: Record<string, any> = {};
     if (filter.email) {
       where.email = {
         startsWith: filter.email,

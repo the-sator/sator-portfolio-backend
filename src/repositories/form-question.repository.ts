@@ -20,7 +20,7 @@ export class FormQuestionRepository {
   }
 
   public buildFilter(filter: PortfolioFormFilter) {
-    let where: Record<string, any> = {};
+    const where: Record<string, unknown> = {};
 
     if (filter.order) {
       where.order = Number(filter.order);

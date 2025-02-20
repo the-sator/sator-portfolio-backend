@@ -1,12 +1,7 @@
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
-import {
-  AssignAdminRoleSchema,
-  CreateAdminSchema,
-  UpdateAdminTotpSchema,
-} from "@/types/admin.type";
+import { AssignAdminRoleSchema } from "@/types/admin.type";
 import { LoginSchema, SignUpSchema } from "@/types/auth.type";
-import { BaseModelSchema, ValidateSessionTokenSchema } from "@/types/base.type";
 import { getAdminCookie } from "@/utils/cookie";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";

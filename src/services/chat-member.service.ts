@@ -142,7 +142,7 @@ export class ChatMemberService {
       const member = await this.chatMemberRepository.findById(id, tx);
       if (!member) return ThrowInternalServer("Member Cannot Be Found");
       const isSelf = member.admin_id === admin.id;
-      if (!!isSelf) return ThrowInternalServer("You cannot remove yourself");
+      if (isSelf) return ThrowInternalServer("You cannot remove yourself");
       const chatMember = await this.chatMemberRepository.softDelete(
         member.id,
         tx
@@ -163,7 +163,7 @@ export class ChatMemberService {
       );
       if (!member) return ThrowInternalServer("Member Cannot Be Found");
       const isNotSelf = member.admin_id !== admin.id;
-      if (!!isNotSelf) return ThrowInternalServer("Invalid Auth ID");
+      if (isNotSelf) return ThrowInternalServer("Invalid Auth ID");
       const chatMember = await this.chatMemberRepository.softDelete(
         member.id,
         tx

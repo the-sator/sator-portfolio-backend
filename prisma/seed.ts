@@ -51,7 +51,7 @@ async function main() {
     },
   });
   console.log("Role ", adminRole.name, " Created ✅");
-  let resources: Resource[] = [];
+  const resources: Resource[] = [];
   for (const resource of Resource) {
     const result = await prisma.resource.upsert({
       where: { name: resource.name },

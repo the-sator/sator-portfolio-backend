@@ -13,10 +13,11 @@
     "reset-all": "bunx prisma db push --force-reset && bunx prisma db seed",
     "db-diff": "bunx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url",
     "test": "jest",
-    "lint": "npm run lint:js ",
-    "lint:eslint": "eslint --ignore-path .gitignore --ext .ts",
+    "lint": "npm run lint:js",
+    "lint:eslint": "eslint --ignore-pattern .gitignore",
     "lint:js": "npm run lint:eslint src/",
-    "lint:fix": "npm run lint:js -- --fix"
+    "lint:fix": "npm run lint:js -- --fix",
+    "prepare": "husky"
   },
   "prisma": {
     "seed": "node --loader ts-node/esm ./prisma/seed.ts",
@@ -48,6 +49,7 @@
     "express": "^4.21.1",
     "http-errors": "^2.0.0",
     "http-status-codes": "^2.3.0",
+    "husky": "^9.1.7",
     "method-override": "^3.0.0",
     "nodemon": "^3.1.7",
     "redis": "^4.7.0",

@@ -1,0 +1,47 @@
+networks:
+  app:
+    driver: bridge
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: local
+    ports:
+      - "3336:3306"
+    volumes:
+      - local-db:/var/lib/postgres/data
+    networks:
+      - app
+
+  redis:
+    image: redis:7.2-alpine
+    restart: always
+    ports:
+      - "6663:6379"
+    command: redis-server --loglevel warning --requirepass  password
+    volumes:
+      - redis-data:/data
+    networks:
+      - app
+
+  gva-backend-api:
+    build:
+      context: .
+      dockerfile: build/Dockerfile${CUSTOM}
+    env_file:
+      - .env
+    volumes:
+      - api-data:/app
+    networks:
+      - app
+    depends_on:
+      - db
+      - redis
+    links:
+      - db
+      - redis
+    ports:
+      - 5500:5500

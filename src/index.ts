@@ -2,11 +2,13 @@ import "reflect-metadata"; // We need this in order to use @Decorators
 import express from "express";
 import config from "@/config/environment";
 import Logger from "@/logger/logger";
+import { loadEnv } from "./utils/env";
 
 // Export the app and startServer function
 export const app = express();
 
 export async function startServer() {
+  loadEnv();
   console.log("Starting server initialization...");
 
   try {

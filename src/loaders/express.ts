@@ -20,21 +20,11 @@ export default function configureExpress({
   app.use(cookieParser());
   app.use(express.json());
 
-  //Health Check
-  app.get("/health-check", (_req: Request, res: Response) => {
-    const data = {
-      uptime: process.uptime(),
-      message: "OK",
-      date: new Date(),
-    };
-
-    res.status(200).send(data);
-  });
   // API routes
   app.use(config.api.prefix, routes());
 
   // 404 Handler - should be after all valid routes
-  app.use((req: Request, res: Response, next: NextFunction) => {
+  app.use("*", (req: Request, res: Response, next: NextFunction) => {
     next(createHttpError(404, "Endpoint Not Found"));
   });
 

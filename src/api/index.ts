@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import {
   adminRouteAdmin,
   adminRouteBlog,
@@ -27,11 +27,25 @@ import {
   siteUserCategory,
   siteUserPortfolio,
 } from "./routes/site-user";
+import { TestController } from "./controllers/test.controller";
 
 // guaranteed to get dependencies
 
 export default () => {
   const app = Router();
+  const test = new TestController();
+  app.post("/test", test.create);
+
+  //Health Check
+  app.get("/health-check", (_req: Request, res: Response) => {
+    const data = {
+      uptime: process.uptime(),
+      message: "OK",
+      date: new Date(),
+    };
+
+    res.status(200).send(data);
+  });
 
   // User routes remain top-level
   user(app);

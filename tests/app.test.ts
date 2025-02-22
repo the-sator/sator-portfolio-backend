@@ -1,25 +1,19 @@
 import request from "supertest";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { app, startServer } from "../src/index";
-import type { IncomingMessage, Server, ServerResponse } from "http";
+import { app, closeServer, startServer } from "../src/index";
+import config from "@/config/environment";
 
 describe("Server Health Check", () => {
-  let server: Server<typeof IncomingMessage, typeof ServerResponse>;
-
   beforeAll(async () => {
-    // Start the server before running tests
-    server = await startServer();
+    await startServer();
   });
-
-  afterAll(() => {
-    // Close the server after tests are done
-    if (server) {
-      server.close();
-    }
+  afterAll(async () => {
+    closeServer();
   });
-
   it("should return 200 for the health check endpoint", async () => {
-    const response = await request(app).get("/health-check"); // Replace with your health check endpoint
+    const response = await request(app).get(
+      config.api.prefix + "/health-check"
+    );
     expect(response.status).toBe(200);
   });
 });

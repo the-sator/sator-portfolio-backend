@@ -51,8 +51,11 @@ export function socketLoader({ app }: { app: express.Application }) {
     // socket.on("online", (id: string) => {});
   });
 
+  const port =
+    process.env.NODE_ENV === "test" ? 0 : process.env.SOCKET_PORT || 808;
+
   // Start the server
-  const port = process.env.SOCKET_PORT || 8080;
+
   server.listen(port, () => {
     console.log(`Socket.IO server running on port ${port}`);
   });

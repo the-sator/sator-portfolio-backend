@@ -1,11 +1,11 @@
 import "reflect-metadata"; // We need this in order to use @Decorators
 import express from "express";
 import config from "@/config/environment";
-import Logger from "@/logger/logger";
 import { loadEnv } from "./utils/env";
 
 // Export the app and startServer function
 export const app = express();
+let server: ReturnType<typeof app.listen>;
 
 export async function startServer() {
   loadEnv();
@@ -13,12 +13,14 @@ export async function startServer() {
 
   try {
     console.log("Applying loaders...");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const loaders = await import("./loaders");
     await loaders.default({ expressApp: app });
 
-    const server = app.listen(config.port, () => {
-      Logger.info(`
+    const port = process.env.NODE_ENV === "test" ? 0 : config.port;
+    console.log("process.env.NODE_ENV:", process.env.NODE_ENV);
+
+    server = app.listen(port, () => {
+      console.log(`
         ################################################
         🛡️  Server listening on port: ${config.port} 🛡️
         ################################################
@@ -28,15 +30,7 @@ export async function startServer() {
     // Handle graceful shutdown
     const shutdown = async () => {
       console.log("\nReceived shutdown signal, shutting down gracefully...");
-      server.close((err) => {
-        if (err) {
-          console.error("Error during server shutdown:", err);
-          process.exit(1);
-        }
-        console.log("Server closed.");
-        // Close other resources like database connections here
-        process.exit(0);
-      });
+      closeServer();
     };
 
     process.on("SIGTERM", shutdown);
@@ -45,6 +39,12 @@ export async function startServer() {
   } catch (error) {
     console.error("Catastrophic server initialization error:", error);
     process.exit(1);
+  }
+}
+
+export function closeServer() {
+  if (server) {
+    server.close();
   }
 }
 

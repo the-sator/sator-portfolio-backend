@@ -11,3 +11,8 @@
     + {errorCode, status, message, data}
   
 - [ ] Add IP + Device column in session table
+
+
+
+## Bug
+- [ ] Admin type in wrong credential still return true

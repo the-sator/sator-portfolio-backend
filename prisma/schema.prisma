@@ -291,6 +291,11 @@ model BlogMetric {
   blog       Blog     @relation(fields: [blog_id], references: [id])
 }
 
+model Test {
+  id   String @id @default(uuid())
+  name String
+}
+
 enum CategoryColor {
   RED
   VIOLET

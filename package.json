@@ -16,7 +16,7 @@
     "lint:eslint": "eslint --ignore-pattern .gitignore",
     "lint:js": "npm run lint:eslint src/",
     "lint:fix": "npm run lint:js -- --fix",
-    "test": "set APP_PORT=0 && vitest",
+    "test": "vitest",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky"

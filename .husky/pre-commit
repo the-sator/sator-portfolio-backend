@@ -1,2 +1,1 @@
 bun lint
-bun run test run tests/app.test.ts

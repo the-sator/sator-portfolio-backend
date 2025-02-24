@@ -19,6 +19,7 @@ import {
   chatMember,
   chatMessage,
   chatRoom,
+  test,
   unreadMessage,
   user,
 } from "./routes";
@@ -27,15 +28,11 @@ import {
   siteUserCategory,
   siteUserPortfolio,
 } from "./routes/site-user";
-import { TestController } from "./controllers/test.controller";
 
 // guaranteed to get dependencies
 
 export default () => {
   const app = Router();
-  const test = new TestController();
-  app.get("/test", test.getAll);
-  app.post("/test", test.create);
 
   //Health Check
   app.get("/health-check", (_req: Request, res: Response) => {
@@ -55,6 +52,7 @@ export default () => {
   chatMessage(app);
   unreadMessage(app);
   blog(app);
+  test(app);
 
   // Site user routes group
   const siteUserRouter = Router();

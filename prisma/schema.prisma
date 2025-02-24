@@ -292,10 +292,11 @@ model BlogMetric {
 }
 
 model Test {
-  id         String   @id @default(uuid())
+  id         String        @id @default(uuid())
   name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  type       CategoryColor @default(BLUE)
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
 }
 
 enum CategoryColor {

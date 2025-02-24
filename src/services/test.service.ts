@@ -6,11 +6,13 @@ export class TestService {
     this.testRepository = new TestRepository();
   }
 
+  public getAll() {
+    return this.testRepository.getAll();
+  }
   public create(name: string) {
     return this.testRepository.create(name);
   }
-
-  public getAll() {
-    return this.testRepository.getAll();
+  public update(id: string, name: string) {
+    return this.testRepository.update(id, name);
   }
 }

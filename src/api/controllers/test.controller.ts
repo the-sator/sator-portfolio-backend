@@ -6,6 +6,14 @@ export class TestController {
   constructor() {
     this.testService = new TestService();
   }
+  public getAll = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const test = await this.testService.getAll();
+      res.json({ data: test });
+    } catch (err) {
+      next(err);
+    }
+  };
   public create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const name = req.body["name"];
@@ -16,9 +24,11 @@ export class TestController {
     }
   };
 
-  public getAll = async (_req: Request, res: Response, next: NextFunction) => {
+  public update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const test = await this.testService.getAll();
+      const param = req.params;
+      const name = req.body["name"];
+      const test = await this.testService.update(param.id, name);
       res.json({ data: test });
     } catch (err) {
       next(err);

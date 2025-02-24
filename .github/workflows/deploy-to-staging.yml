@@ -8,24 +8,20 @@ on:
       - completed
     branches:
       - main
-  push:
-    branches:
-      - main
-    paths:
-      - "prisma/**"
-  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
-      (github.event_name == 'push' && contains(github.event.paths, 'prisma/'))
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Verify Changed files
+        uses: tj-actions/verify-changed-files@v20
+        id: verify-changed-files
+        with:
+          files: |
+            prisma/**
 
       - name: Setup Node
         uses: actions/setup-node@v3

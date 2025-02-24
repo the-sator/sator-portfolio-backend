@@ -23,6 +23,7 @@ describe("Testing Phase", () => {
   it("get all should return status 200", async () => {
     const response = await request(app).get(prefix + "/test");
     const data = response.body.data;
+    console.log(1);
     expect(response.status).toBe(200);
     expect(data).not.toBe(null);
   });

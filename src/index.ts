@@ -41,9 +41,12 @@ export async function startServer() {
 }
 
 export function closeServer() {
-  if (server) {
-    server.close();
-  }
+  server.close((err) => {
+    if (err) {
+      console.error("Error during server shutdown:", err);
+    }
+    console.log("Server closed.");
+  });
 }
 
 // Start the server only if this file is run directly

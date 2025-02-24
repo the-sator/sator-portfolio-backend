@@ -52,7 +52,7 @@ export function socketLoader({ app }: { app: express.Application }) {
   });
 
   const port =
-    process.env.NODE_ENV === "test" ? 0 : process.env.SOCKET_PORT || 808;
+    process.env.NODE_ENV === "test" ? 0 : process.env.SOCKET_PORT || 8080;
 
   // Start the server
 

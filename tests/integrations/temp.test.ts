@@ -15,6 +15,8 @@ describe("POST /test", async () => {
     const response = await request(app)
       .post(config.api.prefix + "/test")
       .send({ name: "test" });
+    console.log("response:", response.body);
+
     expect(response.status).toBe(200);
     expect(response.body.test.name).toBe("test");
   });

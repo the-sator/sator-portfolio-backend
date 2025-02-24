@@ -109,7 +109,10 @@ export class AdminService {
 
     setCookie(res, COOKIE.ADMIN, sessionToken);
 
-    return auth.admin;
+    return {
+      ...auth.admin,
+      token: sessionToken,
+    };
   }
 
   public async getMe(token: string) {

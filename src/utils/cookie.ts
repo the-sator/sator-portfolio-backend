@@ -4,7 +4,7 @@ import type { CookieOptions, Request, Response } from "express";
 export function setCookie(res: Response, name: string, value: string) {
   const options: CookieOptions = {
     httpOnly: true,
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
     maxAge: 1000 * 60 * 60 * 24 * 15,
   };
@@ -13,7 +13,7 @@ export function setCookie(res: Response, name: string, value: string) {
 export function deleteCookie(res: Response, name: string) {
   res.clearCookie(name, {
     httpOnly: true,
-    sameSite: "none",
+    sameSite: "lax",
     secure: true,
   });
 }

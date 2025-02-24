@@ -4,34 +4,36 @@ import config from "@/config/environment";
 import { app, closeServer, startServer } from "@/index";
 
 describe("Testing Phase", () => {
-  let testId: string;
   beforeAll(async () => {
     await startServer();
   });
   afterAll(() => {
     closeServer();
   });
-
+  let testId: string;
+  const prefix = config.api.prefix;
   it("create should return status 200", async () => {
     const response = await request(app)
-      .post(config.api.prefix + "/test")
+      .post(prefix + "/test")
       .send({ name: "test" });
+    console.log("response.text:", response.text);
     expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("test");
     testId = response.body.data.id; // Store the created resource ID
   });
   it("get all should return status 200", async () => {
-    const response = await request(app).get(config.api.prefix + "/test");
+    const response = await request(app).get(prefix + "/test");
     const data = response.body.data;
+    console.log("response.text:", response.text);
     expect(response.status).toBe(200);
     expect(data).not.toBe(null);
   });
   it("update should return status 200", async () => {
     const response = await request(app)
-      .put(config.api.prefix + "/test/" + testId)
+      .put(prefix + "/test/" + testId)
       .send({ name: "updated test" });
-    expect(response.status).toBe(200);
     console.log("response.text:", response.text);
+    expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("updated test");
   });
 });

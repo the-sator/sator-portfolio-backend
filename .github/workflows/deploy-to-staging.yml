@@ -76,5 +76,8 @@ jobs:
 
       - name: Apply migrations to staging database
         run: npx prisma migrate deploy
+
+      - name: Seed the temporary database
+        run: npx prisma db seed
         env:
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}

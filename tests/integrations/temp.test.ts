@@ -31,7 +31,7 @@ describe("Testing Phase", () => {
       .put(config.api.prefix + "/test/" + testId)
       .send({ name: "updated test" });
     expect(response.status).toBe(200);
-    console.log(1);
+    console.log("response.text:", response.text);
     expect(response.body.data.name).toBe("updated test");
   });
 });

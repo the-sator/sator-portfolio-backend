@@ -7,7 +7,7 @@ describe("Server Health Check", () => {
   beforeAll(async () => {
     await startServer();
   });
-  afterAll(async () => {
+  afterAll(() => {
     closeServer();
   });
   it("should return 200 for the health check endpoint", async () => {

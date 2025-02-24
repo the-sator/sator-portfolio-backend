@@ -20,7 +20,7 @@ export async function startServer() {
     server = app.listen(port, () => {
       console.log(`
         ################################################
-        🛡️  Server listening on port: ${config.port} 🛡️
+        🛡️  Server listening on port: ${port} 🛡️
         ################################################
       `);
     });
@@ -41,12 +41,7 @@ export async function startServer() {
 }
 
 export function closeServer() {
-  server.close((err) => {
-    if (err) {
-      console.error("Error during server shutdown:", err);
-    }
-    console.log("Server closed.");
-  });
+  server.close();
 }
 
 // Start the server only if this file is run directly

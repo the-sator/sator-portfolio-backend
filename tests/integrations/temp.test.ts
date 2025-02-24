@@ -3,11 +3,11 @@ import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import config from "@/config/environment";
 import { app, closeServer, startServer } from "@/index";
 
-describe("POST /test", async () => {
+describe("POST /test", () => {
   beforeAll(async () => {
     await startServer();
   });
-  afterAll(async () => {
+  afterAll(() => {
     closeServer();
   });
 
@@ -16,6 +16,7 @@ describe("POST /test", async () => {
       .post(config.api.prefix + "/test")
       .send({ name: "test" });
     console.log("response:", response.body);
+    console.log("response:", response.text);
 
     expect(response.status).toBe(200);
     expect(response.body.test.name).toBe("test");

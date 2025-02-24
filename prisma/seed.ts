@@ -182,7 +182,7 @@ async function main() {
           },
         }),
       ]);
-      console.log("Users created ✅");
+      console.log("Admins & Users created ✅");
     },
     {
       timeout: 30000, // Increase transaction timeout

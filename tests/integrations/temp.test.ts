@@ -4,7 +4,7 @@ import config from "@/config/environment";
 import { app, closeServer, startServer } from "@/index";
 
 describe("Testing Phase", () => {
-  let createdTestId: string;
+  let testId: string;
   beforeAll(async () => {
     await startServer();
   });
@@ -18,7 +18,7 @@ describe("Testing Phase", () => {
       .send({ name: "test" });
     expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("test");
-    createdTestId = response.body.data.id; // Store the created resource ID
+    testId = response.body.data.id; // Store the created resource ID
   });
   it("get all should return status 200", async () => {
     const response = await request(app).get(config.api.prefix + "/test");
@@ -28,7 +28,7 @@ describe("Testing Phase", () => {
   });
   it("update should return status 200", async () => {
     const response = await request(app)
-      .put(config.api.prefix + "/test/" + createdTestId)
+      .put(config.api.prefix + "/test/" + testId)
       .send({ name: "updated test" });
     expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("updated test");

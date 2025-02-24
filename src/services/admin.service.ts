@@ -88,7 +88,6 @@ export class AdminService {
       payload.password,
       auth.password
     );
-    console.log("isPasswordValid:", isPasswordValid);
     if (!isPasswordValid) {
       return ThrowUnauthorized("Invalid User Credentials");
     }

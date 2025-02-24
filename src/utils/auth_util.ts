@@ -1,6 +1,7 @@
 import { sha256 } from "@oslojs/crypto/sha2";
 import config from "@/config/environment";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 
 import {
   encodeBase32LowerCaseNoPadding,

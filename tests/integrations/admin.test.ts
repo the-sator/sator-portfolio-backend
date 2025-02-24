@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import config from "@/config/environment";
 import request from "supertest";
 import type { Login } from "@/types/auth.type";
+import Logger from "@/logger/logger";
 
 describe("Admin", () => {
   const prefix = config.api.prefix;
@@ -16,11 +17,26 @@ describe("Admin", () => {
     closeServer();
   });
 
-  it("Admin Sign in Incorrectly Should Return 401", async () => {
+  it("Admin Sign in with Incorrect Email Should Return 404", async () => {
     const data: Login = {
       username: "admin",
       email: "admin@gmail.com", // Incorrect Email
       password: "12345678",
+      otp: 666666,
+    };
+    // Create a new agent to maintain cookies
+    // Perform login and store the session cookie
+    const response = await request(app)
+      .post(prefix + "/admin/login")
+      .send(data);
+    expect(response.status).toBe(404);
+  });
+
+  it("Admin Sign in with Incorrect Password Should Return 401", async () => {
+    const data: Login = {
+      username: "admin",
+      email: "admin@test.com", // Incorrect Email
+      password: "invalid",
       otp: 666666,
     };
     // Create a new agent to maintain cookies
@@ -43,6 +59,9 @@ describe("Admin", () => {
     const response = await request(app)
       .post(prefix + "/admin/login")
       .send(data);
+    console.log("response:", response);
+    Logger.error(response.text);
+    console.log("response.text:", response.text);
     token = response.body.data.token;
     expect(response.status).toBe(200);
   });

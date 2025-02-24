@@ -1,7 +1,6 @@
 import { UserRepository } from "@/repositories/user.repository";
 import { type UserFilter } from "@/types/user.type";
 import config from "@/config/environment";
-import bcrypt from "bcrypt";
 import { getPaginationMetadata } from "@/utils/pagination";
 import type { Login, Signup } from "@/types/auth.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
@@ -13,6 +12,7 @@ import {
   decodeToSessionId,
   generateSessionToken,
   hashPassword,
+  verifyPassword,
 } from "@/utils/auth_util";
 import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionService } from "./session.service";
@@ -74,7 +74,7 @@ export class UserService {
       return ThrowUnauthorized("Invalid Credentials");
     }
 
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await verifyPassword(
       payload.password,
       auth.password
     );

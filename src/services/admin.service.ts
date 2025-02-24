@@ -1,6 +1,10 @@
 import { AdminRepository } from "@/repositories/admin.repository";
 import { SessionRepository } from "@/repositories/session.repository";
-import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
+import {
+  ThrowInternalServer,
+  ThrowNotFound,
+  ThrowUnauthorized,
+} from "@/utils/exception";
 import { decodeBase64 } from "@oslojs/encoding";
 import { verifyTOTP } from "@oslojs/otp";
 import config from "@/config/environment";
@@ -77,10 +81,14 @@ export class AdminService {
   public async login(res: Response, payload: Login) {
     const auth = await this.authRepository.checkByEmail(payload.email);
     if (!auth) {
-      return ThrowUnauthorized("Invalid User Credentials");
+      return ThrowNotFound();
     }
 
-    const isPasswordValid = verifyPassword(payload.password, auth.password);
+    const isPasswordValid = await verifyPassword(
+      payload.password,
+      auth.password
+    );
+    console.log("isPasswordValid:", isPasswordValid);
     if (!isPasswordValid) {
       return ThrowUnauthorized("Invalid User Credentials");
     }

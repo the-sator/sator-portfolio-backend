@@ -1,16 +1,28 @@
-name: Deploy to Staging with Temporary Database
+# .github/workflows/deploy.yml
+name: Deploy to Staging
 
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
+    branches:
+      - main
   push:
     branches:
       - main
     paths:
       - "prisma/**"
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'push' && contains(github.event.paths, 'prisma/'))
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -28,7 +40,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
 
-      - name: Seed the temporary database
+      - name: Seed the staging database
         run: npx prisma db seed
         env:
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}

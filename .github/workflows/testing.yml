@@ -52,6 +52,7 @@ jobs:
           echo "REDIS_URL=redis://localhost:6379" >> .env
           echo "PORT=3000" >> .env
           echo "SOCKET_PORT=8080" >> .env
+          echo "PASSWORD_SALT=20" >> .env
 
       - name: Run migrations on temporary database
         run: npx prisma migrate deploy

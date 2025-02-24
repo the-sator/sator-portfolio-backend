@@ -127,6 +127,8 @@ async function main() {
   const saltRounds = process.env.PASSWORD_SALT;
 
   const superPasswordHash = await bcrypt.hash("super123", Number(saltRounds));
+  const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
+
   await prisma.$transaction(async (tx) => {
     const superAdminAuth = await tx.auth.upsert({
       where: { email: "super@test.com" },
@@ -146,10 +148,7 @@ async function main() {
       },
     });
     console.log("Super Admin ", superAdminTest.username, " Created ✅");
-  });
 
-  const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
-  await prisma.$transaction(async (tx) => {
     const adminAuth = await tx.auth.upsert({
       where: { email: "admin@test.com" },
       update: {},
@@ -167,10 +166,8 @@ async function main() {
         role_id: adminRole.id,
       },
     });
-    console.log("Super Admin ", adminTest.username, " Created ✅");
-  });
+    console.log("Admin ", adminTest.username, " Created ✅");
 
-  await prisma.$transaction(async (tx) => {
     const userAuth = await tx.auth.upsert({
       where: { email: "user@test.com" },
       update: {},

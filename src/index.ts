@@ -28,7 +28,10 @@ export async function startServer() {
     // Handle graceful shutdown
     const shutdown = async () => {
       console.log("\nReceived shutdown signal, shutting down gracefully...");
-      closeServer();
+      if (server) {
+        server.close();
+        process.exit(1);
+      }
     };
 
     process.on("SIGTERM", shutdown);
@@ -41,7 +44,10 @@ export async function startServer() {
 }
 
 export function closeServer() {
-  server.close();
+  if (server) {
+    server.close();
+  }
+  // process.exit(1);
 }
 
 // Start the server only if this file is run directly

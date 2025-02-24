@@ -9,4 +9,8 @@ export class TestService {
   public create(name: string) {
     return this.testRepository.create(name);
   }
+
+  public getAll() {
+    return this.testRepository.getAll();
+  }
 }

@@ -8,4 +8,7 @@ export class TestRepository {
       },
     });
   }
+  public async getAll() {
+    return await prisma.test.findMany();
+  }
 }

@@ -10,7 +10,16 @@ export class TestController {
     try {
       const name = req.body["name"];
       const test = await this.testService.create(name);
-      res.json({ test });
+      res.json({ data: test });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public getAll = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const test = await this.testService.getAll();
+      res.json({ data: test });
     } catch (err) {
       next(err);
     }

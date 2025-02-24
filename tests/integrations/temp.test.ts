@@ -11,14 +11,17 @@ describe("POST /test", () => {
     closeServer();
   });
 
-  it("should return status 200", async () => {
+  it("create should return status 200", async () => {
     const response = await request(app)
       .post(config.api.prefix + "/test")
       .send({ name: "test" });
-    console.log("response:", response.body);
-    console.log("response:", response.text);
-
     expect(response.status).toBe(200);
-    expect(response.body.test.name).toBe("test");
+    expect(response.body.data.name).toBe("test");
+  });
+  it("get all should return status 200", async () => {
+    const response = await request(app).get(config.api.prefix + "/test");
+    const data = response.body.data;
+    expect(response.status).toBe(200);
+    expect(data).not.toBe(null);
   });
 });

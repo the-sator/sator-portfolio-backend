@@ -34,6 +34,7 @@ import { TestController } from "./controllers/test.controller";
 export default () => {
   const app = Router();
   const test = new TestController();
+  app.get("/test", test.getAll);
   app.post("/test", test.create);
 
   //Health Check

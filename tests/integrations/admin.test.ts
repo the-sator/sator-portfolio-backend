@@ -3,7 +3,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import config from "@/config/environment";
 import request from "supertest";
 import type { Login } from "@/types/auth.type";
-import Logger from "@/logger/logger";
 
 describe("Admin", () => {
   const prefix = config.api.prefix;
@@ -59,9 +58,6 @@ describe("Admin", () => {
     const response = await request(app)
       .post(prefix + "/admin/login")
       .send(data);
-    console.log("response:", response);
-    Logger.error(response.text);
-    console.log("response.text:", response.text);
     token = response.body.data.token;
     expect(response.status).toBe(200);
   });

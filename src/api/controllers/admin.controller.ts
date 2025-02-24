@@ -1,3 +1,4 @@
+import Logger from "@/logger/logger";
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
 import { AssignAdminRoleSchema } from "@/types/admin.type";
@@ -22,7 +23,7 @@ export class AdminController {
       const admins = await this.adminService.getAdmins();
       res.json({ data: admins });
     } catch (error) {
-      logger.error("🔥 error: %o", error);
+      Logger.error(error);
       return next(error);
     }
   };
@@ -33,6 +34,7 @@ export class AdminController {
       const admin = await this.adminService.signUp(validated);
       res.json({ data: admin });
     } catch (error) {
+      Logger.error(error);
       next(error);
     }
   };
@@ -43,6 +45,7 @@ export class AdminController {
       const admin = await this.adminService.login(res, validated);
       res.json({ data: admin });
     } catch (error) {
+      Logger.error(error);
       next(error);
     }
   };
@@ -58,6 +61,7 @@ export class AdminController {
         data: "Successfully Sign Out",
       });
     } catch (error) {
+      Logger.error(error);
       next(error);
     }
   };
@@ -85,6 +89,7 @@ export class AdminController {
       const admin = await this.adminService.updateAdminTotp(req.body);
       res.json({ data: admin });
     } catch (error) {
+      logger.error("🔥 error: %o", error);
       next(error);
     }
   };
@@ -99,6 +104,7 @@ export class AdminController {
       const admin = await this.adminService.assignRole(validated);
       res.json({ data: admin });
     } catch (error) {
+      logger.error("🔥 error: %o", error);
       next(error);
     }
   };

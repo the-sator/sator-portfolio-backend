@@ -188,6 +188,7 @@ async function main() {
       timeout: 30000, // Increase transaction timeout
     }
   );
+  console.log(1);
 }
 
 main()

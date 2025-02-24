@@ -16,7 +16,6 @@ describe("Testing Phase", () => {
     const response = await request(app)
       .post(prefix + "/test")
       .send({ name: "test" });
-    console.log("response.text:", response.text);
     expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("test");
     testId = response.body.data.id; // Store the created resource ID
@@ -24,7 +23,6 @@ describe("Testing Phase", () => {
   it("get all should return status 200", async () => {
     const response = await request(app).get(prefix + "/test");
     const data = response.body.data;
-    console.log("response.text:", response.text);
     expect(response.status).toBe(200);
     expect(data).not.toBe(null);
   });
@@ -32,7 +30,6 @@ describe("Testing Phase", () => {
     const response = await request(app)
       .put(prefix + "/test/" + testId)
       .send({ name: "updated test" });
-    console.log("response.text:", response.text);
     expect(response.status).toBe(200);
     expect(response.body.data.name).toBe("updated test");
   });

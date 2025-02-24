@@ -24,6 +24,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -39,6 +48,7 @@ jobs:
       - name: Create .env file for temporary database
         run: |
           echo "DATABASE_URL=postgresql://testuser:testpassword@localhost:5432/testdb" > .env
+          echo "REDIS_URL=redis://localhost:6379" > .env
 
       - name: Run migrations on temporary database
         run: npx prisma migrate deploy

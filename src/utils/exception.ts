@@ -17,3 +17,9 @@ export const ThrowForbidden = (message?: string) => {
     message: message ? message : "Forbidden",
   });
 };
+
+export const ThrowNotFound = (message?: string) => {
+  throw createHttpError(404, {
+    message: message ? message : "Not Found",
+  });
+};

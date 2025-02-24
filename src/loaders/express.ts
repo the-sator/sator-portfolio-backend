@@ -1,13 +1,13 @@
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import methodOverride from "method-override";
-import { OpticMiddleware } from "@useoptic/express-middleware";
 import routes from "@/api";
 import config from "@/config/environment";
 import errorMiddleware from "@/api/middleware/errorHandler";
-import createHttpError from "http-errors";
 import cookieParser from "cookie-parser";
+import { OpticMiddleware } from "@useoptic/express-middleware";
+import createHttpError from "http-errors";
 export default function configureExpress({
   app,
 }: {
@@ -24,7 +24,7 @@ export default function configureExpress({
   app.use(config.api.prefix, routes());
 
   // 404 Handler - should be after all valid routes
-  app.use("*", (req: Request, res: Response, next: NextFunction) => {
+  app.all("*", (_req: Request, res: Response, next: NextFunction) => {
     next(createHttpError(404, "Endpoint Not Found"));
   });
 

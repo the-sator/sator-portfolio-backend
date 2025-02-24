@@ -17,7 +17,7 @@ export class UserController {
       const users = await this.userService.getUsers();
       res.json({ data: users });
     } catch (error) {
-      return next(error);
+      next(error);
     }
   };
 
@@ -31,7 +31,7 @@ export class UserController {
       const users = await this.userService.paginateUsers(filter);
       res.json({ data: users });
     } catch (error) {
-      return next(error);
+      next(error);
     }
   };
 

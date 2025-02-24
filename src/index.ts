@@ -17,8 +17,6 @@ export async function startServer() {
     await loaders.default({ expressApp: app });
 
     const port = process.env.NODE_ENV === "test" ? 0 : config.port;
-    console.log("process.env.NODE_ENV:", process.env.NODE_ENV);
-
     server = app.listen(port, () => {
       console.log(`
         ################################################

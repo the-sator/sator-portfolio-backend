@@ -23,6 +23,7 @@ export const CreatePortfolioSchema = z.object({
 export const PortfolioFilterSchema = BaseFilterSchema.extend({
   title: z.string().optional(),
   categories: z.union([z.array(z.string()), z.string()]).optional(),
+  published: z.boolean().optional(),
 });
 
 export type CreatePortfolio = z.infer<typeof CreatePortfolioSchema>;

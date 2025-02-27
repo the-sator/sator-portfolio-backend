@@ -77,9 +77,13 @@ export class PortfolioService {
       filter,
       count
     );
+    const publishedFilter = {
+      ...filter,
+      published: true as const, // Force TypeScript to recognize this as true
+    };
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
       siteUser.id,
-      filter
+      publishedFilter
     );
     return {
       data: portfolios,

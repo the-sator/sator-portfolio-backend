@@ -29,6 +29,11 @@ export class PortfolioRepository {
         },
       };
     }
+    if (filter.published) {
+      where.published_at = {
+        not: null,
+      };
+    }
     return where;
   }
 

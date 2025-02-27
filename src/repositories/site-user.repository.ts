@@ -36,7 +36,6 @@ export class SiteUserRepository {
   }
 
   public async findByApiKey(api_key: string) {
-    console.log("api_key:", api_key);
     const encrypted = encryptApiKey(api_key);
     return await prisma.siteUser.findUnique({
       where: {

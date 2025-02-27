@@ -1,8 +1,18 @@
+import { SimpleSuccess } from "@/response/response";
 import { SiteUserService } from "@/services/site-user.service";
-import { LoginSchema, SignUpSchema } from "@/types/auth.type";
-import { SiteUserFilterSchema } from "@/types/site-user.type";
+import { LoginSchema } from "@/types/auth.type";
+import { BaseModelSchema } from "@/types/base.type";
+import {
+  CreateSiteUserSchema,
+  SiteUserAuthSchema,
+  SiteUserFilterSchema,
+} from "@/types/site-user.type";
 import { getSiteUserCookie } from "@/utils/cookie";
-import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
+import {
+  ThrowForbidden,
+  ThrowInternalServer,
+  ThrowUnauthorized,
+} from "@/utils/exception";
 import type { NextFunction, Request, Response } from "express";
 
 export class SiteUserController {
@@ -43,7 +53,7 @@ export class SiteUserController {
     next: NextFunction
   ) => {
     try {
-      const validated = SignUpSchema.parse(req.body);
+      const validated = CreateSiteUserSchema.parse(req.body);
       const siteUser = await this._siteUserService.create(validated);
       res.json({ data: siteUser });
     } catch (error) {
@@ -78,6 +88,68 @@ export class SiteUserController {
       }
       res.json({
         data: "Successfully Sign Out",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public checkIsRegistered = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse(req.params);
+      const isRegistered = await this._siteUserService.checkIsRegistered(
+        params.id as string
+      );
+      if (isRegistered) {
+        return ThrowForbidden("User is already registered");
+      }
+      SimpleSuccess(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public firstLogin = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse(req.params);
+      const payload = SiteUserAuthSchema.parse(req.body);
+      const siteUser = await this._siteUserService.firstLogin(
+        res,
+        params.id as string,
+        payload
+      );
+      res.json({
+        data: siteUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateAuth = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const params = BaseModelSchema.parse(req.params);
+      const payload = SiteUserAuthSchema.parse(req.body);
+      const token = getSiteUserCookie(req);
+      const siteUser = await this._siteUserService.updateAuth(
+        params.id as string,
+        token,
+        payload
+      );
+      res.json({
+        data: siteUser,
       });
     } catch (error) {
       next(error);

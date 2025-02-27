@@ -10,6 +10,7 @@ export default (app: Router) => {
     "/",
     protectedSiteUserRoute(portfolioController.paginateBySiteUser)
   );
+  router.get("/published", portfolioController.paginateBySiteUserApiKey);
   router.get(
     "/:slug",
     protectedSiteUserRoute(portfolioController.findPortfolioBySlug)

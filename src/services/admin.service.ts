@@ -106,19 +106,18 @@ export class AdminService {
     if (!auth.admin) return ThrowUnauthorized("Admin cannot be found");
 
     const sessionToken = generateSessionToken();
-    await this.sessionService.createSession(
+    const session = await this.sessionService.createSession(
       {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
       { admin_id: auth.admin.id }
     );
-
     setCookie(res, COOKIE.ADMIN, sessionToken);
-
     return {
       ...auth.admin,
       token: sessionToken,
+      expires_at: session.expires_at,
     };
   }
 

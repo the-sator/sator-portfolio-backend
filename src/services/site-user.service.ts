@@ -1,11 +1,24 @@
 import { SiteUserRepository } from "@/repositories/site-user.repository";
-import type { SiteUserFilter } from "@/types/site-user.type";
+import type {
+  CreateSiteUser,
+  SiteUserAuth,
+  SiteUserFilter,
+} from "@/types/site-user.type";
 import { getPaginationMetadata } from "@/utils/pagination";
 import config from "@/config/environment";
-import type { Login, Signup } from "@/types/auth.type";
-import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
+import type { Login } from "@/types/auth.type";
+import {
+  ThrowForbidden,
+  ThrowInternalServer,
+  ThrowUnauthorized,
+} from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
-import { decrypt } from "@/utils/encryption";
+import {
+  decrypt,
+  decryptApiKey,
+  encryptApiKey,
+  getRandomString,
+} from "@/utils/encryption";
 import {
   decodeToSessionId,
   generateSessionToken,
@@ -16,6 +29,10 @@ import prisma from "@/loaders/prisma";
 import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
+import { randomUUIDv7 } from "bun";
+import { setCookie } from "@/utils/cookie";
+import { COOKIE } from "@/types/base.type";
+import type { Response } from "express";
 export class SiteUserService {
   private _siteUserRepository: SiteUserRepository;
   private _sessionRepository: SessionRepository;
@@ -34,8 +51,12 @@ export class SiteUserService {
       count
     );
     const siteUsers = await this._siteUserRepository.paginate(filter);
+    const decryptedSiteUsers = siteUsers.map((user) => ({
+      ...user,
+      api_key: decryptApiKey(user.api_key),
+    }));
     return {
-      data: siteUsers,
+      data: decryptedSiteUsers,
       metadata: {
         current_page,
         page,
@@ -45,25 +66,34 @@ export class SiteUserService {
       },
     };
   }
-  public async create(payload: Signup) {
-    const passwordHash = await hashPassword(payload.password);
+  public async create(payload: CreateSiteUser) {
+    const passwordHash = await hashPassword(config.defaultPassword);
     return prisma.$transaction(async (tx) => {
+      // Create Default Auth for the website
+      const uniqueEmail = `user-${randomUUIDv7()}@sator-tech.live`;
+      const apiKey = getRandomString();
+      const encryptedKey = encryptApiKey(apiKey);
       const auth = await this._authRepository.createAuth(
         {
-          email: payload.email,
+          email: uniqueEmail,
           password: passwordHash,
         },
         tx
       );
+      // Create the site record
       return this._siteUserRepository.create(
         {
-          username: payload.username,
+          website_name: payload.website_name,
+          link: payload.link,
+          user_id: payload.user_id,
         },
         auth.id,
+        encryptedKey,
         tx
       );
     });
   }
+
   public async siteUserlogin(payload: Login) {
     const auth = await this._authRepository.checkByEmail(payload.email);
     if (!auth) {
@@ -117,5 +147,84 @@ export class SiteUserService {
     const id = decodeToSessionId(token);
     const result = await this._sessionService.invalidateSession(id);
     return result;
+  }
+
+  public async checkIsRegistered(id: string) {
+    const isRegistered = await this._siteUserRepository.checkIsRegister(id);
+    return isRegistered;
+  }
+
+  public async firstLogin(res: Response, id: string, payload: SiteUserAuth) {
+    const auth = await this._authRepository.checkByEmail(payload.email);
+    console.log("auth:", auth);
+    if (!auth) {
+      return ThrowUnauthorized("Invalid Credentials");
+    }
+    const isPasswordValid = await verifyPassword(
+      payload.password,
+      auth.password
+    );
+    if (!isPasswordValid) {
+      return ThrowUnauthorized("Invalid Credentials");
+    }
+
+    if (!auth.siteUser || auth.siteUser.id !== id) {
+      return ThrowUnauthorized(
+        process.env.NODE_ENV === "development"
+          ? "Invalid Site User"
+          : "Invalid Credentials"
+      );
+    }
+
+    const sessionToken = generateSessionToken();
+    if (!auth.siteUser) return ThrowUnauthorized("SiteUser cannot be found");
+
+    const session = await this._sessionService.createSession(
+      {
+        token: sessionToken,
+        two_factor_verified: !!auth.totp_key,
+      },
+      { site_user_id: auth.siteUser.id }
+    );
+    setCookie(res, COOKIE.SITE_USER, sessionToken);
+    return {
+      ...auth.siteUser,
+      token: sessionToken,
+      expires_at: session.expires_at,
+    };
+  }
+  public async updateAuth(id: string, token: string, payload: SiteUserAuth) {
+    const sessionId = decodeToSessionId(token);
+    console.log("sessionId:", sessionId);
+    const result = await this._sessionRepository.findSessionById(sessionId);
+    if (result === null) {
+      return ThrowUnauthorized();
+    }
+
+    const isDuplicate = await this._authRepository.checkByEmail(payload.email);
+    if (isDuplicate) {
+      return ThrowForbidden("Duplicate Email");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      if (!result.site_user) return ThrowUnauthorized();
+      if (result.site_user.id !== id)
+        return ThrowUnauthorized(
+          process.env.NODE_ENV === "development"
+            ? "Invalid Site User"
+            : "Invalid Credentials"
+        );
+      const hashedPassword = await hashPassword(payload.password);
+      const auth = await this._authRepository.updateAuth(
+        result.site_user.auth_id,
+        {
+          email: payload.email,
+          password: hashedPassword,
+        },
+        tx
+      );
+      await this._siteUserRepository.updateRegisteredAt(id, tx);
+      return auth.siteUser;
+    });
   }
 }

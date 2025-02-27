@@ -4,6 +4,7 @@ import {
   CreatePortfolioSchema,
   PortfolioFilterSchema,
 } from "@/types/portfolio.type";
+import { ThrowUnauthorized } from "@/utils/exception";
 import type { NextFunction, Response, Request } from "express";
 
 export class PortfolioController {
@@ -45,6 +46,27 @@ export class PortfolioController {
       const filter = PortfolioFilterSchema.parse(req.query);
       const portfolios = await this.portfolioService.paginateBySiteUser(
         req,
+        filter
+      );
+      res.json({
+        data: portfolios,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public paginateBySiteUserApiKey = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const key = req.headers.authorization?.split(" ")[1];
+      if (!key) return ThrowUnauthorized("No Token Found");
+      const filter = PortfolioFilterSchema.parse(req.query);
+      const portfolios = await this.portfolioService.paginateBySiteUserApiKey(
+        key,
         filter
       );
       res.json({

@@ -13,6 +13,8 @@ export const CreatePortfolioSchema = z.object({
     }),
   slug: z.string().min(1, { message: "Slug is required" }),
   cover_url: z.string().optional(),
+  preview_link: z.string().optional(),
+  github_link: z.string().optional(),
   gallery: z.array(z.string()).optional(),
   content: z.string().optional(),
   categories: z.array(z.string()).optional(),

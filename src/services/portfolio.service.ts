@@ -11,16 +11,19 @@ import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 import { SiteUserService } from "./site-user.service";
 import { getSiteUserCookie } from "@/utils/cookie";
+import { SiteUserRepository } from "@/repositories/site-user.repository";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
+  private siteUserRepository: SiteUserRepository;
   private siteUserService: SiteUserService;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
     this.siteUserService = new SiteUserService();
+    this.siteUserRepository = new SiteUserRepository();
   }
 
   public async findAll() {
@@ -39,6 +42,8 @@ export class PortfolioService {
       metadata: { page, page_count, page_size, current_page },
     };
   }
+  //======================
+  //====== Site User =====
 
   public async paginateBySiteUser(req: Request, filter: PortfolioFilter) {
     const sessionToken = getSiteUserCookie(req);
@@ -56,6 +61,26 @@ export class PortfolioService {
       filter
     );
 
+    return {
+      data: portfolios,
+      metadata: { page, page_count, page_size, current_page },
+    };
+  }
+
+  public async paginateBySiteUserApiKey(key: string, filter: PortfolioFilter) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
+    const count = await this.portfolioRepository.count(filter, {
+      site_user_id: siteUser.id,
+    });
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const portfolios = await this.portfolioRepository.paginateBySiteUserId(
+      siteUser.id,
+      filter
+    );
     return {
       data: portfolios,
       metadata: { page, page_count, page_size, current_page },

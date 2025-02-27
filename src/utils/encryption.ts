@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv } from "crypto";
 import { DynamicBuffer } from "@oslojs/binary";
 import { decodeBase64 } from "@oslojs/encoding";
 import config from "@/config/environment";
+import { generateRandomString, type RandomReader } from "@oslojs/crypto/random";
 const key = decodeBase64(config.encryptionCode ?? "");
 export function encrypt(data: Uint8Array): Uint8Array {
   const iv = new Uint8Array(16);
@@ -57,4 +58,33 @@ export function decrypt(encrypted: Uint8Array): Uint8Array {
 
 export function decryptToString(data: Uint8Array): string {
   return new TextDecoder().decode(decrypt(data));
+}
+
+export function encryptApiKey(text: string): string {
+  const secretKey = Buffer.from(config.api_key.secret, "hex");
+  const iv = Buffer.from(config.api_key.iv, "hex");
+  const cipher = createCipheriv(config.api_key.algo, secretKey, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;
+}
+
+export function decryptApiKey(key: string): string {
+  const secretKey = Buffer.from(config.api_key.secret, "hex");
+  const iv = Buffer.from(config.api_key.iv, "hex");
+  const decipher = createDecipheriv(config.api_key.algo, secretKey, iv);
+  let decrypted = decipher.update(key, "hex", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
+export function getRandomString(): string {
+  const random: RandomReader = {
+    read(bytes: Uint8Array): void {
+      crypto.getRandomValues(bytes);
+    },
+  };
+  const alphabet =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return generateRandomString(random, alphabet, 32);
 }

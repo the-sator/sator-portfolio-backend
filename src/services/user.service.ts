@@ -102,7 +102,7 @@ export class UserService {
     }
     if (!auth.user) return ThrowUnauthorized("User cannot be found");
 
-    await this._sessionService.createSession(
+    const session = await this._sessionService.createSession(
       {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
@@ -110,7 +110,11 @@ export class UserService {
       { user_id: auth.user.id }
     );
 
-    return auth.user;
+    return {
+      ...auth.user,
+      token: sessionToken,
+      expires_at: session.expires_at,
+    };
   }
 
   public async getMe(token: string) {

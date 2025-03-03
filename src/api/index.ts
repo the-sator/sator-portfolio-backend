@@ -27,6 +27,7 @@ import {
   siteUser,
   siteUserCategory,
   siteUserPortfolio,
+  siteUserStatistic,
 } from "./routes/site-user";
 
 // guaranteed to get dependencies
@@ -59,6 +60,7 @@ export default () => {
   siteUser(siteUserRouter);
   siteUserPortfolio(siteUserRouter);
   siteUserCategory(siteUserRouter);
+  siteUserStatistic(siteUserRouter);
   app.use("/site-user", siteUserRouter);
 
   // Admin routes group

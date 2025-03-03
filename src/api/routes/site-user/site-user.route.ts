@@ -22,6 +22,7 @@ export default (app: Router) => {
     siteUserController.firstLogin
   );
   router.post("/signout", siteUserController.siteUserSignout);
+  router.post("/:id/view", siteUserController.increaseView);
   router.put(
     "/:id/auth",
     validateData(SiteUserAuthSchema),

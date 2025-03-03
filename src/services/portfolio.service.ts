@@ -12,18 +12,21 @@ import type { Request } from "express";
 import { SiteUserService } from "./site-user.service";
 import { getSiteUserCookie } from "@/utils/cookie";
 import { SiteUserRepository } from "@/repositories/site-user.repository";
+import { PortfolioMetricRepository } from "@/repositories/portfolio-metric.repository";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
   private siteUserRepository: SiteUserRepository;
   private siteUserService: SiteUserService;
+  private portfolioMetricRepository: PortfolioMetricRepository;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
     this.siteUserService = new SiteUserService();
     this.siteUserRepository = new SiteUserRepository();
+    this.portfolioMetricRepository = new PortfolioMetricRepository();
   }
 
   public async findAll() {
@@ -92,7 +95,7 @@ export class PortfolioService {
   }
 
   public async findBySlug(slug: string) {
-    return this.portfolioRepository.findBySlug(slug);
+    return await this.portfolioRepository.findBySlug(slug);
   }
 
   public async create(payload: CreatePortfolio) {
@@ -148,15 +151,33 @@ export class PortfolioService {
     });
   }
 
-  public async delete(id: string) {
-    return this.portfolioRepository.delete(id);
-  }
-
   public async publish(id: string) {
     return this.portfolioRepository.publish(id);
   }
 
   public async unpublish(id: string) {
     return this.portfolioRepository.unpublish(id);
+  }
+
+  public async increaseView(slug: string) {
+    const portfolio = await this.portfolioRepository.findBySlug(slug);
+    if (!portfolio) return ThrowForbidden("No Record Found");
+    return await prisma.$transaction(async (tx) => {
+      const portfolioMetric = await this.portfolioMetricRepository.findByToday(
+        portfolio.id,
+        tx
+      );
+      //If not found, then create new portfolio metric
+      if (!portfolioMetric) {
+        await this.portfolioMetricRepository.createMetric(portfolio.id, tx);
+        return portfolio;
+      }
+      await this.portfolioMetricRepository.increaseView(portfolioMetric.id, tx);
+      return portfolio;
+    });
+  }
+
+  public async delete(id: string) {
+    return this.portfolioRepository.delete(id);
   }
 }

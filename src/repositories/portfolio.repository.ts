@@ -91,7 +91,7 @@ export class PortfolioRepository {
   }
 
   public async findBySlug(slug: string) {
-    return await prisma.portfolio.findFirst({
+    const portfolio = await prisma.portfolio.findFirst({
       where: { slug },
       include: {
         CategoryOnPorfolio: {
@@ -99,8 +99,22 @@ export class PortfolioRepository {
             category: true,
           },
         },
+        PortfolioMetric: {
+          select: {
+            view: true,
+          },
+        },
       },
     });
+    if (!portfolio) return;
+    const totalViews = portfolio.PortfolioMetric.reduce(
+      (sum, metric) => sum + metric.view,
+      0
+    );
+    return {
+      ...portfolio,
+      view: totalViews,
+    };
   }
 
   public async findById(id: string) {

@@ -1,13 +1,13 @@
 import { SimpleSuccess } from "@/response/response";
 import { SiteUserService } from "@/services/site-user.service";
 import { LoginSchema } from "@/types/auth.type";
-import { BaseModelSchema } from "@/types/base.type";
+import { BaseModelSchema, COOKIE } from "@/types/base.type";
 import {
   CreateSiteUserSchema,
   SiteUserAuthSchema,
   SiteUserFilterSchema,
 } from "@/types/site-user.type";
-import { getSiteUserCookie } from "@/utils/cookie";
+import { deleteCookie, getSiteUserCookie, setCookie } from "@/utils/cookie";
 import {
   ThrowForbidden,
   ThrowInternalServer,
@@ -69,6 +69,7 @@ export class SiteUserController {
     try {
       const valdiated = LoginSchema.parse(req.body);
       const siteUser = await this._siteUserService.siteUserlogin(valdiated);
+      setCookie(res, COOKIE.SITE_USER, siteUser.token);
       res.json({ data: siteUser });
     } catch (error) {
       next(error);
@@ -86,6 +87,8 @@ export class SiteUserController {
       if (!result) {
         return ThrowInternalServer();
       }
+      deleteCookie(res, COOKIE.SITE_USER);
+
       res.json({
         data: "Successfully Sign Out",
       });
@@ -126,6 +129,7 @@ export class SiteUserController {
         params.id as string,
         payload
       );
+      setCookie(res, COOKIE.SITE_USER, siteUser.token);
       res.json({
         data: siteUser,
       });
@@ -151,6 +155,24 @@ export class SiteUserController {
       res.json({
         data: siteUser,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public increaseView = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const key = req.headers.authorization?.split(" ")[1];
+      if (!key) return ThrowUnauthorized("No Token Found");
+      const params = BaseModelSchema.parse({
+        id: req.params.id,
+      });
+      await this._siteUserService.increaseView(params.id as string);
+      SimpleSuccess(res);
     } catch (error) {
       next(error);
     }

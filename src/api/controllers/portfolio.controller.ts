@@ -1,4 +1,6 @@
+import { SimpleSuccess } from "@/response/response";
 import { PortfolioService } from "@/services/portfolio.service";
+import { SiteUserService } from "@/services/site-user.service";
 import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
 import {
   CreatePortfolioSchema,
@@ -9,13 +11,33 @@ import type { NextFunction, Response, Request } from "express";
 
 export class PortfolioController {
   private portfolioService: PortfolioService;
+  private siteUserService: SiteUserService;
   constructor() {
     this.portfolioService = new PortfolioService();
+    this.siteUserService = new SiteUserService();
   }
   public findAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const resources = await this.portfolioService.findAll();
       res.json({ data: resources });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public findPortfolioBySlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validatedSlug = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      const portfolio = await this.portfolioService.findBySlug(
+        validatedSlug.slug
+      );
+      res.json({ data: portfolio });
     } catch (error) {
       next(error);
     }
@@ -72,24 +94,6 @@ export class PortfolioController {
       res.json({
         data: portfolios,
       });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  public findPortfolioBySlug = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const validatedSlug = ValidatedSlugSchema.parse({
-        slug: req.params.slug,
-      });
-      const portfolio = await this.portfolioService.findBySlug(
-        validatedSlug.slug
-      );
-      res.json({ data: portfolio });
     } catch (error) {
       next(error);
     }
@@ -175,6 +179,23 @@ export class PortfolioController {
         params.id as string
       );
       res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
+  public increaseView = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const key = req.headers.authorization?.split(" ")[1];
+      if (!key) return ThrowUnauthorized("No Token Found");
+      const params = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      await this.portfolioService.increaseView(params.slug);
+      SimpleSuccess(res);
     } catch (error) {
       next(error);
     }

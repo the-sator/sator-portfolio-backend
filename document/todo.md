@@ -10,14 +10,16 @@
   - Struture should be 
     + {errorCode, status, message, data}
   
-- [ ] Site User 
-- [ ] Fix Authentication in Frotend
-- [ ] Fix TOTP
+- [x] Site User 
+- [ ] Site Metric
+- [ ] Regenerate API key
+- [ ] 
 
 # Backlog
 - [ ] Add IP + Device column in session table 
-
+- [ ] Fix Authentication in Frontend
+- [ ] Fix TOTP
 
 
 ## Bug
-- [x] Admin type in wrong credential still return true
+- [x] Admin type in wrong credential still return tru

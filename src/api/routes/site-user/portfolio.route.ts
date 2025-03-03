@@ -24,6 +24,7 @@ export default (app: Router) => {
     "/:id/unpublish",
     protectedSiteUserRoute(portfolioController.unpublishPortfolio)
   );
+  router.post("/:slug/view", portfolioController.increaseView);
   router.put(
     "/:id",
     protectedSiteUserRoute(portfolioController.updatePortfolio)

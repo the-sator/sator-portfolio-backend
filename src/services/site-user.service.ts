@@ -30,19 +30,20 @@ import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
 import { randomUUIDv7 } from "bun";
-import { setCookie } from "@/utils/cookie";
-import { COOKIE } from "@/types/base.type";
 import type { Response } from "express";
+import { SiteMetricRepository } from "@/repositories/site-metric-repository";
 export class SiteUserService {
   private _siteUserRepository: SiteUserRepository;
   private _sessionRepository: SessionRepository;
   private _sessionService: SessionService;
   private _authRepository: AuthRepository;
+  private _siteMetricRepository: SiteMetricRepository;
   constructor() {
     this._siteUserRepository = new SiteUserRepository();
     this._sessionRepository = new SessionRepository();
     this._sessionService = new SessionService();
     this._authRepository = new AuthRepository();
+    this._siteMetricRepository = new SiteMetricRepository();
   }
   public async paginateSiteUsers(filter: SiteUserFilter) {
     const count = await this._siteUserRepository.count(filter);
@@ -118,14 +119,18 @@ export class SiteUserService {
     const sessionToken = generateSessionToken();
     if (!auth.siteUser) return ThrowUnauthorized("SiteUser cannot be found");
 
-    await this._sessionService.createSession(
+    const session = await this._sessionService.createSession(
       {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { user_id: auth.siteUser.id }
+      { site_user_id: auth.siteUser.id }
     );
-    return auth.siteUser;
+    return {
+      ...auth.siteUser,
+      token: sessionToken,
+      expires_at: session.expires_at,
+    };
   }
 
   public async getMe(token: string) {
@@ -186,7 +191,6 @@ export class SiteUserService {
       },
       { site_user_id: auth.siteUser.id }
     );
-    setCookie(res, COOKIE.SITE_USER, sessionToken);
     return {
       ...auth.siteUser,
       token: sessionToken,
@@ -225,6 +229,24 @@ export class SiteUserService {
       );
       await this._siteUserRepository.updateRegisteredAt(id, tx);
       return auth.siteUser;
+    });
+  }
+
+  public async increaseView(id: string) {
+    const site = await this._siteUserRepository.findById(id);
+    if (!site) return ThrowForbidden("No Record Found");
+    return await prisma.$transaction(async (tx) => {
+      const siteMetric = await this._siteMetricRepository.findByToday(
+        site.id,
+        tx
+      );
+      //If not found, then create new site metric
+      if (!siteMetric) {
+        await this._siteMetricRepository.createMetric(site.id, tx);
+        return site;
+      }
+      await this._siteMetricRepository.increaseView(siteMetric.id, tx);
+      return site;
     });
   }
 }

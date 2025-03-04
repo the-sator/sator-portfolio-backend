@@ -1,6 +1,5 @@
 import { SimpleSuccess } from "@/response/response";
 import { PortfolioService } from "@/services/portfolio.service";
-import { SiteUserService } from "@/services/site-user.service";
 import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
 import {
   CreatePortfolioSchema,
@@ -11,10 +10,8 @@ import type { NextFunction, Response, Request } from "express";
 
 export class PortfolioController {
   private portfolioService: PortfolioService;
-  private siteUserService: SiteUserService;
   constructor() {
     this.portfolioService = new PortfolioService();
-    this.siteUserService = new SiteUserService();
   }
   public findAll = async (req: Request, res: Response, next: NextFunction) => {
     try {

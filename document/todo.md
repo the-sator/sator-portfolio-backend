@@ -22,4 +22,4 @@
 
 
 ## Bug
-- [x] Admin type in wrong credential still return tru
+- [x] Admin type in wrong credential still return true

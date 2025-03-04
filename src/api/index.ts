@@ -25,6 +25,7 @@ import {
 } from "./routes";
 import {
   siteUser,
+  siteUserBlog,
   siteUserCategory,
   siteUserPortfolio,
   siteUserStatistic,
@@ -61,6 +62,7 @@ export default () => {
   siteUserPortfolio(siteUserRouter);
   siteUserCategory(siteUserRouter);
   siteUserStatistic(siteUserRouter);
+  siteUserBlog(siteUserRouter);
   app.use("/site-user", siteUserRouter);
 
   // Admin routes group

@@ -151,14 +151,6 @@ export class PortfolioService {
     });
   }
 
-  public async publish(id: string) {
-    return this.portfolioRepository.publish(id);
-  }
-
-  public async unpublish(id: string) {
-    return this.portfolioRepository.unpublish(id);
-  }
-
   public async increaseView(slug: string) {
     const portfolio = await this.portfolioRepository.findBySlug(slug);
     if (!portfolio) return ThrowForbidden("No Record Found");
@@ -175,6 +167,14 @@ export class PortfolioService {
       await this.portfolioMetricRepository.increaseView(portfolioMetric.id, tx);
       return portfolio;
     });
+  }
+
+  public async publish(id: string) {
+    return this.portfolioRepository.publish(id);
+  }
+
+  public async unpublish(id: string) {
+    return this.portfolioRepository.unpublish(id);
   }
 
   public async delete(id: string) {

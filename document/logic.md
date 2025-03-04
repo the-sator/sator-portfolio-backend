@@ -9,7 +9,7 @@
     }
     ```
     Could it be simplified?
-    ### Pro
+    #### Pro
     - Make authentication easier
     #### Con
     - Need to refactor alot of place if simplified
@@ -27,3 +27,6 @@
    _**Solve with problem 1**_
 
 
+3. Site user have the ability to CRUD blog, portfolio and view statistic
+    - User should see their own website in the main website dashboard. In there, they should see an API key, They can grab that API key (acts like a master key) and create new account when they first login or register on their site dashboard.
+    - Upon new site creation, we create a site user account with default username, email & password, then attach the ID or client ID onto the site with config, thus bounding the website to that particular user only. 

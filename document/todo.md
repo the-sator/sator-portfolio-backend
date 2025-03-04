@@ -3,16 +3,23 @@
   - [x] User
   - [x] Admin
   - [x] Site User
-- [ ] Add a mock we can mock the db for testing 
+- [x] Add a mock we can mock the db for testing 
     - Create a db-test in prod or open another db remote (like supabase)
     - In dev, create another db, 
-- [ ] Better Http Response
+- [x] Better Http Response
   - Struture should be 
     + {errorCode, status, message, data}
   
-- [ ] Add IP + Device column in session table
+- [x] Site User 
+- [ ] Site Metric
+- [ ] Regenerate API key
+- [ ] 
 
+# Backlog
+- [ ] Add IP + Device column in session table 
+- [ ] Fix Authentication in Frontend
+- [ ] Fix TOTP
 
 
 ## Bug
-- [ ] Admin type in wrong credential still return true
+- [x] Admin type in wrong credential still return true

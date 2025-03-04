@@ -4,7 +4,7 @@ import { encodeHexLowerCase } from "@oslojs/encoding";
 import type { Session } from "@prisma/client";
 import { SessionRepository } from "@/repositories/session.repository";
 import type { CreateSession } from "@/types/session.type";
-import type { EntityID } from "@/types/base.type";
+import { IdentityRole, type Identity } from "@/types/base.type";
 
 export class SessionService {
   private sessionRepository: SessionRepository;
@@ -15,16 +15,17 @@ export class SessionService {
 
   public async createSession(
     payload: CreateSession,
-    entity: EntityID
+    identity: Identity
   ): Promise<Session> {
     const sessionId = encodeHexLowerCase(
       sha256(new TextEncoder().encode(payload.token))
     );
     const session: Session = {
       id: sessionId,
-      user_id: entity.user_id ?? null,
-      admin_id: entity.admin_id ?? null,
-      site_user_id: entity.site_user_id ?? null,
+      user_id: identity.role === IdentityRole.USER ? identity.id : null,
+      admin_id: identity.role === IdentityRole.ADMIN ? identity.id : null,
+      site_user_id:
+        identity.role === IdentityRole.SITE_USER ? identity.id : null,
       two_factor_verified: payload.two_factor_verified,
       expires_at: new Date(Date.now() + SESSION_EXPIRES_DATE_MS),
     };

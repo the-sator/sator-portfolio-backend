@@ -11,16 +11,22 @@ import { getPaginationMetadata } from "@/utils/pagination";
 import type { Request } from "express";
 import { SiteUserService } from "./site-user.service";
 import { getSiteUserCookie } from "@/utils/cookie";
+import { SiteUserRepository } from "@/repositories/site-user.repository";
+import { PortfolioMetricRepository } from "@/repositories/portfolio-metric.repository";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
+  private siteUserRepository: SiteUserRepository;
   private siteUserService: SiteUserService;
+  private portfolioMetricRepository: PortfolioMetricRepository;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
     this.siteUserService = new SiteUserService();
+    this.siteUserRepository = new SiteUserRepository();
+    this.portfolioMetricRepository = new PortfolioMetricRepository();
   }
 
   public async findAll() {
@@ -39,6 +45,8 @@ export class PortfolioService {
       metadata: { page, page_count, page_size, current_page },
     };
   }
+  //======================
+  //====== Site User =====
 
   public async paginateBySiteUser(req: Request, filter: PortfolioFilter) {
     const sessionToken = getSiteUserCookie(req);
@@ -62,8 +70,32 @@ export class PortfolioService {
     };
   }
 
+  public async paginateBySiteUserApiKey(key: string, filter: PortfolioFilter) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
+    const count = await this.portfolioRepository.count(filter, {
+      site_user_id: siteUser.id,
+    });
+    const { current_page, page, page_count, page_size } = getPaginationMetadata(
+      filter,
+      count
+    );
+    const publishedFilter = {
+      ...filter,
+      published: true as const, // Force TypeScript to recognize this as true
+    };
+    const portfolios = await this.portfolioRepository.paginateBySiteUserId(
+      siteUser.id,
+      publishedFilter
+    );
+    return {
+      data: portfolios,
+      metadata: { page, page_count, page_size, current_page },
+    };
+  }
+
   public async findBySlug(slug: string) {
-    return this.portfolioRepository.findBySlug(slug);
+    return await this.portfolioRepository.findBySlug(slug);
   }
 
   public async create(payload: CreatePortfolio) {
@@ -119,8 +151,22 @@ export class PortfolioService {
     });
   }
 
-  public async delete(id: string) {
-    return this.portfolioRepository.delete(id);
+  public async increaseView(slug: string) {
+    const portfolio = await this.portfolioRepository.findBySlug(slug);
+    if (!portfolio) return ThrowForbidden("No Record Found");
+    return await prisma.$transaction(async (tx) => {
+      const portfolioMetric = await this.portfolioMetricRepository.findByToday(
+        portfolio.id,
+        tx
+      );
+      //If not found, then create new portfolio metric
+      if (!portfolioMetric) {
+        await this.portfolioMetricRepository.createMetric(portfolio.id, tx);
+        return portfolio;
+      }
+      await this.portfolioMetricRepository.increaseView(portfolioMetric.id, tx);
+      return portfolio;
+    });
   }
 
   public async publish(id: string) {
@@ -129,5 +175,9 @@ export class PortfolioService {
 
   public async unpublish(id: string) {
     return this.portfolioRepository.unpublish(id);
+  }
+
+  public async delete(id: string) {
+    return this.portfolioRepository.delete(id);
   }
 }

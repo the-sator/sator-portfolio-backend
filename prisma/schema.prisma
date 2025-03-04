@@ -25,27 +25,34 @@ model User {
   id           String        @id @default(uuid())
   auth_id      String        @unique
   username     String        @unique @db.VarChar(20)
-  profile_url  String? // Optional URL for profile picture
+  profile_url  String?
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   form_attempt FormAttempt[]
   ChatMember   ChatMember[]
   Session      Session[]
   auth         Auth          @relation(fields: [auth_id], references: [id])
+  SiteUser     SiteUser[]
 }
 
 model SiteUser {
-  id          String      @id @default(uuid())
-  auth_id     String      @unique
-  username    String      @unique @db.VarChar(20)
-  profile_url String? // Optional URL for profile picture
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
-  Portfolio   Portfolio[]
-  Category    Category[]
-  Blog        Blog[]
-  Auth        Auth        @relation(fields: [auth_id], references: [id])
-  Session     Session[]
+  id            String       @id @default(uuid())
+  auth_id       String       @unique
+  user_id       String
+  profile_url   String?
+  website_name  String
+  link          String       @unique
+  registered_at DateTime?
+  api_key       String       @unique
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  Portfolio     Portfolio[]
+  Category      Category[]
+  Blog          Blog[]
+  Auth          Auth         @relation(fields: [auth_id], references: [id], onDelete: Cascade)
+  user          User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  Session       Session[]
+  SiteMetric    SiteMetric[]
 }
 
 model Admin {
@@ -53,7 +60,7 @@ model Admin {
   role_id     Int
   auth_id     String       @unique
   username    String       @unique @db.VarChar(20)
-  profile_url String? // Optional URL for profile picture
+  profile_url String?
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
   sessions    Session[]
@@ -154,12 +161,15 @@ model Portfolio {
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   published_at       DateTime?
+  preview_link       String?
+  github_link        String?
   slug               String               @unique
   gallery            String[]
   content            Json?
   admin              Admin?               @relation(fields: [admin_id], references: [id])
   site_user          SiteUser?            @relation(fields: [site_user_id], references: [id])
   CategoryOnPorfolio CategoryOnPorfolio[]
+  PortfolioMetric    PortfolioMetric[]
 }
 
 model Blog {
@@ -174,7 +184,6 @@ model Blog {
   description    String
   content        Json?
   cover_url      String?
-  view           Int              @default(0)
   admin          Admin?           @relation(fields: [admin_id], references: [id])
   site_user      SiteUser?        @relation(fields: [site_user_id], references: [id])
   CategoryOnBlog CategoryOnBlog[]
@@ -287,8 +296,26 @@ model BlogMetric {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   blog_id    String
-  view       BigInt
+  view       Int
   blog       Blog     @relation(fields: [blog_id], references: [id])
+}
+
+model PortfolioMetric {
+  id           String    @id @default(uuid())
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  portfolio_id String
+  view         Int       @default(1)
+  portfolio    Portfolio @relation(fields: [portfolio_id], references: [id])
+}
+
+model SiteMetric {
+  id           String   @id @default(uuid())
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  site_user_id String
+  view         Int      @default(1)
+  site_user    SiteUser @relation(fields: [site_user_id], references: [id])
 }
 
 model Test {

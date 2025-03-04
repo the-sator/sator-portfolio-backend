@@ -10,6 +10,7 @@ export default (app: Router) => {
     "/",
     protectedSiteUserRoute(portfolioController.paginateBySiteUser)
   );
+  router.get("/published", portfolioController.paginateBySiteUserApiKey);
   router.get(
     "/:slug",
     protectedSiteUserRoute(portfolioController.findPortfolioBySlug)
@@ -23,6 +24,7 @@ export default (app: Router) => {
     "/:id/unpublish",
     protectedSiteUserRoute(portfolioController.unpublishPortfolio)
   );
+  router.post("/:slug/view", portfolioController.increaseView);
   router.put(
     "/:id",
     protectedSiteUserRoute(portfolioController.updatePortfolio)

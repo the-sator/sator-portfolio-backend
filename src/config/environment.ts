@@ -37,6 +37,13 @@ export default {
     prefix: "/api/v1",
   },
 
+  api_key: {
+    algo: process.env.API_KEY_ALGO || "H256",
+    secret: process.env.API_KEY_SECRET || "secret",
+    iv: process.env.API_KEY_IV || "",
+  },
+
   encryptionCode: process.env.ENCRYPTION_KEY || "",
   defaultOTPCode: process.env.DEFAULT_OTP_CODE || "",
+  defaultPassword: process.env.DEFAULT_PASSWORD || "",
 };

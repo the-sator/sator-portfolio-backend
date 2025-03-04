@@ -1,5 +1,6 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
+import { IdentityRole, type Identity } from "@/types/base.type";
 import type { BlogFilter, CreateBlog } from "@/types/blog.type";
 import { Prisma } from "@prisma/client";
 
@@ -52,6 +53,28 @@ export class BlogRepository {
     });
   }
 
+  public async findById(id: string) {
+    return await prisma.blog.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  public async findBySiteUserId(site_user_id: string) {
+    return await prisma.blog.findFirst({
+      where: {
+        site_user_id,
+        published_at: {
+          not: null,
+        },
+      },
+      include: {
+        CategoryOnBlog: true,
+      },
+    });
+  }
+
   public async paginateAdmin(filter: BlogFilter) {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
@@ -78,6 +101,30 @@ export class BlogRepository {
     });
   }
 
+  public async paginateBySiteUserId(site_user_id: string, filter: BlogFilter) {
+    const page = filter.page ? Number(filter.page) : 1;
+    const limit = filter.limit ? Number(filter.limit) : LIMIT;
+    const where = this.buildFilter(filter);
+    return await prisma.blog.findMany({
+      take: limit,
+      skip: (page - 1) * limit,
+      orderBy: {
+        created_at: "asc",
+      },
+      include: {
+        CategoryOnBlog: {
+          include: {
+            category: true,
+          },
+        },
+      },
+      where: {
+        site_user_id,
+        ...where,
+      },
+    });
+  }
+
   public async count(
     filter: BlogFilter,
     customWhere: Record<string, unknown> = {}
@@ -91,15 +138,21 @@ export class BlogRepository {
     });
   }
 
-  public async create(payload: CreateBlog, tx?: Prisma.TransactionClient) {
+  public async create(
+    payload: CreateBlog,
+    identity: Identity,
+    tx?: Prisma.TransactionClient
+  ) {
     const client = tx ? tx : prisma;
     return await client.blog.create({
       data: {
-        admin_id: payload.admin_id,
         title: payload.title,
         description: payload.description,
         cover_url: payload.cover_url,
         slug: payload.slug,
+        admin_id: identity.role === IdentityRole.ADMIN ? identity.id : null,
+        site_user_id:
+          identity.role === IdentityRole.SITE_USER ? identity.id : null,
         content: payload.content ? JSON.parse(payload.content) : null,
       },
     });
@@ -115,7 +168,6 @@ export class BlogRepository {
         id,
       },
       data: {
-        admin_id: payload.admin_id,
         title: payload.title,
         slug: payload.slug,
         cover_url: payload.cover_url,
@@ -150,20 +202,6 @@ export class BlogRepository {
         id,
       },
       data: { published_at: null },
-    });
-  }
-
-  public async increaseView(
-    id: string,
-    view: number,
-    tx?: Prisma.TransactionClient
-  ) {
-    const client = tx ? tx : prisma;
-    return await client.blog.update({
-      where: {
-        id,
-      },
-      data: { view: (view += 1) },
     });
   }
 }

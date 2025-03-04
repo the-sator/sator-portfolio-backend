@@ -7,6 +7,7 @@ export class PortfolioRepository {
   public async findAll() {
     return await prisma.portfolio.findMany();
   }
+
   public buildFilter(filter: PortfolioFilter) {
     let where: Record<string, unknown> = {};
     if (filter.title) {
@@ -26,6 +27,11 @@ export class PortfolioRepository {
             },
           },
         },
+      };
+    }
+    if (filter.published) {
+      where.published_at = {
+        not: null,
       };
     }
     return where;
@@ -85,7 +91,7 @@ export class PortfolioRepository {
   }
 
   public async findBySlug(slug: string) {
-    return await prisma.portfolio.findFirst({
+    const portfolio = await prisma.portfolio.findFirst({
       where: { slug },
       include: {
         CategoryOnPorfolio: {
@@ -93,8 +99,22 @@ export class PortfolioRepository {
             category: true,
           },
         },
+        PortfolioMetric: {
+          select: {
+            view: true,
+          },
+        },
       },
     });
+    if (!portfolio) return;
+    const totalViews = portfolio.PortfolioMetric.reduce(
+      (sum, metric) => sum + metric.view,
+      0
+    );
+    return {
+      ...portfolio,
+      view: totalViews,
+    };
   }
 
   public async findById(id: string) {
@@ -136,6 +156,8 @@ export class PortfolioRepository {
         gallery: payload.gallery ? payload.gallery : [],
         title: payload.title,
         slug: payload.slug,
+        github_link: payload.github_link,
+        preview_link: payload.preview_link,
       },
       create: {
         admin_id: payload.admin_id,
@@ -146,6 +168,8 @@ export class PortfolioRepository {
         gallery: payload.gallery ? payload.gallery : [],
         title: payload.title,
         slug: payload.slug,
+        github_link: payload.github_link,
+        preview_link: payload.preview_link,
       },
     });
   }
@@ -167,15 +191,19 @@ export class PortfolioRepository {
           : payload.content,
         gallery: payload.gallery,
         title: payload.title,
+        github_link: payload.github_link,
+        preview_link: payload.preview_link,
       },
     });
   }
+
   public async delete(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.portfolio.delete({
       where: { id },
     });
   }
+
   public async publish(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.portfolio.update({
@@ -185,6 +213,7 @@ export class PortfolioRepository {
       },
     });
   }
+
   public async unpublish(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.portfolio.update({

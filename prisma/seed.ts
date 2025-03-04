@@ -1,3 +1,4 @@
+import { encryptApiKey, getRandomString } from "../src/utils/encryption";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 export const Resource = [
@@ -126,35 +127,45 @@ async function main() {
       );
       const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
 
-      const [superAdminAuth, adminAuth, userAuth] = await Promise.all([
-        tx.auth.upsert({
-          where: { email: "super@test.com" },
-          update: {},
-          create: {
-            email: "super@test.com",
-            password: superPasswordHash,
-          },
-        }),
-        tx.auth.upsert({
-          where: { email: "admin@test.com" },
-          update: {},
-          create: {
-            email: "admin@test.com",
-            password: passwordHash,
-          },
-        }),
-        tx.auth.upsert({
-          where: { email: "user@test.com" },
-          update: {},
-          create: {
-            email: "user@test.com",
-            password: passwordHash,
-          },
-        }),
-      ]);
+      const [superAdminAuth, adminAuth, userAuth, siteUserAuth] =
+        await Promise.all([
+          tx.auth.upsert({
+            where: { email: "super@test.com" },
+            update: {},
+            create: {
+              email: "super@test.com",
+              password: superPasswordHash,
+            },
+          }),
+          tx.auth.upsert({
+            where: { email: "admin@test.com" },
+            update: {},
+            create: {
+              email: "admin@test.com",
+              password: passwordHash,
+            },
+          }),
+          tx.auth.upsert({
+            where: { email: "user@test.com" },
+            update: {},
+            create: {
+              email: "user@test.com",
+              password: passwordHash,
+            },
+          }),
+          tx.auth.upsert({
+            where: { email: "default@test.com" },
+            update: {},
+            create: {
+              email: "default@test.com",
+              password: passwordHash,
+            },
+          }),
+        ]);
       console.log("Auth records created ✅");
-
-      await Promise.all([
+      const apiKey = getRandomString();
+      const encryptedKey = encryptApiKey(apiKey);
+      const [, , user] = await Promise.all([
         tx.admin.upsert({
           where: { auth_id: superAdminAuth.id },
           update: {},
@@ -182,6 +193,18 @@ async function main() {
           },
         }),
       ]);
+
+      await tx.siteUser.upsert({
+        where: { auth_id: siteUserAuth.id },
+        update: {},
+        create: {
+          website_name: "Ponleu's Portfolio",
+          link: "https://putponleu.vercel.app",
+          api_key: encryptedKey,
+          user_id: user.id,
+          auth_id: siteUserAuth.id,
+        },
+      });
       console.log("Super Admin, Admin & User created ✅");
     },
     {

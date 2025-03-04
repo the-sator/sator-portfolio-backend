@@ -1,5 +1,5 @@
 import prisma from "@/loaders/prisma";
-import type { CreateBlogMetric } from "@/types/blog-metric.type";
+import type { DailyMetric, TotalMetric } from "@/types/statistic.type";
 import type { Prisma } from "@prisma/client";
 
 export class BlogMetricRepository {
@@ -31,30 +31,66 @@ export class BlogMetricRepository {
       },
     });
   }
-  public async createNoteMetric(
-    payload: CreateBlogMetric,
+
+  public async getDailyBySiteUser(
+    site_user_id: string
+  ): Promise<DailyMetric[]> {
+    const results: DailyMetric[] = await prisma.$queryRaw`
+        SELECT  SUM(bm.view)::INTEGER AS blog_views,
+            DATE_TRUNC('day', bm.created_at) AS created_at
+          FROM 
+            "BlogMetric" AS bm
+          JOIN 
+            "Blog" AS b ON bm.blog_id = b.id
+          WHERE 
+            bm.created_at > NOW() - INTERVAL '30 days'
+            AND site_user_id =${site_user_id}
+          GROUP BY 
+            DATE_TRUNC('day', bm.created_at)
+          ORDER BY 
+            created_at;
+        `;
+    return results;
+  }
+
+  public async getTotalBySiteUser(
+    site_user_id: string
+  ): Promise<Partial<TotalMetric>> {
+    const totalBlogView = await prisma.blogMetric.aggregate({
+      _sum: {
+        view: true,
+      },
+      where: {
+        blog: {
+          site_user_id,
+        },
+      },
+    });
+    return {
+      total_blog_views: totalBlogView._sum.view || 0,
+    };
+  }
+
+  public async createBlogMetric(
+    blog_id: string,
     tx?: Prisma.TransactionClient
   ) {
     const client = tx ? tx : prisma;
     return await client.blogMetric.create({
       data: {
-        view: payload.view || 0,
-        blog_id: payload.blog_id,
+        blog_id,
+        view: 1,
       },
     });
   }
-  public async increaseView(
-    id: string,
-    view: number,
-    tx?: Prisma.TransactionClient
-  ) {
+  public async increaseView(id: string, tx?: Prisma.TransactionClient) {
     const client = tx ? tx : prisma;
     return await client.blogMetric.update({
       where: {
         id,
       },
       data: {
-        view: (view += 1),
+        view: { increment: 1 },
       },
     });
   }

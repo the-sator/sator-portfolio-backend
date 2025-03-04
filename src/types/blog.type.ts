@@ -2,8 +2,6 @@ import { z } from "zod";
 import { BaseFilterSchema } from "./base.type";
 
 export const CreateBlogSchema = z.object({
-  admin_id: z.string().optional(),
-  site_user_id: z.string().optional(),
   title: z.string().min(1, { message: "Title is required" }),
   description: z
     .string()

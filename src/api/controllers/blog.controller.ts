@@ -208,7 +208,7 @@ export class BlogController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      await this.blogService.increaseView(validatedSlug.slug);
+      await this.blogService.increaseView(key, validatedSlug.slug);
       SimpleSuccess(res);
     } catch (error) {
       next(error);

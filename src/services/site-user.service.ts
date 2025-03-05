@@ -233,9 +233,9 @@ export class SiteUserService {
     });
   }
 
-  public async increaseView(id: string) {
-    const site = await this._siteUserRepository.findById(id);
-    if (!site) return ThrowForbidden("No Record Found");
+  public async increaseView(key: string) {
+    const site = await this._siteUserRepository.findByApiKey(key);
+    if (!site) return ThrowUnauthorized();
     return await prisma.$transaction(async (tx) => {
       const siteMetric = await this._siteMetricRepository.findByToday(
         site.id,

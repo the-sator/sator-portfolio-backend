@@ -168,10 +168,7 @@ export class SiteUserController {
     try {
       const key = req.headers.authorization?.split(" ")[1];
       if (!key) return ThrowUnauthorized("No Token Found");
-      const params = BaseModelSchema.parse({
-        id: req.params.id,
-      });
-      await this._siteUserService.increaseView(params.id as string);
+      await this._siteUserService.increaseView(key);
       SimpleSuccess(res);
     } catch (error) {
       next(error);

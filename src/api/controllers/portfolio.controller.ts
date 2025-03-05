@@ -191,7 +191,7 @@ export class PortfolioController {
       const params = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      await this.portfolioService.increaseView(params.slug);
+      await this.portfolioService.increaseView(key, params.slug);
       SimpleSuccess(res);
     } catch (error) {
       next(error);

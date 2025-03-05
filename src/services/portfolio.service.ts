@@ -151,7 +151,9 @@ export class PortfolioService {
     });
   }
 
-  public async increaseView(slug: string) {
+  public async increaseView(key: string, slug: string) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
     const portfolio = await this.portfolioRepository.findBySlug(slug);
     if (!portfolio) return ThrowForbidden("No Record Found");
     return await prisma.$transaction(async (tx) => {

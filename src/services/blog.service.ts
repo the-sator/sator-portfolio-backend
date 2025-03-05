@@ -129,7 +129,9 @@ export class BlogService {
     });
   }
 
-  public async increaseView(slug: string) {
+  public async increaseView(key: string, slug: string) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
     const blog = await this.blogRepository.findBySlug(slug);
     if (!blog) return ThrowForbidden("No Record Found");
     return await prisma.$transaction(async (tx) => {

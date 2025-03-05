@@ -64,7 +64,7 @@ jobs:
         run: npx prisma migrate deploy
 
       - name: Seed the temporary database
-        run: npx prisma db seed
+        run: npx prisma db seed-test
 
       - name: Run tests
         run: npm test

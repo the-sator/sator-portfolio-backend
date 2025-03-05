@@ -23,6 +23,7 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts",
+    "seed-test": "npx tsx prisma/seed-test.ts",
     "purge": "node --loader ts-node/esm ./prisma/purge.ts"
   },
   "devDependencies": {

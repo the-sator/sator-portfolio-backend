@@ -53,7 +53,6 @@ async function main() {
       await seedMain();
       break;
   }
-  // Increase transaction timeout
 }
 
 main()

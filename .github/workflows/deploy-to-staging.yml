@@ -32,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create .env file for NODE environment
+        run: |
+          echo "NODE_ENV=staging" > .env
+
       - name: Apply migrations to staging database
         run: npx prisma migrate deploy
         env:

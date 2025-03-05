@@ -18,7 +18,6 @@ describe("Admin", () => {
 
   it("Admin Sign in with Incorrect Email Should Return 404", async () => {
     const data: Login = {
-      username: "admin",
       email: "admin@gmail.com", // Incorrect Email
       password: "12345678",
       otp: 666666,
@@ -33,7 +32,6 @@ describe("Admin", () => {
 
   it("Admin Sign in with Incorrect Password Should Return 401", async () => {
     const data: Login = {
-      username: "admin",
       email: "admin@test.com", // Incorrect Email
       password: "invalid",
       otp: 666666,
@@ -48,7 +46,6 @@ describe("Admin", () => {
 
   it("Admin Sign in Correctly Should Return 200", async () => {
     const data: Login = {
-      username: "admin",
       email: "admin@test.com",
       password: "12345678",
       otp: 666666,

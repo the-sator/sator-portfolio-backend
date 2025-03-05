@@ -22,7 +22,7 @@
     "prepare": "husky"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts",
+    "seed": "npx tsx prisma/seed.ts",
     "purge": "node --loader ts-node/esm ./prisma/purge.ts"
   },
   "devDependencies": {

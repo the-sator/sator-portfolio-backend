@@ -25,7 +25,7 @@ describe("Testing Phase", () => {
     const data = response.body.data;
     expect(response.status).toBe(200);
     expect(data).not.toBe(null);
-    console.log("Done");
+    console.log("Done 1");
   });
   it("update should return status 200", async () => {
     const response = await request(app)

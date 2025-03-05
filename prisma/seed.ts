@@ -164,8 +164,20 @@ async function main() {
           }),
         ]);
       console.log("Auth records created ✅");
+
       const apiKey = getRandomString();
+
+      function encryptApiKey(text: string): string {
+        const secretKey = Buffer.from(process.env.API_KEY_SECRET!, "hex");
+        const iv = Buffer.from(process.env.API_KEY_IV!, "hex");
+        const cipher = createCipheriv(process.env.API_KEY_ALGO!, secretKey, iv);
+        let encrypted = cipher.update(text, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        return encrypted;
+      }
+
       const encryptedKey = encryptApiKey(apiKey);
+
       const [, , user] = await Promise.all([
         tx.admin.upsert({
           where: { auth_id: superAdminAuth.id },
@@ -224,12 +236,3 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
-
-function encryptApiKey(text: string): string {
-  const secretKey = Buffer.from(process.env.API_KEY_SECRET!, "hex");
-  const iv = Buffer.from(process.env.API_KEY_IV!, "hex");
-  const cipher = createCipheriv(process.env.API_KEY_ALGO!, secretKey, iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
-}

@@ -3,6 +3,8 @@ import { DynamicBuffer } from "@oslojs/binary";
 import { decodeBase64 } from "@oslojs/encoding";
 import config from "@/config/environment";
 import { generateRandomString, type RandomReader } from "@oslojs/crypto/random";
+import crypto from "crypto";
+
 const key = decodeBase64(config.encryptionCode ?? "");
 export function encrypt(data: Uint8Array): Uint8Array {
   const iv = new Uint8Array(16);

@@ -6,7 +6,7 @@ services:
     image: redis:7.2-alpine
     restart: always
     ports:
-      - "6663:6379"
+      - "6100:6379"
     command: redis-server --loglevel warning --requirepass password
     volumes:
       - redis-data:/data
@@ -48,7 +48,7 @@ services:
     links:
       - redis
     ports:
-      - 3000:3000
+      - 3100:3000
 
 volumes:
   api-data:

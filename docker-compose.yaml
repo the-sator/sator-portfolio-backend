@@ -2,46 +2,54 @@ networks:
   app:
     driver: bridge
 services:
-  db:
-    image: postgres:latest
-    restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: "password"
-      POSTGRES_DB: local
-    ports:
-      - "3336:3306"
-    volumes:
-      - local-db:/var/lib/postgres/data
-    networks:
-      - app
-
   redis:
     image: redis:7.2-alpine
     restart: always
     ports:
       - "6663:6379"
-    command: redis-server --loglevel warning --requirepass  password
+    command: redis-server --loglevel warning --requirepass password
     volumes:
       - redis-data:/data
     networks:
       - app
 
-  gva-backend-api:
+  sator-backend-api:
     build:
       context: .
-      dockerfile: build/Dockerfile${CUSTOM}
+      dockerfile: deployment/Dockerfile${CUSTOM}
     env_file:
-      - .env
+      - .env.example
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PASSWORD_SALT: ${PASSWORD_SALT}
+      DEFAULT_PASSWORD: ${DEFAULT_PASSWORD}
+      REDIS_URL: ${REDIS_URL}
+      PORT: ${PORT}
+      SOCKET_PORT: ${SOCKET_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DEFAULT_OTP_CODE: ${DEFAULT_OTP_CODE}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME}
+      AWS_PUBLIC_BUCKET_URL: ${AWS_PUBLIC_BUCKET_URL}
+      API_KEY_SECRET: ${API_KEY_SECRET}
+      API_KEY_ALGO: ${API_KEY_ALGO}
+      API_KEY_IV: ${API_KEY_IV}
+      DATABASE_URL: ${DATABASE_URL}
     volumes:
       - api-data:/app
     networks:
       - app
     depends_on:
-      - db
       - redis
     links:
-      - db
       - redis
     ports:
-      - 5500:5500
+      - 3000:3000
+
+volumes:
+  api-data:
+  redis-data:

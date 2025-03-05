@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 // const envFound = dotenv.config({
 //   path: path.join(__dirname, `../../.env.${process.env.NODE_ENV}`),
 // });
-const envFound = dotenv.config();
-if (envFound.error) {
-  // This error should crash whole process
+if (process.env.NODE_ENV === "development") {
+  const envFound = dotenv.config();
+  if (envFound.error) {
+    // This error should crash whole process
 
-  throw new Error("⚠️  Couldn't find .env file  ⚠️");
+    throw new Error("⚠️  Couldn't find .env file  ⚠️");
+  }
 }
 
 export default {

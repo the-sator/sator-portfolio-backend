@@ -17,8 +17,6 @@ services:
     build:
       context: .
       dockerfile: deployment/Dockerfile${CUSTOM}
-    env_file:
-      - .env.example
     environment:
       NODE_ENV: ${NODE_ENV}
       PASSWORD_SALT: ${PASSWORD_SALT}

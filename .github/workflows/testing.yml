@@ -56,6 +56,9 @@ jobs:
           echo "SOCKET_PORT=8080" >> .env
           echo "PASSWORD_SALT=11" >> .env
           echo "DEFAULT_OTP_CODE=666666" >> .env
+          echo "API_KEY_SECRET=4b86193e4f4a80f3f34af2f2466fdee00d1bdc7e926e9e0c103b92b82cd2d102" >> .env
+          echo "API_KEY_IV=1be6f547fc84c37c30dbf9be193ebccd" >> .env
+          echo "API_KEY_ALGO=aes-256-cbc" >> .env
 
       - name: Run migrations on temporary database
         run: npx prisma migrate deploy

@@ -9,7 +9,7 @@ import { decodeBase64 } from "@oslojs/encoding";
 import { verifyTOTP } from "@oslojs/otp";
 import config from "@/config/environment";
 
-import { COOKIE } from "@/types/base.type";
+import { COOKIE, IdentityRole } from "@/types/base.type";
 import type { UpdateAdminTotp } from "@/types/admin.type";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
@@ -111,7 +111,7 @@ export class AdminService {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { admin_id: auth.admin.id }
+      { id: auth.admin.id, role: IdentityRole.ADMIN }
     );
     setCookie(res, COOKIE.ADMIN, sessionToken);
     return {

@@ -29,9 +29,10 @@ import prisma from "@/loaders/prisma";
 import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
-import { randomUUIDv7 } from "bun";
 import type { Response } from "express";
 import { SiteMetricRepository } from "@/repositories/site-metric-repository";
+import { randomUUID } from "crypto";
+import { IdentityRole } from "@/types/base.type";
 export class SiteUserService {
   private _siteUserRepository: SiteUserRepository;
   private _sessionRepository: SessionRepository;
@@ -71,7 +72,7 @@ export class SiteUserService {
     const passwordHash = await hashPassword(config.defaultPassword);
     return prisma.$transaction(async (tx) => {
       // Create Default Auth for the website
-      const uniqueEmail = `user-${randomUUIDv7()}@sator-tech.live`;
+      const uniqueEmail = `user-${randomUUID()}@sator-tech.live`;
       const apiKey = getRandomString();
       const encryptedKey = encryptApiKey(apiKey);
       const auth = await this._authRepository.createAuth(
@@ -124,7 +125,7 @@ export class SiteUserService {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { site_user_id: auth.siteUser.id }
+      { id: auth.siteUser.id, role: IdentityRole.SITE_USER }
     );
     return {
       ...auth.siteUser,
@@ -189,7 +190,7 @@ export class SiteUserService {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { site_user_id: auth.siteUser.id }
+      { id: auth.siteUser.id, role: IdentityRole.SITE_USER }
     );
     return {
       ...auth.siteUser,

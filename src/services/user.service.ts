@@ -18,6 +18,7 @@ import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionService } from "./session.service";
 import prisma from "@/loaders/prisma";
 import { SessionRepository } from "@/repositories/session.repository";
+import { IdentityRole } from "@/types/base.type";
 
 export class UserService {
   private _userRepository: UserRepository;
@@ -107,7 +108,7 @@ export class UserService {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { user_id: auth.user.id }
+      { id: auth.user.id, role: IdentityRole.ADMIN }
     );
 
     return {

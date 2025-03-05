@@ -1,6 +1,7 @@
-import { encryptApiKey, getRandomString } from "../src/utils/encryption";
+import { getRandomString } from "../src/utils/encryption";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { createCipheriv } from "crypto";
 export const Resource = [
   {
     name: "User",
@@ -223,3 +224,12 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+
+function encryptApiKey(text: string): string {
+  const secretKey = Buffer.from(process.env.API_KEY_SECRET!, "hex");
+  const iv = Buffer.from(process.env.API_KEY_IV!, "hex");
+  const cipher = createCipheriv(process.env.API_KEY_ALGO!, secretKey, iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  return encrypted;
+}

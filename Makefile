@@ -3,3 +3,7 @@ db:
 
 test: 
 	bun run test
+
+db-diff:
+	$(eval DB_URL := $(shell cat .env | grep DATABASE_URL | cut -d '=' -f2))
+	bun db-diff $(DB_URL)

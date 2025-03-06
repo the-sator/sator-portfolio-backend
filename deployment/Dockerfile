@@ -1,25 +1,4 @@
-# FROM node:18.20-alpine3.21
-
-# # Create app directory
-# WORKDIR /app
-
-# # Copy package.json and package-lock.json
-# COPY ../package.json ./
-
-# # Install app dependencies
-# RUN npm install
-
-# # Copy the rest of the application code
-# COPY . .
-
-# # Expose the port the app runs on
-# EXPOSE 3000
-
-# # Command to run the app
-# CMD ["npm", "start"]
-
 # use the official Bun image
-# see all versions at https://hub.docker.com/r/oven/bun/tags
 FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
 
@@ -50,9 +29,13 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 COPY --from=prerelease /usr/src/app/package.json .
 
+# Fix permissions - crucial step!
+RUN chmod +x entrypoint.sh && \
+    mkdir -p node_modules/.prisma && \
+    chmod -R 777 node_modules/.prisma node_modules/@prisma node_modules/prisma
+
 
 COPY ./entrypoint.sh .
-RUN chmod +x entrypoint.sh
 
 # run the app
 USER bun

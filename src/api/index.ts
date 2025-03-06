@@ -43,7 +43,6 @@ export default () => {
       message: "OK",
       date: new Date(),
     };
-
     res.status(200).send(data);
   });
 

@@ -2,7 +2,6 @@ import { createCipheriv, createDecipheriv } from "crypto";
 import { DynamicBuffer } from "@oslojs/binary";
 import { decodeBase64 } from "@oslojs/encoding";
 import config from "@/config/environment";
-import { generateRandomString, type RandomReader } from "@oslojs/crypto/random";
 import crypto from "crypto";
 
 const key = decodeBase64(config.encryptionCode ?? "");
@@ -78,15 +77,4 @@ export function decryptApiKey(key: string): string {
   let decrypted = decipher.update(key, "hex", "utf8");
   decrypted += decipher.final("utf8");
   return decrypted;
-}
-
-export function getRandomString(): string {
-  const random: RandomReader = {
-    read(bytes: Uint8Array): void {
-      crypto.getRandomValues(bytes);
-    },
-  };
-  const alphabet =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  return generateRandomString(random, alphabet, 32);
 }

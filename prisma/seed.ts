@@ -47,6 +47,7 @@ async function main() {
   } = parseArgs({ options });
   switch (environment) {
     case "test":
+    case "development":
       await seedTest();
       break;
     default:

@@ -1,4 +1,4 @@
-import { getRandomString } from "../src/utils/encryption";
+import { generateRandomUsername, getRandomString } from "../src/utils/string";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { createCipheriv } from "crypto";
@@ -129,6 +129,7 @@ export async function seedTest() {
         Number(saltRounds)
       );
       const passwordHash = await bcrypt.hash("12345678", Number(saltRounds));
+      const username = generateRandomUsername();
 
       const [superAdminAuth, adminAuth, userAuth, siteUserAuth] =
         await Promise.all([
@@ -160,7 +161,7 @@ export async function seedTest() {
             where: { email: "default@test.com" },
             update: {},
             create: {
-              email: "default@test.com",
+              email: `${username}@test.com`,
               password: passwordHash,
             },
           }),
@@ -213,6 +214,7 @@ export async function seedTest() {
         where: { auth_id: siteUserAuth.id },
         update: {},
         create: {
+          username,
           website_name: "Ponleu's Portfolio",
           link: "https://putponleu.vercel.app",
           api_key: encryptedKey,
@@ -223,7 +225,7 @@ export async function seedTest() {
       console.log("Super Admin, Admin & User created ✅");
     },
     {
-      timeout: 30000, // Increase transaction timeout
+      timeout: 50000, // Increase transaction timeout
     }
   );
 }

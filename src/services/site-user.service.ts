@@ -1,24 +1,16 @@
 import { SiteUserRepository } from "@/repositories/site-user.repository";
 import type {
   CreateSiteUser,
+  Onboarding,
   SiteUserAuth,
   SiteUserFilter,
 } from "@/types/site-user.type";
 import { getPaginationMetadata } from "@/utils/pagination";
 import config from "@/config/environment";
-import type { Login } from "@/types/auth.type";
-import {
-  ThrowForbidden,
-  ThrowInternalServer,
-  ThrowUnauthorized,
-} from "@/utils/exception";
+import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { verifyTOTP } from "@oslojs/otp";
-import {
-  decrypt,
-  decryptApiKey,
-  encryptApiKey,
-  getRandomString,
-} from "@/utils/encryption";
+import { decrypt, decryptApiKey, encryptApiKey } from "@/utils/encryption";
+import { generateRandomUsername, getRandomString } from "@/utils/string";
 import {
   decodeToSessionId,
   generateSessionToken,
@@ -29,9 +21,7 @@ import prisma from "@/loaders/prisma";
 import { AuthRepository } from "@/repositories/auth.repository";
 import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
-import type { Response } from "express";
 import { SiteMetricRepository } from "@/repositories/site-metric-repository";
-import { randomUUID } from "crypto";
 import { IdentityRole } from "@/types/base.type";
 export class SiteUserService {
   private _siteUserRepository: SiteUserRepository;
@@ -72,7 +62,8 @@ export class SiteUserService {
     const passwordHash = await hashPassword(config.defaultPassword);
     return prisma.$transaction(async (tx) => {
       // Create Default Auth for the website
-      const uniqueEmail = `user-${randomUUID()}@sator-tech.live`;
+      const username = generateRandomUsername();
+      const uniqueEmail = `${username}@sator-tech.live`;
       const apiKey = getRandomString();
       const encryptedKey = encryptApiKey(apiKey);
       const auth = await this._authRepository.createAuth(
@@ -85,6 +76,7 @@ export class SiteUserService {
       // Create the site record
       return this._siteUserRepository.create(
         {
+          username: username,
           website_name: payload.website_name,
           link: payload.link,
           user_id: payload.user_id,
@@ -95,12 +87,15 @@ export class SiteUserService {
       );
     });
   }
-
-  public async siteUserlogin(payload: Login) {
-    const auth = await this._authRepository.checkByEmail(payload.email);
-    if (!auth) {
+  // TODO: Solve Username Uniqueness Problem
+  public async siteUserlogin(payload: SiteUserAuth) {
+    const siteUser = await this._siteUserRepository.findByUsername(
+      payload.username
+    );
+    if (!siteUser) {
       return ThrowUnauthorized("Invalid Credentials");
     }
+    const auth = siteUser.Auth;
 
     const isPasswordValid = verifyPassword(payload.password, auth.password);
     if (!isPasswordValid) {
@@ -118,17 +113,16 @@ export class SiteUserService {
     }
 
     const sessionToken = generateSessionToken();
-    if (!auth.siteUser) return ThrowUnauthorized("SiteUser cannot be found");
 
     const session = await this._sessionService.createSession(
       {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { id: auth.siteUser.id, role: IdentityRole.SITE_USER }
+      { id: siteUser.id, role: IdentityRole.SITE_USER }
     );
     return {
-      ...auth.siteUser,
+      ...siteUser,
       token: sessionToken,
       expires_at: session.expires_at,
     };
@@ -160,12 +154,14 @@ export class SiteUserService {
     return isRegistered;
   }
 
-  public async firstLogin(res: Response, id: string, payload: SiteUserAuth) {
-    const auth = await this._authRepository.checkByEmail(payload.email);
-    console.log("auth:", auth);
-    if (!auth) {
+  public async firstLogin(id: string, payload: Onboarding) {
+    const siteUser = await this._siteUserRepository.findByUsername(
+      payload.username
+    );
+    if (!siteUser) {
       return ThrowUnauthorized("Invalid Credentials");
     }
+    const auth = siteUser.Auth;
     const isPasswordValid = await verifyPassword(
       payload.password,
       auth.password
@@ -174,7 +170,7 @@ export class SiteUserService {
       return ThrowUnauthorized("Invalid Credentials");
     }
 
-    if (!auth.siteUser || auth.siteUser.id !== id) {
+    if (siteUser.id !== id) {
       return ThrowUnauthorized(
         process.env.NODE_ENV === "development"
           ? "Invalid Site User"
@@ -183,32 +179,26 @@ export class SiteUserService {
     }
 
     const sessionToken = generateSessionToken();
-    if (!auth.siteUser) return ThrowUnauthorized("SiteUser cannot be found");
 
     const session = await this._sessionService.createSession(
       {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { id: auth.siteUser.id, role: IdentityRole.SITE_USER }
+      { id: siteUser.id, role: IdentityRole.SITE_USER }
     );
     return {
-      ...auth.siteUser,
+      ...siteUser,
       token: sessionToken,
       expires_at: session.expires_at,
     };
   }
-  public async updateAuth(id: string, token: string, payload: SiteUserAuth) {
+  public async updateAuth(id: string, token: string, payload: Onboarding) {
     const sessionId = decodeToSessionId(token);
     console.log("sessionId:", sessionId);
     const result = await this._sessionRepository.findSessionById(sessionId);
     if (result === null) {
       return ThrowUnauthorized();
-    }
-
-    const isDuplicate = await this._authRepository.checkByEmail(payload.email);
-    if (isDuplicate) {
-      return ThrowForbidden("Duplicate Email");
     }
 
     return prisma.$transaction(async (tx) => {
@@ -220,16 +210,16 @@ export class SiteUserService {
             : "Invalid Credentials"
         );
       const hashedPassword = await hashPassword(payload.password);
-      const auth = await this._authRepository.updateAuth(
+      const auth = await this._authRepository.updatePassword(
         result.site_user.auth_id,
-        {
-          email: payload.email,
-          password: hashedPassword,
-        },
+        hashedPassword,
         tx
       );
-      await this._siteUserRepository.updateRegisteredAt(id, tx);
-      return auth.siteUser;
+      await Promise.all([
+        this._siteUserRepository.updateRegisteredAt(id, tx),
+        this._siteUserRepository.updateUsername(id, payload.username, tx),
+      ]);
+      return auth.site_user;
     });
   }
 

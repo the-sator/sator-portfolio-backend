@@ -17,7 +17,7 @@ model Auth {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   user       User?
-  siteUser   SiteUser?
+  site_user  SiteUser?
   admin      Admin?
 }
 
@@ -40,6 +40,7 @@ model SiteUser {
   auth_id       String       @unique
   user_id       String
   profile_url   String?
+  username      String
   website_name  String
   link          String       @unique
   registered_at DateTime?

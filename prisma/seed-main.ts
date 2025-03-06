@@ -185,7 +185,7 @@ export async function seedMain() {
       console.log("Super Admin, Admin & User created ✅");
     },
     {
-      timeout: 30000, // Increase transaction timeout
+      timeout: 50000, // Increase transaction timeout
     }
   );
 }

@@ -81,6 +81,7 @@ export class SiteUserRepository {
   public async create(
     payload: CreateSiteUser,
     auth_id: string,
+    username: string,
     apiKey: string,
     tx: Prisma.TransactionClient
   ) {
@@ -88,7 +89,7 @@ export class SiteUserRepository {
     return client.siteUser.create({
       data: {
         website_name: payload.website_name,
-        username: payload.username,
+        username,
         link: payload.link,
         user_id: payload.user_id,
         api_key: apiKey,

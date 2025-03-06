@@ -76,12 +76,12 @@ export class SiteUserService {
       // Create the site record
       return this._siteUserRepository.create(
         {
-          username: username,
           website_name: payload.website_name,
           link: payload.link,
           user_id: payload.user_id,
         },
         auth.id,
+        username,
         encryptedKey,
         tx
       );

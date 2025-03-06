@@ -2,7 +2,6 @@ import { z } from "zod";
 import { BaseFilterSchema } from "./base.type";
 
 export const CreateSiteUserSchema = z.object({
-  username: z.string().min(1),
   website_name: z.string().trim().min(1),
   link: z.string().min(1).trim(),
   user_id: z.string().min(1).trim(),

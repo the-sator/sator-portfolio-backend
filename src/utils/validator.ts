@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { z, ZodError } from "zod";
 
 import { StatusCodes } from "http-status-codes";
+import { ThrowInternalServer } from "./exception";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateData(schema: z.ZodObject<any, any>) {
@@ -11,16 +12,17 @@ export function validateData(schema: z.ZodObject<any, any>) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessages = error.errors.map((issue: z.ZodIssue) => ({
-          message: `${issue.path.join(".")} is ${issue.message}`,
-        }));
-        res
-          .status(StatusCodes.BAD_REQUEST)
-          .json({ error: "Invalid data", details: errorMessages });
+        const errorMessages = error.errors.map(
+          (issue) => `${issue.path.join(".")} is ${issue.message}`
+        );
+
+        console.log("errorMessages:", errorMessages);
+        res.status(StatusCodes.BAD_REQUEST).json({
+          statusCode: StatusCodes.BAD_REQUEST,
+          error: errorMessages,
+        });
       } else {
-        res
-          .status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json({ error: "Internal Server Error" });
+        ThrowInternalServer();
       }
     }
   };

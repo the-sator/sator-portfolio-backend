@@ -21,13 +21,6 @@ export const SignUpSchema = BaseAuthSchema.extend({
 
 // Extend the base schema for Login
 export const LoginSchema = BaseAuthSchema.extend({
-  // username: z
-  //   .string()
-  //   .trim()
-  //   .min(1, { message: "Username is required" })
-  //   .max(20, {
-  //     message: "Username must not exceed 20 characters",
-  //   }),
   otp: z.number().lt(999999, { message: "Must be 6 characters long" }),
 });
 

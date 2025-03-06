@@ -1,9 +1,9 @@
 import { SimpleSuccess } from "@/response/response";
 import { SiteUserService } from "@/services/site-user.service";
-import { LoginSchema } from "@/types/auth.type";
 import { BaseModelSchema, COOKIE } from "@/types/base.type";
 import {
   CreateSiteUserSchema,
+  OnboardingSchema,
   SiteUserAuthSchema,
   SiteUserFilterSchema,
 } from "@/types/site-user.type";
@@ -67,7 +67,7 @@ export class SiteUserController {
     next: NextFunction
   ) => {
     try {
-      const valdiated = LoginSchema.parse(req.body);
+      const valdiated = SiteUserAuthSchema.parse(req.body);
       const siteUser = await this._siteUserService.siteUserlogin(valdiated);
       setCookie(res, COOKIE.SITE_USER, siteUser.token);
       res.json({ data: siteUser });
@@ -123,9 +123,8 @@ export class SiteUserController {
   ) => {
     try {
       const params = BaseModelSchema.parse(req.params);
-      const payload = SiteUserAuthSchema.parse(req.body);
+      const payload = OnboardingSchema.parse(req.body);
       const siteUser = await this._siteUserService.firstLogin(
-        res,
         params.id as string,
         payload
       );
@@ -145,7 +144,7 @@ export class SiteUserController {
   ) => {
     try {
       const params = BaseModelSchema.parse(req.params);
-      const payload = SiteUserAuthSchema.parse(req.body);
+      const payload = OnboardingSchema.parse(req.body);
       const token = getSiteUserCookie(req);
       const siteUser = await this._siteUserService.updateAuth(
         params.id as string,

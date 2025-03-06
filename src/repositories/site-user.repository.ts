@@ -34,6 +34,16 @@ export class SiteUserRepository {
       },
     });
   }
+  public async findByUsername(username: string) {
+    return await prisma.siteUser.findFirst({
+      where: {
+        username,
+      },
+      include: {
+        Auth: true,
+      },
+    });
+  }
 
   public async findByApiKey(api_key: string) {
     const encrypted = encryptApiKey(api_key);
@@ -78,6 +88,7 @@ export class SiteUserRepository {
     return client.siteUser.create({
       data: {
         website_name: payload.website_name,
+        username: payload.username,
         link: payload.link,
         user_id: payload.user_id,
         api_key: apiKey,
@@ -92,6 +103,20 @@ export class SiteUserRepository {
       where: { id },
       data: {
         registered_at: new Date(),
+      },
+    });
+  }
+
+  public async updateUsername(
+    id: string,
+    username: string,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return client.siteUser.update({
+      where: { id },
+      data: {
+        username,
       },
     });
   }

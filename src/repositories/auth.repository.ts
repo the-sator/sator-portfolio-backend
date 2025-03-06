@@ -3,7 +3,6 @@ import type { Signup } from "@/types/auth.type";
 import type { Prisma } from "@prisma/client";
 import type { EncryptedUpdateAdminTotp } from "./admin.repository";
 import { encryptToBuffer } from "@/utils/encryption";
-import type { SiteUserAuth } from "@/types/site-user.type";
 
 export class AuthRepository {
   public async checkByEmail(email: string) {
@@ -15,10 +14,11 @@ export class AuthRepository {
       include: {
         user: true,
         admin: true,
-        siteUser: true,
+        site_user: true,
       },
     });
   }
+
   public async createAuth(
     payload: Omit<Signup, "username">,
     tx: Prisma.TransactionClient
@@ -32,22 +32,21 @@ export class AuthRepository {
     });
   }
 
-  public async updateAuth(
+  public async updatePassword(
     id: string,
-    payload: SiteUserAuth,
+    password: string,
     tx?: Prisma.TransactionClient
   ) {
     const client = tx ? tx : prisma;
     return client.auth.update({
       where: { id },
       data: {
-        email: payload.email,
-        password: payload.password,
+        password: password,
       },
       include: {
         user: true,
         admin: true,
-        siteUser: true,
+        site_user: true,
       },
     });
   }

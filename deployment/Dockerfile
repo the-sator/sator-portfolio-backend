@@ -41,6 +41,8 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
+COPY prisma ./prisma/
+
 
 # copy production dependencies and source code into final image
 FROM base AS release
@@ -48,9 +50,9 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 COPY --from=prerelease /usr/src/app/package.json .
 
+
 COPY ./entrypoint.sh .
 RUN chmod +x entrypoint.sh
-
 
 # run the app
 USER bun

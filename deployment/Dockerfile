@@ -49,6 +49,8 @@ COPY --from=prerelease /usr/src/app .
 COPY --from=prerelease /usr/src/app/package.json .
 
 COPY ./entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
 
 # run the app
 USER bun

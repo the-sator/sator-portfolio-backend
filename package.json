@@ -12,6 +12,7 @@
     "inspect": "bun run --inspect src/index.ts",
     "reset-all": "bunx prisma db push --force-reset && bunx prisma db seed",
     "db-diff": "bunx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url",
+    "db:deploy": "bunx prisma migrate deploy && bunx prisma generate",
     "lint": "npm run lint:js",
     "lint:eslint": "eslint --ignore-pattern .gitignore",
     "lint:js": "npm run lint:eslint src/",

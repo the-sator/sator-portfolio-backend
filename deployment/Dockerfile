@@ -29,13 +29,15 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 COPY --from=prerelease /usr/src/app/package.json .
 
-# Fix permissions - crucial step!
+
+COPY ./entrypoint.sh .
+
+
+# Fix permissions 
 RUN chmod +x entrypoint.sh && \
     mkdir -p node_modules/.prisma && \
     chmod -R 777 node_modules/.prisma node_modules/@prisma node_modules/prisma
 
-
-COPY ./entrypoint.sh .
 
 # run the app
 USER bun

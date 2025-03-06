@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Session" ALTER COLUMN "admin_id" DROP NOT NULL,
-ALTER COLUMN "user_id" DROP NOT NULL;

@@ -36,7 +36,8 @@ COPY ./entrypoint.sh .
 # Fix permissions 
 RUN chmod +x entrypoint.sh && \
     mkdir -p node_modules/.prisma && \
-    chmod -R 777 node_modules/.prisma node_modules/@prisma node_modules/prisma
+    mkdir -p generated && \
+    chmod -R 777 node_modules/.prisma node_modules/@prisma node_modules/prisma generated
 
 
 # run the app

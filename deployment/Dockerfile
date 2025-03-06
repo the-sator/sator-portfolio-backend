@@ -48,6 +48,8 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 COPY --from=prerelease /usr/src/app/package.json .
 
+COPY ./entrypoint.sh .
+
 # run the app
 USER bun
 EXPOSE 3000

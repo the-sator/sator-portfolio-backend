@@ -10,7 +10,7 @@ export default (app: Router) => {
   app.use("/", router);
   router.get("/me", siteUserController.getMe);
   router.post(
-    "/login",
+    "/:id/login",
     validateData(SiteUserAuthSchema),
     siteUserController.siteUserLogin
   );

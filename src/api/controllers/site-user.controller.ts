@@ -67,8 +67,12 @@ export class SiteUserController {
     next: NextFunction
   ) => {
     try {
-      const valdiated = SiteUserAuthSchema.parse(req.body);
-      const siteUser = await this._siteUserService.siteUserlogin(valdiated);
+      const params = BaseModelSchema.parse(req.params);
+      const validated = SiteUserAuthSchema.parse(req.body);
+      const siteUser = await this._siteUserService.siteUserlogin(
+        params.id as string,
+        validated
+      );
       setCookie(res, COOKIE.SITE_USER, siteUser.token);
       res.json({ data: siteUser });
     } catch (error) {

@@ -88,12 +88,19 @@ export class SiteUserService {
     });
   }
   // TODO: Solve Username Uniqueness Problem
-  public async siteUserlogin(payload: SiteUserAuth) {
+  public async siteUserlogin(id: string, payload: SiteUserAuth) {
     const siteUser = await this._siteUserRepository.findByUsername(
       payload.username
     );
     if (!siteUser) {
       return ThrowUnauthorized("Invalid Credentials");
+    }
+    if (siteUser.id !== id) {
+      return ThrowUnauthorized(
+        process.env.NODE_ENV === "development"
+          ? "Invalid Site User"
+          : "Invalid Credentials"
+      );
     }
     const auth = siteUser.Auth;
 

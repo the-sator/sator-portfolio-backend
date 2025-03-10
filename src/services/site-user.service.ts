@@ -23,6 +23,8 @@ import { SessionRepository } from "@/repositories/session.repository";
 import { SessionService } from "./session.service";
 import { SiteMetricRepository } from "@/repositories/site-metric-repository";
 import { IdentityRole } from "@/types/base.type";
+import type { UpdateTotp } from "@/types/auth.type";
+import { decodeBase64 } from "@oslojs/encoding";
 export class SiteUserService {
   private _siteUserRepository: SiteUserRepository;
   private _sessionRepository: SessionRepository;
@@ -246,5 +248,41 @@ export class SiteUserService {
       await this._siteMetricRepository.increaseView(siteMetric.id, tx);
       return site;
     });
+  }
+
+  public async updateSiteUserTotp(token: string, payload: UpdateTotp) {
+    try {
+      let key: Uint8Array;
+      const sessionId = decodeToSessionId(token);
+      const siteUser = await this.getMe(token);
+      try {
+        key = decodeBase64(payload.key);
+      } catch {
+        return ThrowInternalServer("Invalid Key, Failed To Decode");
+      }
+      if (key.byteLength !== 20) {
+        return ThrowInternalServer("Invalid Key, ByteLength Invalid");
+      }
+      if (!verifyTOTP(key, 30, 6, payload.code)) {
+        return ThrowInternalServer("Invalid Code");
+      }
+      const result = await prisma.$transaction(async (tx) => {
+        await this._sessionRepository.updateTwoFactorVerified(sessionId, tx);
+        return await this._authRepository.updateTotp(
+          siteUser.auth_id,
+          {
+            code: payload.code,
+            key: key,
+          },
+          tx
+        );
+      });
+
+      return result;
+    } catch (error) {
+      return ThrowInternalServer(
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
 }

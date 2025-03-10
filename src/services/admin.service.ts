@@ -10,7 +10,7 @@ import { verifyTOTP } from "@oslojs/otp";
 import config from "@/config/environment";
 
 import { COOKIE, IdentityRole } from "@/types/base.type";
-import type { UpdateAdminTotp } from "@/types/admin.type";
+import type { UpdateTotp } from "@/types/auth.type";
 import prisma from "@/loaders/prisma";
 import Logger from "@/logger/logger";
 import { decrypt } from "@/utils/encryption";
@@ -142,9 +142,11 @@ export class AdminService {
     return result;
   }
 
-  public async updateAdminTotp(payload: UpdateAdminTotp) {
+  public async UpdateTotp(token: string, payload: UpdateTotp) {
     try {
       let key: Uint8Array;
+      const sessionId = decodeToSessionId(token);
+      const admin = await this.getMe(token);
       try {
         key = decodeBase64(payload.key);
       } catch {
@@ -157,16 +159,12 @@ export class AdminService {
         return ThrowInternalServer("Invalid Code");
       }
       const result = await prisma.$transaction(async (tx) => {
-        await this.sessionRepository.updateTwoFactorVerified(
-          payload.sessionId,
-          tx
-        );
+        await this.sessionRepository.updateTwoFactorVerified(sessionId, tx);
         return await this.authRepository.updateTotp(
+          admin.auth_id,
           {
             code: payload.code,
             key: key,
-            sessionId: payload.sessionId,
-            id: payload.id,
           },
           tx
         );

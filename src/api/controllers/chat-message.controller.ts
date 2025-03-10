@@ -4,7 +4,9 @@ import {
   CreateChatMessageSchema,
 } from "@/types/chat-message.type";
 import { RoomIdSchema } from "@/types/chat-room.type";
+import { getAdminCookie, getUserCookie } from "@/utils/cookie";
 import type { Request, Response, NextFunction } from "express";
+import config from "@/config/environment";
 
 export class ChatMessageController {
   private chatMessageService: ChatMessageService;
@@ -29,11 +31,16 @@ export class ChatMessageController {
     try {
       const params = RoomIdSchema.parse(req.params);
       const filter = ChatMessageFilterSchema.parse(req.query);
+      const isAdminRoute = req.originalUrl.startsWith(
+        `${config.api.prefix}/admin`
+      );
+      const token = isAdminRoute ? getAdminCookie(req) : getUserCookie(req);
       const { messages, page, page_count, page_size, current_page } =
         await this.chatMessageService.paginateByRoomId(
-          req,
+          token,
           params.roomId as string,
-          filter
+          filter,
+          isAdminRoute
         );
       res.json({
         data: {
@@ -52,8 +59,9 @@ export class ChatMessageController {
   ) => {
     try {
       const params = RoomIdSchema.parse(req.params);
+      const token = getAdminCookie(req);
       const messages = await this.chatMessageService.findByRoomId(
-        req,
+        token,
         params.roomId as string
       );
       res.json({ data: messages });

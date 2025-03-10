@@ -8,14 +8,11 @@ import type {
 } from "@/types/chat-message.type";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { getPaginationMetadata } from "@/utils/pagination";
-import type { Request } from "express";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
 import { UnreadMessageService } from "./unread-message.service";
 import { UserService } from "./user.service";
 import { AdminService } from "./admin.service";
-import { getAdminCookie, getUserCookie } from "@/utils/cookie";
-import config from "@/config/environment";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
@@ -52,17 +49,14 @@ export class ChatMessageService {
   }
 
   public async paginateByRoomId(
-    req: Request,
+    token: string,
     id: string,
-    filter: ChatMessageFilter
+    filter: ChatMessageFilter,
+    isAdmin: boolean
   ) {
-    const isAdminRoute = `${config.api.prefix}/admin`;
-    const sessionToken = isAdminRoute
-      ? getAdminCookie(req)
-      : getUserCookie(req);
-    const auth = isAdminRoute
-      ? await this.adminService.getMe(sessionToken)
-      : await this.userService.getMe(sessionToken);
+    const auth = isAdmin
+      ? await this.adminService.getMe(token)
+      : await this.userService.getMe(token);
     if (!auth) {
       return ThrowUnauthorized();
     }

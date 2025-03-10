@@ -108,7 +108,7 @@ export class UserService {
         token: sessionToken,
         two_factor_verified: !!auth.totp_key,
       },
-      { id: auth.user.id, role: IdentityRole.ADMIN }
+      { id: auth.user.id, role: IdentityRole.USER }
     );
 
     return {

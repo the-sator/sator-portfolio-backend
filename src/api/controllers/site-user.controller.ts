@@ -1,5 +1,6 @@
 import { SimpleSuccess } from "@/response/response";
 import { SiteUserService } from "@/services/site-user.service";
+import { UpdateTotpSchema } from "@/types/auth.type";
 import { BaseModelSchema, COOKIE } from "@/types/base.type";
 import {
   CreateSiteUserSchema,
@@ -173,6 +174,25 @@ export class SiteUserController {
       if (!key) return ThrowUnauthorized("No Token Found");
       await this._siteUserService.increaseView(key);
       SimpleSuccess(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateTotp = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validated = UpdateTotpSchema.parse(req.body);
+      const token = getSiteUserCookie(req);
+      if (!token) return ThrowUnauthorized("No Token Found");
+      const admin = await this._siteUserService.updateSiteUserTotp(
+        token,
+        validated
+      );
+      res.json({ data: admin });
     } catch (error) {
       next(error);
     }

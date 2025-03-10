@@ -20,7 +20,7 @@ export default (app: Router) => {
   router.post("/signup", validateData(SignUpSchema), adminController.signup);
   router.post("/login", validateData(LoginSchema), adminController.login);
   router.post("/signout", adminController.signout);
-  router.post("/totp", protectedRoute(adminController.updateAdminTotp));
+  router.post("/totp", protectedRoute(adminController.updateTotp));
   router.post(
     "/assign",
     validateData(AssignAdminRoleSchema),

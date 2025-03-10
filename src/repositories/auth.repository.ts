@@ -1,7 +1,7 @@
 import prisma from "@/loaders/prisma";
 import type { Signup } from "@/types/auth.type";
 import type { Prisma } from "@prisma/client";
-import type { EncryptedUpdateAdminTotp } from "./admin.repository";
+import type { EncryptedUpdateTotp } from "./admin.repository";
 import { encryptToBuffer } from "@/utils/encryption";
 
 export class AuthRepository {
@@ -52,12 +52,13 @@ export class AuthRepository {
   }
 
   public async updateTotp(
-    payload: EncryptedUpdateAdminTotp,
+    id: string,
+    payload: EncryptedUpdateTotp,
     tx: Prisma.TransactionClient
   ) {
     const encrypted = encryptToBuffer(payload.key);
     return tx.auth.update({
-      where: { id: payload.id },
+      where: { id },
       data: {
         totp_key: encrypted,
       },

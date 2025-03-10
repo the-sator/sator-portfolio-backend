@@ -24,6 +24,11 @@ export const LoginSchema = BaseAuthSchema.extend({
   otp: z.number().lt(999999, { message: "Must be 6 characters long" }),
 });
 
+export const UpdateTotpSchema = z.object({
+  key: z.string().trim().min(1, { message: "Key is required" }),
+  code: z.string().trim().min(1, { message: "Code is required" }),
+});
+
 type SessionResult = {
   token: string;
   expires_at: Date;
@@ -37,3 +42,4 @@ export type AuthSessionValidationResult = Partial<Auth> | null;
 
 export type Signup = z.infer<typeof SignUpSchema>;
 export type Login = z.infer<typeof LoginSchema>;
+export type UpdateTotp = z.infer<typeof UpdateTotpSchema>;

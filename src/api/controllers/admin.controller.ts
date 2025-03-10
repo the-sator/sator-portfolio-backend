@@ -2,7 +2,7 @@ import Logger from "@/logger/logger";
 import logger from "@/logger/logger";
 import { AdminService } from "@/services/admin.service";
 import { AssignAdminRoleSchema } from "@/types/admin.type";
-import { LoginSchema, SignUpSchema } from "@/types/auth.type";
+import { LoginSchema, SignUpSchema, UpdateTotpSchema } from "@/types/auth.type";
 import { getAdminCookie } from "@/utils/cookie";
 import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
@@ -79,14 +79,15 @@ export class AdminController {
     }
   };
 
-  public updateAdminTotp = async (
+  public updateTotp = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      // const validated = UpdateAdminTotpSchema.parse(req.body);
-      const admin = await this.adminService.updateAdminTotp(req.body);
+      const validated = UpdateTotpSchema.parse(req.body);
+      const token = getAdminCookie(req);
+      const admin = await this.adminService.UpdateTotp(token, validated);
       res.json({ data: admin });
     } catch (error) {
       logger.error("🔥 error: %o", error);

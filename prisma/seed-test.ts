@@ -1,4 +1,4 @@
-import { generateRandomUsername, getRandomString } from "../src/utils/string";
+import { generateRandomUsername } from "../src/utils/string";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { createCipheriv } from "crypto";
@@ -168,7 +168,7 @@ export async function seedTest() {
         ]);
       console.log("Auth records created ✅");
 
-      const apiKey = getRandomString();
+      const apiKey = crypto.randomUUID();
 
       function encryptApiKey(text: string): string {
         const secretKey = Buffer.from(process.env.API_KEY_SECRET!, "hex");

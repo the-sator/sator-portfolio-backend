@@ -32,7 +32,7 @@ describe("Admin", () => {
 
   it("Admin Sign in with Incorrect Password Should Return 401", async () => {
     const data: Login = {
-      email: "admin@test.com", // Incorrect Email
+      email: "admin@test.com",
       password: "invalid",
       otp: 666666,
     };
@@ -60,7 +60,6 @@ describe("Admin", () => {
   });
 
   it("Admin Get Me Should Return 200", async () => {
-    console.log("token:", token);
     const response = await request(app)
       .get(prefix + "/admin/me")
       .set("Cookie", `admin_token=${token}`);

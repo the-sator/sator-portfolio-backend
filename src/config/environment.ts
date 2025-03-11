@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 // const envFound = dotenv.config({
 //   path: path.join(__dirname, `../../.env.${process.env.NODE_ENV}`),
 // });
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV !== "production") {
   const envFound = dotenv.config();
   if (envFound.error) {
     // This error should crash whole process

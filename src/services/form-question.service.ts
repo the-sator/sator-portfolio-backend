@@ -6,6 +6,7 @@ import type {
   CreateFormQuestion,
   PortfolioFormFilter,
 } from "@/types/portfolio-form.type";
+import { ThrowNotFound } from "@/utils/exception";
 
 export class FormQuestionService {
   private formQuestionRepository: FormQuestionRepository;
@@ -27,6 +28,31 @@ export class FormQuestionService {
     const page = count > current_page * page_size ? current_page + 1 : null;
     const questions = await this.formQuestionRepository.paginate(filter);
     return { questions, current_page, page, count, page_size, page_count };
+  }
+
+  public async findById(id: string) {
+    if (id === "first") {
+      const formQuestion = await this.formQuestionRepository.findFirstEntry();
+      if (!formQuestion) return ThrowNotFound();
+      const nextPrevious =
+        await this.formQuestionRepository.findNextPreviousQuestionIds(
+          formQuestion.order
+        );
+      return {
+        ...formQuestion,
+        ...nextPrevious,
+      };
+    }
+    const formQuestion = await this.formQuestionRepository.findById(id);
+    if (!formQuestion) return ThrowNotFound();
+    const nextPrevious =
+      await this.formQuestionRepository.findNextPreviousQuestionIds(
+        formQuestion.order
+      );
+    return {
+      ...formQuestion,
+      ...nextPrevious,
+    };
   }
 
   public async create(payload: CreateFormQuestion) {

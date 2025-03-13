@@ -19,6 +19,8 @@ import {
   chatMember,
   chatMessage,
   chatRoom,
+  formAttempt,
+  formQuestion,
   test,
   unreadMessage,
   user,
@@ -52,6 +54,8 @@ export default () => {
   chatMember(app);
   chatMessage(app);
   unreadMessage(app);
+  formQuestion(app);
+  formAttempt(app);
   blog(app);
   test(app);
 

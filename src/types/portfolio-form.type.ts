@@ -13,11 +13,28 @@ export const CreateFormQuestionSchema = z.object({
   options: z.array(CreateFormOptionSchema),
 });
 
+export const CreateFormResponseSchema = z.object({
+  question_id: z.string().min(1, { message: "Question ID is required" }),
+  option_id: z.string().min(1, { message: "Option ID is required" }),
+  metadata: z.any().optional(),
+});
+
+export const CreateFormAttemptSchema = z.object({
+  responses: z.array(CreateFormResponseSchema),
+});
+
 export const PortfolioFormFilterSchema = BaseFilterSchema.extend({
   order: z.string().optional(),
   id: z.string().optional(),
 });
 
-export type CreateFormQuestion = z.infer<typeof CreateFormQuestionSchema>;
+export const FormAttemptFilterSchema = BaseFilterSchema.extend({
+  id: z.string().optional(),
+});
+
 export type CreateFormOption = z.infer<typeof CreateFormOptionSchema>;
 export type PortfolioFormFilter = z.infer<typeof PortfolioFormFilterSchema>;
+export type CreateFormResponse = z.infer<typeof CreateFormResponseSchema>;
+export type CreateFormQuestion = z.infer<typeof CreateFormQuestionSchema>;
+export type CreateFormAttempt = z.infer<typeof CreateFormAttemptSchema>;
+export type FormAttemptFilter = z.infer<typeof FormAttemptFilterSchema>;

@@ -220,15 +220,16 @@ model FormResponse {
   option_id     String
   metadata      Json?
   attempt_id    String
-  form_attempt  FormAttempt  @relation(fields: [attempt_id], references: [id])
-  form_option   FormOption   @relation(fields: [option_id], references: [id])
-  form_question FormQuestion @relation(fields: [question_id], references: [id])
+  form_attempt  FormAttempt  @relation(fields: [attempt_id], references: [id], onDelete: Cascade)
+  form_option   FormOption   @relation(fields: [option_id], references: [id], onDelete: Cascade)
+  form_question FormQuestion @relation(fields: [question_id], references: [id], onDelete: Cascade)
 }
 
 model FormAttempt {
   id            String         @id @default(uuid())
   created_at    DateTime       @default(now())
   updated_at    DateTime       @updatedAt
+  quoted_price  Float[]
   user_id       String
   user          User           @relation(fields: [user_id], references: [id])
   form_response FormResponse[]

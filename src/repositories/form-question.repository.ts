@@ -17,6 +17,56 @@ export class FormQuestionRepository {
       },
     });
   }
+  public async findById(id: string) {
+    return await prisma.formQuestion.findUnique({
+      where: { id },
+      include: {
+        form_option: true,
+      },
+    });
+  }
+  public async findFirstEntry() {
+    return await prisma.formQuestion.findFirst({
+      orderBy: {
+        order: "asc",
+      },
+      include: {
+        form_option: true,
+      },
+    });
+  }
+
+  public async findNextPreviousQuestionIds(order: number) {
+    const nextQuestionAsync = prisma.formQuestion.findFirst({
+      where: {
+        order: {
+          gt: order,
+        },
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
+
+    const previousQuestionAsync = prisma.formQuestion.findFirst({
+      where: {
+        order: {
+          lt: order,
+        },
+      },
+      orderBy: {
+        order: "desc",
+      },
+    });
+    const [nextQuestion, previousQuestion] = await Promise.all([
+      nextQuestionAsync,
+      previousQuestionAsync,
+    ]);
+    return {
+      next: nextQuestion ? nextQuestion.id : null,
+      previous: previousQuestion ? previousQuestion.id : null,
+    };
+  }
 
   public buildFilter(filter: PortfolioFormFilter) {
     const where: Record<string, unknown> = {};

@@ -21,6 +21,19 @@ export class FormQuestionController {
       next(err);
     }
   };
+
+  public findById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = BaseModelSchema.parse(req.params);
+      const data = await this.formQuestionService.findById(
+        validated.id as string
+      );
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  };
+
   public paginate = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validatedQuery = PortfolioFormFilterSchema.parse(req.query);
@@ -36,6 +49,7 @@ export class FormQuestionController {
       next(err);
     }
   };
+
   public createQuestion = async (
     req: Request,
     res: Response,

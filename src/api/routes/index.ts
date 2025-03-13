@@ -4,4 +4,6 @@ export { default as chatMessage } from "./chat-message.route";
 export { default as chatMember } from "./chat-member.route";
 export { default as unreadMessage } from "./unread-message.route";
 export { default as blog } from "./blog.route";
+export { default as formQuestion } from "./form-question.route";
+export { default as formAttempt } from "./form-attempt.route";
 export { default as test } from "./test.route";

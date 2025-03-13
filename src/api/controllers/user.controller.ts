@@ -1,7 +1,8 @@
 import { UserService } from "@/services/user.service";
 import { LoginSchema, SignUpSchema } from "@/types/auth.type";
+import { COOKIE } from "@/types/base.type";
 import { UserFilterSchema } from "@/types/user.type";
-import { getUserCookie } from "@/utils/cookie";
+import { getUserCookie, setCookie } from "@/utils/cookie";
 import { ThrowUnauthorized } from "@/utils/exception";
 import type { Request, Response, NextFunction } from "express";
 
@@ -66,6 +67,7 @@ export class UserController {
     try {
       const validated = LoginSchema.parse(req.body);
       const user = await this.userService.login(validated);
+      setCookie(res, COOKIE.USER, user.token);
       res.json({ data: user });
     } catch (error) {
       next(error);

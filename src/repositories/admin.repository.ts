@@ -1,9 +1,6 @@
 import prisma from "@/loaders/prisma";
-import type {
-  AssignAdminRole,
-  CreateAdmin,
-  UpdateTotp,
-} from "@/types/admin.type";
+import type { AssignAdminRole, CreateAdmin } from "@/types/admin.type";
+import type { UpdateTotp } from "@/types/auth.type";
 
 export interface EncryptedUpdateTotp extends Omit<UpdateTotp, "key"> {
   key: Uint8Array;

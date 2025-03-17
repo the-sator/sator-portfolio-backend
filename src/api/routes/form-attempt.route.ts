@@ -10,4 +10,5 @@ export default (app: Router) => {
   router.get("/", formAttemptController.paginateByUser);
   router.get("/:id", formAttemptController.getAttemptById);
   router.post("/", formAttemptController.create);
+  router.post("/:id/bring-to-life", formAttemptController.bringItToLife);
 };

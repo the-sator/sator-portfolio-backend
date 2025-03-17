@@ -32,20 +32,21 @@ export class AdminService {
   private sessionRepository: SessionRepository;
   private authRepository: AuthRepository;
   private sessionService: SessionService;
-  // private adminAuth: AdminAuth;
 
   constructor() {
     this.adminRepository = new AdminRepository();
     this.sessionRepository = new SessionRepository();
     this.authRepository = new AuthRepository();
     this.sessionService = new SessionService();
-    // this.adminAuth = new AdminAuth();
   }
 
   public async getAdmins() {
     return this.adminRepository.findAll();
   }
 
+  public async getAllAdminIds() {
+    return this.adminRepository.findAllIds();
+  }
   //Permission
   public async assignRole(payload: AssignAdminRole) {
     return this.adminRepository.assignRole(payload.admin_id, payload);

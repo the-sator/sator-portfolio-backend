@@ -22,16 +22,18 @@ model Auth {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  username     String        @unique @db.VarChar(20)
-  auth_id      String        @unique
-  ChatMember   ChatMember[]
-  form_attempt FormAttempt[]
-  Session      Session[]
-  SiteUser     SiteUser[]
-  auth         Auth          @relation(fields: [auth_id], references: [id])
+  id                   String        @id @default(uuid())
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  username             String        @unique @db.VarChar(20)
+  auth_id              String        @unique
+  default_chat_room_id String?       @unique
+  default_chat_room    ChatRoom?     @relation(fields: [default_chat_room_id], references: [id])
+  ChatMember           ChatMember[]
+  form_attempt         FormAttempt[]
+  Session              Session[]
+  SiteUser             SiteUser[]
+  auth                 Auth          @relation(fields: [auth_id], references: [id])
 }
 
 model SiteUser {
@@ -231,6 +233,7 @@ model FormAttempt {
   updated_at    DateTime       @updatedAt
   quoted_price  Float[]
   user_id       String
+  is_requested  Boolean        @default(false)
   user          User           @relation(fields: [user_id], references: [id])
   form_response FormResponse[]
 }
@@ -246,6 +249,7 @@ model ChatRoom {
   chat_messages   ChatMessage[]
   last_message    ChatMessage?    @relation("LastMessageInChatRoom", fields: [last_message_id], references: [id])
   unread_messages UnreadMessage[]
+  user            User?
 }
 
 model ChatMember {
@@ -257,7 +261,7 @@ model ChatMember {
   chat_room_id    String
   left_at         DateTime?
   admin           Admin?          @relation(fields: [admin_id], references: [id], onDelete: Cascade)
-  chat_room       ChatRoom        @relation(fields: [chat_room_id], references: [id])
+  chat_room       ChatRoom        @relation(fields: [chat_room_id], references: [id], onDelete: Cascade)
   user            User?           @relation(fields: [user_id], references: [id], onDelete: Cascade)
   chat_messages   ChatMessage[]
   unread_messages UnreadMessage[]
@@ -273,8 +277,9 @@ model ChatMessage {
   chat_member_id    String
   chat_room_id      String
   media             String[]
+  metadata          Json?
   chat_member       ChatMember      @relation(fields: [chat_member_id], references: [id])
-  chat_room         ChatRoom        @relation(fields: [chat_room_id], references: [id])
+  chat_room         ChatRoom        @relation(fields: [chat_room_id], references: [id], onDelete: Cascade)
   chat_room_message ChatRoom?       @relation("LastMessageInChatRoom")
 }
 
@@ -286,7 +291,7 @@ model UnreadMessage {
   chat_member_id String
   total_count    Int
   chat_member    ChatMember @relation(fields: [chat_member_id], references: [id])
-  chat_room      ChatRoom   @relation(fields: [chat_room_id], references: [id])
+  chat_room      ChatRoom   @relation(fields: [chat_room_id], references: [id], onDelete: Cascade)
 }
 
 model BlogMetric {
@@ -353,4 +358,5 @@ enum ChatMessageType {
   LEAVE
   INVITE
   REMOVE
+  FORM_ATTEMPT
 }

@@ -53,4 +53,18 @@ export class UserRepository {
       },
     });
   }
+
+  public async updateDefaultChatRoom(
+    id: string,
+    room_id: string,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return client.user.update({
+      where: { id },
+      data: {
+        default_chat_room_id: room_id,
+      },
+    });
+  }
 }

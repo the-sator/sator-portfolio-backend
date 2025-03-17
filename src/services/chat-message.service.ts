@@ -13,14 +13,17 @@ import { WSService } from "./ws.service";
 import { UnreadMessageService } from "./unread-message.service";
 import { UserService } from "./user.service";
 import { AdminService } from "./admin.service";
+import { ChatRoomService } from "./chat-room.service";
+import type { Prisma } from "@prisma/client";
 
 export class ChatMessageService {
   private chatMessageRepository: ChatMessageRepository;
   private chatMemberRepository: ChatMemberRepository;
   private chatRoomRepository: ChatRoomRepository;
-  private unreadMessageService: UnreadMessageService;
   private adminService: AdminService;
   private userService: UserService;
+  private unreadMessageService: UnreadMessageService;
+  private chatRoomService: ChatRoomService;
   private wsService: WSService;
   constructor() {
     this.chatMessageRepository = new ChatMessageRepository();
@@ -28,8 +31,9 @@ export class ChatMessageService {
     this.chatRoomRepository = new ChatRoomRepository();
     this.adminService = new AdminService();
     this.userService = new UserService();
-    this.wsService = new WSService();
     this.unreadMessageService = new UnreadMessageService();
+    this.chatRoomService = new ChatRoomService();
+    this.wsService = new WSService();
   }
   public async findAll() {
     return this.chatMessageRepository.findAll();
@@ -77,17 +81,28 @@ export class ChatMessageService {
     return { messages, page, page_count, page_size, current_page };
   }
 
-  public async create(payload: CreateChatMessage) {
+  public async create(
+    payload: CreateChatMessage,
+    metadata?:
+      | Prisma.NullableJsonNullValueInput
+      | Prisma.InputJsonValue
+      | undefined
+  ) {
     return prisma.$transaction(async (tx) => {
       const members = await this.chatMemberRepository.findByRoomId(
         payload.chat_room_id
+      );
+
+      const message = await this.chatMessageRepository.create(
+        payload,
+        metadata,
+        tx
       );
       // Remove the sender id
       const authIds = members.map(
         (member) => member.user_id || member.admin_id || ""
       );
 
-      const message = await this.chatMessageRepository.create(payload, tx);
       const authIdsExcludeSender = members
         .filter((member) => member.id !== payload.chat_member_id)
         .map((member) => member.user_id || member.admin_id || "");

@@ -6,29 +6,45 @@ import type {
   ChatRoomFilter,
   CreateChatRoom,
 } from "@/types/chat-room.type";
-import { ThrowUnauthorized } from "@/utils/exception";
+import { ThrowInternalServer, ThrowUnauthorized } from "@/utils/exception";
 import { ChatMemberRole } from "@prisma/client";
-import { ChatMemberService } from "./chat-member.service";
 import { getPaginationMetadata } from "@/utils/pagination";
 import { WSEventType, WSReceiver } from "@/enum/ws-event.enum";
 import { WSService } from "./ws.service";
 import { UnreadMessageService } from "./unread-message.service";
 import { UserService } from "./user.service";
+import { AdminRepository } from "@/repositories/admin.repository";
+import { UserRepository } from "@/repositories/user.repository";
+import { IdentityRole } from "@/types/base.type";
 
 export class ChatRoomService {
   private chatRoomRepository: ChatRoomRepository;
   private chatMemberRepository: ChatMemberRepository;
-  private chatMemberService: ChatMemberService;
+  private userRepository: UserRepository;
+  private adminRepository: AdminRepository;
   private userService: UserService;
   private unreadMessageService: UnreadMessageService;
   private wsService: WSService;
   constructor() {
     this.chatRoomRepository = new ChatRoomRepository();
     this.chatMemberRepository = new ChatMemberRepository();
-    this.chatMemberService = new ChatMemberService();
+    this.userRepository = new UserRepository();
+    this.adminRepository = new AdminRepository();
     this.userService = new UserService();
     this.unreadMessageService = new UnreadMessageService();
     this.wsService = new WSService();
+  }
+
+  public async findMember(id: string) {
+    const user = await this.userRepository.findById(id);
+    if (user) {
+      return { type: IdentityRole.USER, entity: user };
+    }
+    const admin = await this.adminRepository.findById(id);
+    if (admin) {
+      return { type: IdentityRole.ADMIN, entity: admin };
+    }
+    return ThrowInternalServer("Record cannot be found");
   }
 
   public async findAll(filter: ChatRoomFilter) {
@@ -77,19 +93,26 @@ export class ChatRoomService {
         const chatRoom = await this.chatRoomRepository.create(payload, tx);
 
         const memberPromises = payload.chat_members!.map(async (memberId) => {
-          const member = await this.chatMemberService.findMember(memberId);
+          const member = await this.findMember(memberId);
           const chatMember = await this.chatMemberRepository.create(
             {
               chat_room_id: chatRoom.id,
-              admin_id: member.type === "ADMIN" ? member.entity.id : undefined,
-              user_id: member.type === "USER" ? member.entity.id : undefined,
+              admin_id:
+                member.type === IdentityRole.ADMIN
+                  ? member.entity.id
+                  : undefined,
+              user_id:
+                member.type === IdentityRole.USER
+                  ? member.entity.id
+                  : undefined,
               role:
-                member.type === "USER"
+                member.type === IdentityRole.USER
                   ? ChatMemberRole.MEMBER
                   : ChatMemberRole.ADMIN,
             },
             tx
           );
+          chatRoom.chat_members.push(chatMember);
           // Ensure chatMember is created before creating unreadMessage
           await this.unreadMessageService.create(
             {
@@ -99,17 +122,13 @@ export class ChatRoomService {
             },
             tx
           );
-
           this.wsService.broadcastToOne(
             member.entity.id,
             WSReceiver.MEMBER,
             WSEventType.CHAT_ROOM_CREATED,
             chatRoom
           );
-
-          return chatMember;
         });
-
         await Promise.all(memberPromises);
         return chatRoom;
       });

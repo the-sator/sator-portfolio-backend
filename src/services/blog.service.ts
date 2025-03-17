@@ -1,3 +1,4 @@
+import { ContentStatus } from "@/enum/content.enum";
 import prisma from "@/loaders/prisma";
 import { BlogMetricRepository } from "@/repositories/blog-metric.repository";
 import { BlogRepository } from "@/repositories/blog.repository";
@@ -26,6 +27,7 @@ export class BlogService {
   public async findAll() {
     return this.blogRepository.findAll();
   }
+
   public async findBySlug(slug: string) {
     return this.blogRepository.findBySlug(slug);
   }
@@ -72,11 +74,14 @@ export class BlogService {
     );
     const publishedFilter = {
       ...filter,
-      published: true as const, // Force TypeScript to recognize this as true
+      published_at: {
+        not: null,
+      },
     };
     const blogs = await this.blogRepository.paginateBySiteUserId(
       siteUser.id,
-      publishedFilter
+      publishedFilter,
+      ContentStatus.PUBLISHED
     );
     return {
       data: blogs,

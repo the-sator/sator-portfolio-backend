@@ -1,4 +1,5 @@
 import { LIMIT } from "@/constant/base";
+import { ContentStatus } from "@/enum/content.enum";
 import prisma from "@/loaders/prisma";
 import { IdentityRole, type Identity } from "@/types/base.type";
 import type { BlogFilter, CreateBlog } from "@/types/blog.type";
@@ -43,9 +44,6 @@ export class BlogRepository {
     return await prisma.blog.findFirst({
       where: {
         slug,
-        published_at: {
-          not: null,
-        },
       },
       include: {
         CategoryOnBlog: true,
@@ -101,10 +99,18 @@ export class BlogRepository {
     });
   }
 
-  public async paginateBySiteUserId(site_user_id: string, filter: BlogFilter) {
+  public async paginateBySiteUserId(
+    site_user_id: string,
+    filter: BlogFilter,
+    status?: ContentStatus
+  ) {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
     const where = this.buildFilter(filter);
+    if (status === ContentStatus.PUBLISHED) {
+      where.published_at = { not: null };
+    }
+
     return await prisma.blog.findMany({
       take: limit,
       skip: (page - 1) * limit,

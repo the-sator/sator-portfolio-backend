@@ -40,10 +40,15 @@ export class BlogRepository {
     });
   }
 
-  public async findBySlug(slug: string) {
+  public async findBySlug(slug: string, status?: ContentStatus) {
+    const where: Record<string, unknown> = {};
+    if (status === ContentStatus.PUBLISHED) {
+      where.published_at = { not: null };
+    }
     return await prisma.blog.findFirst({
       where: {
         slug,
+        ...where,
       },
       include: {
         CategoryOnBlog: true,

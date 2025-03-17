@@ -48,6 +48,24 @@ export class BlogController {
     }
   };
 
+  public findPublishedBlogBySlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validatedSlug = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      const blog = await this.blogService.findPublishedBlogBySlug(
+        validatedSlug.slug
+      );
+      res.json({ data: blog });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public paginateBySiteUserApiKey = async (
     req: Request,
     res: Response,

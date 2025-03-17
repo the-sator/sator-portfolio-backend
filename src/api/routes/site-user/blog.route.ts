@@ -9,6 +9,7 @@ export default (app: Router) => {
   router.get("/", protectedSiteUserRoute(blogController.paginateBySiteUser));
   router.get("/published", blogController.paginateBySiteUserApiKey);
   router.get("/:slug", protectedSiteUserRoute(blogController.findBlogBySlug));
+  router.get("/:slug/published", blogController.findPublishedBlogBySlug);
   router.post("/:slug/view", blogController.increaseView);
   router.post("/", protectedSiteUserRoute(blogController.create));
   router.post("/:id/publish", protectedSiteUserRoute(blogController.publish));

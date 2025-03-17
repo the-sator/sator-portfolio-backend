@@ -32,6 +32,10 @@ export class BlogService {
     return this.blogRepository.findBySlug(slug);
   }
 
+  public async findPublishedBlogBySlug(slug: string) {
+    return this.blogRepository.findBySlug(slug, ContentStatus.PUBLISHED);
+  }
+
   public async paginateByAdmin(filter: BlogFilter) {
     const count = await this.blogRepository.count(filter);
     const { current_page, page, page_count, page_size } = getPaginationMetadata(

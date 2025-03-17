@@ -177,6 +177,7 @@ export class ChatRoomRepository {
           },
         },
         last_message: true,
+        chat_members: true,
       },
     });
   }

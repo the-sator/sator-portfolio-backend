@@ -57,6 +57,10 @@ export class ChatMessageRepository {
 
   public async create(
     payload: CreateChatMessage,
+    metadata?:
+      | Prisma.NullableJsonNullValueInput
+      | Prisma.InputJsonValue
+      | undefined,
     tx?: Prisma.TransactionClient
   ) {
     const client = tx ? tx : prisma;
@@ -66,6 +70,7 @@ export class ChatMessageRepository {
         chat_member_id: payload.chat_member_id,
         chat_room_id: payload.chat_room_id,
         message_type: payload.message_type,
+        metadata,
         media: payload.media,
       },
 

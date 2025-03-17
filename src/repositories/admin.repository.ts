@@ -14,6 +14,13 @@ export class AdminRepository {
       },
     });
   }
+  public async findAllIds() {
+    return await prisma.admin.findMany({
+      select: {
+        id: true,
+      },
+    });
+  }
   public async findById(id: string) {
     return prisma.admin.findUnique({
       where: { id },

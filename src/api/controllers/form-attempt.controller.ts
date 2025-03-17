@@ -72,4 +72,23 @@ export class FormAttemptController {
       next(error);
     }
   };
+
+  public bringItToLife = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      // const validated = CreateChatMessageSchema.parse(req.body);
+      const validated = BaseModelSchema.parse(req.params);
+      const token = getUserCookie(req);
+      const message = await this.formAttemptService.bringItToLife(
+        token,
+        validated.id as string
+      );
+      res.json({ data: message });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

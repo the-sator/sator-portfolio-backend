@@ -20,6 +20,21 @@ export class ChatMemberRepository {
     });
   }
 
+  public async findByUser(
+    user_id: string,
+    chat_room_id: string,
+    tx?: Prisma.TransactionClient
+  ) {
+    const client = tx ? tx : prisma;
+    return await client.chatMember.findFirst({
+      where: {
+        user_id,
+        chat_room_id,
+        left_at: null,
+      },
+    });
+  }
+
   public async findByAdmin(
     admin_id: string,
     chat_room_id: string,

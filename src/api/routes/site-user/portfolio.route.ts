@@ -11,13 +11,14 @@ export default (app: Router) => {
     protectedSiteUserRoute(portfolioController.paginateBySiteUser)
   );
   router.get("/published", portfolioController.paginateBySiteUserApiKey);
+  router.get("/all/published", portfolioController.getAllPublishedSlug);
   router.get(
     "/:slug",
-    protectedSiteUserRoute(portfolioController.findPortfolioBySlug)
+    protectedSiteUserRoute(portfolioController.getPortfolioBySlug)
   );
   router.get(
     "/:slug/published",
-    portfolioController.findPublishedPortfolioBySlug
+    portfolioController.getPublishedPortfolioBySlug
   );
   router.post("/", protectedSiteUserRoute(portfolioController.createPortfolio));
   router.post(

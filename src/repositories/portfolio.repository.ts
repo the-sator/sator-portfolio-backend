@@ -10,6 +10,20 @@ export class PortfolioRepository {
     return await prisma.portfolio.findMany();
   }
 
+  public async findAllSlug(site_user_id: string) {
+    return await prisma.portfolio.findMany({
+      select: {
+        slug: true,
+      },
+      where: {
+        site_user_id,
+        published_at: {
+          not: null,
+        },
+      },
+    });
+  }
+
   public buildFilter(filter: PortfolioFilter) {
     let where: Record<string, unknown> = {};
     if (filter.title) {

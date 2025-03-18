@@ -23,16 +23,31 @@ export class BlogController {
     this.siteUserService = new SiteUserService();
     this.adminService = new AdminService();
   }
-  public findAll = async (req: Request, res: Response, next: NextFunction) => {
+  public getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const resources = await this.blogService.findAll();
+      const resources = await this.blogService.getAll();
       res.json({ data: resources });
     } catch (error) {
       next(error);
     }
   };
 
-  public findBlogBySlug = async (
+  public getAllPublishedSlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const key = req.headers.authorization?.split(" ")[1];
+      if (!key) return ThrowUnauthorized("No Token Found");
+      const resources = await this.blogService.getAllSlugBySiteUser(key);
+      res.json({ data: resources });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getBlogBySlug = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -41,14 +56,14 @@ export class BlogController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      const blog = await this.blogService.findBySlug(validatedSlug.slug);
+      const blog = await this.blogService.getBySlug(validatedSlug.slug);
       res.json({ data: blog });
     } catch (error) {
       next(error);
     }
   };
 
-  public findPublishedBlogBySlug = async (
+  public getPublishedBlogBySlug = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -57,7 +72,7 @@ export class BlogController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      const blog = await this.blogService.findPublishedBlogBySlug(
+      const blog = await this.blogService.getPublishedBlogBySlug(
         validatedSlug.slug
       );
       res.json({ data: blog });

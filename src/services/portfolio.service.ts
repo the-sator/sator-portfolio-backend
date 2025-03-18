@@ -38,6 +38,15 @@ export class PortfolioService {
     return this.portfolioRepository.findAll();
   }
 
+  public async getAllSlugBySiteUser(key: string) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
+    const slugs = await this.portfolioRepository.findAllSlug(siteUser.id);
+    return slugs.map((slug) => {
+      return slug.slug;
+    });
+  }
+
   public async paginateByAdmin(filter: PortfolioFilter) {
     const count = await this.portfolioRepository.count(filter);
     const { current_page, page, page_count, page_size } = getPaginationMetadata(
@@ -102,11 +111,11 @@ export class PortfolioService {
     };
   }
 
-  public async findBySlug(slug: string) {
+  public async getBySlug(slug: string) {
     return await this.portfolioRepository.findBySlug(slug);
   }
 
-  public async findPublishedBySlug(slug: string) {
+  public async getPublishedBySlug(slug: string) {
     return await this.portfolioRepository.findBySlug(
       slug,
       ContentStatus.PUBLISHED

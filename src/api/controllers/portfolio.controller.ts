@@ -19,7 +19,23 @@ export class PortfolioController {
   constructor() {
     this.portfolioService = new PortfolioService();
   }
-  public findAll = async (req: Request, res: Response, next: NextFunction) => {
+
+  public getAllPublishedSlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const key = req.headers.authorization?.split(" ")[1];
+      if (!key) return ThrowUnauthorized("No Token Found");
+      const resources = await this.portfolioService.getAllSlugBySiteUser(key);
+      res.json({ data: resources });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const resources = await this.portfolioService.findAll();
       res.json({ data: resources });
@@ -28,7 +44,7 @@ export class PortfolioController {
     }
   };
 
-  public findPortfolioBySlug = async (
+  public getPortfolioBySlug = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -37,7 +53,7 @@ export class PortfolioController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      const portfolio = await this.portfolioService.findBySlug(
+      const portfolio = await this.portfolioService.getBySlug(
         validatedSlug.slug
       );
       res.json({ data: portfolio });
@@ -46,7 +62,7 @@ export class PortfolioController {
     }
   };
 
-  public findPublishedPortfolioBySlug = async (
+  public getPublishedPortfolioBySlug = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -55,7 +71,7 @@ export class PortfolioController {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
-      const portfolio = await this.portfolioService.findPublishedBySlug(
+      const portfolio = await this.portfolioService.getPublishedBySlug(
         validatedSlug.slug
       );
       res.json({ data: portfolio });

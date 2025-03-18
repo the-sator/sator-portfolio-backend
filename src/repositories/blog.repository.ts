@@ -30,6 +30,20 @@ export class BlogRepository {
     return where;
   }
 
+  public async findAllSlug(site_user_id: string) {
+    return await prisma.blog.findMany({
+      select: {
+        slug: true,
+      },
+      where: {
+        site_user_id,
+        published_at: {
+          not: null,
+        },
+      },
+    });
+  }
+
   public async findAll() {
     return await prisma.blog.findMany({
       where: {

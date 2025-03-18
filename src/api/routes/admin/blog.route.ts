@@ -8,8 +8,8 @@ const blogController = new BlogController();
 export default (app: Router) => {
   app.use("/blog", router);
   router.get("/", protectedRoute(blogController.paginateByAdmin));
-  router.get("/all", protectedRoute(blogController.findAll));
-  router.get("/:slug", protectedRoute(blogController.findBlogBySlug));
+  router.get("/all", protectedRoute(blogController.getAll));
+  router.get("/:slug", protectedRoute(blogController.getBlogBySlug));
   router.post("/", protectedRoute(blogController.create));
   router.post("/:id/publish", protectedRoute(blogController.publish));
   router.post("/:id/unpublish", protectedRoute(blogController.unpublish));

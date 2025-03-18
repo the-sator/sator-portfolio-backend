@@ -24,15 +24,24 @@ export class BlogService {
     this.blogMetricRepository = new BlogMetricRepository();
     this.siteUserRepository = new SiteUserRepository();
   }
-  public async findAll() {
+  public async getAll() {
     return this.blogRepository.findAll();
   }
 
-  public async findBySlug(slug: string) {
+  public async getAllSlugBySiteUser(key: string) {
+    const siteUser = await this.siteUserRepository.findByApiKey(key);
+    if (!siteUser) return ThrowUnauthorized();
+    const slugs = await this.blogRepository.findAllSlug(siteUser.id);
+    return slugs.map((slug) => {
+      return slug.slug;
+    });
+  }
+
+  public async getBySlug(slug: string) {
     return this.blogRepository.findBySlug(slug);
   }
 
-  public async findPublishedBlogBySlug(slug: string) {
+  public async getPublishedBlogBySlug(slug: string) {
     return this.blogRepository.findBySlug(slug, ContentStatus.PUBLISHED);
   }
 

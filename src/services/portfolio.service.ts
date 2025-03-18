@@ -13,18 +13,22 @@ import { SiteUserService } from "./site-user.service";
 import { getSiteUserCookie } from "@/utils/cookie";
 import { SiteUserRepository } from "@/repositories/site-user.repository";
 import { PortfolioMetricRepository } from "@/repositories/portfolio-metric.repository";
+import { IdentityRole, type Identity } from "@/types/base.type";
+import { AdminService } from "./admin.service";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
   private siteUserRepository: SiteUserRepository;
   private siteUserService: SiteUserService;
+  private adminService: AdminService;
   private portfolioMetricRepository: PortfolioMetricRepository;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
     this.siteUserService = new SiteUserService();
+    this.adminService = new AdminService();
     this.siteUserRepository = new SiteUserRepository();
     this.portfolioMetricRepository = new PortfolioMetricRepository();
   }
@@ -98,14 +102,38 @@ export class PortfolioService {
     return await this.portfolioRepository.findBySlug(slug);
   }
 
-  public async create(payload: CreatePortfolio) {
-    if (!payload.admin_id && !payload.site_user_id) return ThrowForbidden();
+  public async create(
+    token: string,
+    payload: CreatePortfolio,
+    role: IdentityRole
+  ) {
+    let identity: Identity;
+    if (role === IdentityRole.ADMIN) {
+      const admin = await this.adminService.getMe(token);
+      identity = {
+        id: admin.id,
+        role: IdentityRole.ADMIN,
+      };
+    } else if (role === IdentityRole.SITE_USER) {
+      const siteUser = await this.siteUserService.getMe(token);
+      identity = {
+        id: siteUser.id,
+        role: IdentityRole.SITE_USER,
+      };
+    } else {
+      return ThrowInternalServer();
+    }
+    // if (!payload.admin_id && !payload.site_user_id) return ThrowForbidden();
     if (payload.categories) {
       return await prisma.$transaction(async (tx) => {
-        const portfolio = await this.portfolioRepository.create(payload, tx);
+        const portfolio = await this.portfolioRepository.create(
+          payload,
+          identity,
+          tx
+        );
 
         for (const category of payload.categories!) {
-          const assignedBy = payload.admin_id || payload.site_user_id || "";
+          const assignedBy = identity.id || "";
           await this.categoryOnPortfolioRepository.create(
             {
               category_id: category,
@@ -118,25 +146,43 @@ export class PortfolioService {
         return portfolio;
       });
     }
-    const portfolio = await this.portfolioRepository.create(payload);
+    const portfolio = await this.portfolioRepository.create(payload, identity);
     return portfolio;
   }
 
-  public async update(id: string, payload: CreatePortfolio, req: Request) {
+  public async update(
+    token: string,
+    id: string,
+    payload: CreatePortfolio,
+    role: IdentityRole
+  ) {
+    let identity: Identity;
+    if (role === IdentityRole.ADMIN) {
+      const admin = await this.adminService.getMe(token);
+      identity = {
+        id: admin.id,
+        role: IdentityRole.ADMIN,
+      };
+    } else if (role === IdentityRole.SITE_USER) {
+      const siteUser = await this.siteUserService.getMe(token);
+      identity = {
+        id: siteUser.id,
+        role: IdentityRole.SITE_USER,
+      };
+    } else {
+      return ThrowInternalServer();
+    }
     return await prisma.$transaction(async (tx) => {
-      if (payload.site_user_id) {
-        const sessionToken = getSiteUserCookie(req);
-        const siteUser = await this.siteUserService.getMe(sessionToken);
-        if (!siteUser) return ThrowUnauthorized();
-        const portfolio = await this.portfolioRepository.findById(id);
-        if (!portfolio) return ThrowInternalServer();
-        if (portfolio.site_user_id !== siteUser.id) return ThrowForbidden();
-      }
       await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
-      const portfolio = await this.portfolioRepository.update(id, payload, tx);
+      const portfolio = await this.portfolioRepository.update(
+        id,
+        payload,
+        identity,
+        tx
+      );
       if (payload.categories) {
         for (const category of payload.categories) {
-          const assignedBy = payload.admin_id || payload.site_user_id || "";
+          const assignedBy = identity.id;
           await this.categoryOnPortfolioRepository.create(
             {
               category_id: category,

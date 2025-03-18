@@ -104,7 +104,7 @@ export class SiteUserService {
           : "Invalid Credentials"
       );
     }
-    const auth = siteUser.Auth;
+    const { Auth: auth, ...user } = siteUser;
 
     const isPasswordValid = verifyPassword(payload.password, auth.password);
     if (!isPasswordValid) {
@@ -131,7 +131,7 @@ export class SiteUserService {
       { id: siteUser.id, role: IdentityRole.SITE_USER }
     );
     return {
-      ...siteUser,
+      ...user,
       token: sessionToken,
       expires_at: session.expires_at,
     };
@@ -204,7 +204,7 @@ export class SiteUserService {
   }
   public async updateAuth(id: string, token: string, payload: Onboarding) {
     const sessionId = decodeToSessionId(token);
-    console.log("sessionId:", sessionId);
+
     const result = await this._sessionRepository.findSessionById(sessionId);
     if (result === null) {
       return ThrowUnauthorized();

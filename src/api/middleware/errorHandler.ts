@@ -5,12 +5,13 @@ import { ZodError } from "zod";
 // Do not try to remove unused params as it will result in the application return the error as HTML
 const errorMiddleware: ErrorRequestHandler = (
   error,
-  _req,
+  req,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next
 ) => {
   // Log the error details for debugging
+  console.log("YOU ARE HITTING THIS ENDPOINT 👉:", req.url);
   logger.error("🔥 Error occurred: %o", error);
   let statusCode = 500;
   let errorMessage = "An unknown error occurred";

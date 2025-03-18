@@ -1,5 +1,6 @@
 import { LIMIT } from "@/constant/base";
 import prisma from "@/loaders/prisma";
+import { IdentityRole, type Identity } from "@/types/base.type";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
 import type { Prisma } from "@prisma/client";
 
@@ -141,15 +142,20 @@ export class PortfolioRepository {
       where,
     });
   }
-  public async create(payload: CreatePortfolio, tx?: Prisma.TransactionClient) {
+  public async create(
+    payload: CreatePortfolio,
+    identity: Identity,
+    tx?: Prisma.TransactionClient
+  ) {
     const client = tx ? tx : prisma;
     return await client.portfolio.upsert({
       where: {
         slug: payload.slug,
       },
       update: {
-        admin_id: payload.admin_id,
-        site_user_id: payload.site_user_id,
+        admin_id: identity.role === IdentityRole.ADMIN ? identity.id : null,
+        site_user_id:
+          identity.role === IdentityRole.SITE_USER ? identity.id : null,
         description: payload.description,
         cover_url: payload.cover_url,
         content: payload.content ? JSON.parse(payload.content) : null,
@@ -160,8 +166,9 @@ export class PortfolioRepository {
         preview_link: payload.preview_link,
       },
       create: {
-        admin_id: payload.admin_id,
-        site_user_id: payload.site_user_id,
+        admin_id: identity.role === IdentityRole.ADMIN ? identity.id : null,
+        site_user_id:
+          identity.role === IdentityRole.SITE_USER ? identity.id : null,
         description: payload.description,
         cover_url: payload.cover_url,
         content: payload.content ? JSON.parse(payload.content) : null,
@@ -177,13 +184,16 @@ export class PortfolioRepository {
   public async update(
     id: string,
     payload: CreatePortfolio,
+    identity: Identity,
     tx?: Prisma.TransactionClient
   ) {
     const client = tx ? tx : prisma;
     return await client.portfolio.update({
       where: { id },
       data: {
-        admin_id: payload.admin_id,
+        admin_id: identity.role === IdentityRole.ADMIN ? identity.id : null,
+        site_user_id:
+          identity.role === IdentityRole.SITE_USER ? identity.id : null,
         description: payload.description,
         cover_url: payload.cover_url,
         content: payload.content

@@ -1,10 +1,16 @@
+import { config } from "@/config";
 import { SimpleSuccess } from "@/response/response";
 import { PortfolioService } from "@/services/portfolio.service";
-import { BaseModelSchema, ValidatedSlugSchema } from "@/types/base.type";
+import {
+  BaseModelSchema,
+  IdentityRole,
+  ValidatedSlugSchema,
+} from "@/types/base.type";
 import {
   CreatePortfolioSchema,
   PortfolioFilterSchema,
 } from "@/types/portfolio.type";
+import { getAdminCookie, getSiteUserCookie } from "@/utils/cookie";
 import { ThrowUnauthorized } from "@/utils/exception";
 import type { NextFunction, Response, Request } from "express";
 
@@ -103,7 +109,18 @@ export class PortfolioController {
   ) => {
     try {
       const validated = CreatePortfolioSchema.parse(req.body);
-      const portfolio = await this.portfolioService.create(validated);
+      const role = req.originalUrl.startsWith(`${config.api.prefix}/admin`)
+        ? IdentityRole.ADMIN
+        : IdentityRole.SITE_USER;
+      const token =
+        role === IdentityRole.ADMIN
+          ? getAdminCookie(req)
+          : getSiteUserCookie(req);
+      const portfolio = await this.portfolioService.create(
+        token,
+        validated,
+        role
+      );
       res.json({ data: portfolio });
     } catch (error) {
       next(error);
@@ -120,10 +137,18 @@ export class PortfolioController {
         id: req.params.id,
       });
       const validated = CreatePortfolioSchema.parse(req.body);
+      const role = req.originalUrl.startsWith(`${config.api.prefix}/admin`)
+        ? IdentityRole.ADMIN
+        : IdentityRole.SITE_USER;
+      const token =
+        role === IdentityRole.ADMIN
+          ? getAdminCookie(req)
+          : getSiteUserCookie(req);
       const portfolio = await this.portfolioService.update(
+        token,
         params.id as string,
         validated,
-        req
+        role
       );
       res.json({ data: portfolio });
     } catch (error) {

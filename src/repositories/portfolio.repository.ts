@@ -229,6 +229,7 @@ export class PortfolioRepository {
         title: payload.title,
         github_link: payload.github_link,
         preview_link: payload.preview_link,
+        slug: payload.slug,
       },
     });
   }

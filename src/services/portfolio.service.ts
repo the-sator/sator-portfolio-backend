@@ -15,6 +15,7 @@ import { SiteUserRepository } from "@/repositories/site-user.repository";
 import { PortfolioMetricRepository } from "@/repositories/portfolio-metric.repository";
 import { IdentityRole, type Identity } from "@/types/base.type";
 import { AdminService } from "./admin.service";
+import { ContentStatus } from "@/enum/content.enum";
 
 export class PortfolioService {
   private portfolioRepository: PortfolioRepository;
@@ -86,11 +87,14 @@ export class PortfolioService {
     );
     const publishedFilter = {
       ...filter,
-      published: true as const, // Force TypeScript to recognize this as true
+      published_at: {
+        not: null,
+      },
     };
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
       siteUser.id,
-      publishedFilter
+      publishedFilter,
+      ContentStatus.PUBLISHED
     );
     return {
       data: portfolios,
@@ -100,6 +104,13 @@ export class PortfolioService {
 
   public async findBySlug(slug: string) {
     return await this.portfolioRepository.findBySlug(slug);
+  }
+
+  public async findPublishedBySlug(slug: string) {
+    return await this.portfolioRepository.findBySlug(
+      slug,
+      ContentStatus.PUBLISHED
+    );
   }
 
   public async create(

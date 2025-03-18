@@ -15,6 +15,10 @@ export default (app: Router) => {
     "/:slug",
     protectedSiteUserRoute(portfolioController.findPortfolioBySlug)
   );
+  router.get(
+    "/:slug/published",
+    portfolioController.findPublishedPortfolioBySlug
+  );
   router.post("/", protectedSiteUserRoute(portfolioController.createPortfolio));
   router.post(
     "/:id/publish",

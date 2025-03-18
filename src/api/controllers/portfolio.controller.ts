@@ -46,6 +46,24 @@ export class PortfolioController {
     }
   };
 
+  public findPublishedPortfolioBySlug = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const validatedSlug = ValidatedSlugSchema.parse({
+        slug: req.params.slug,
+      });
+      const portfolio = await this.portfolioService.findPublishedBySlug(
+        validatedSlug.slug
+      );
+      res.json({ data: portfolio });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public paginateByAdmin = async (
     req: Request,
     res: Response,

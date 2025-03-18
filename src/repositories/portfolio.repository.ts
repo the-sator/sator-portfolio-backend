@@ -1,4 +1,5 @@
 import { LIMIT } from "@/constant/base";
+import { ContentStatus } from "@/enum/content.enum";
 import prisma from "@/loaders/prisma";
 import { IdentityRole, type Identity } from "@/types/base.type";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
@@ -66,11 +67,15 @@ export class PortfolioRepository {
 
   public async paginateBySiteUserId(
     site_user_id: string,
-    filter: PortfolioFilter
+    filter: PortfolioFilter,
+    status?: ContentStatus
   ) {
     const page = filter.page ? Number(filter.page) : 1;
     const limit = filter.limit ? Number(filter.limit) : LIMIT;
     const where = this.buildFilter(filter);
+    if (status === ContentStatus.PUBLISHED) {
+      where.published_at = { not: null };
+    }
     return await prisma.portfolio.findMany({
       take: limit,
       skip: (page - 1) * limit,
@@ -91,9 +96,16 @@ export class PortfolioRepository {
     });
   }
 
-  public async findBySlug(slug: string) {
+  public async findBySlug(slug: string, status?: ContentStatus) {
+    const where: Record<string, unknown> = {};
+    if (status === ContentStatus.PUBLISHED) {
+      where.published_at = { not: null };
+    }
     const portfolio = await prisma.portfolio.findFirst({
-      where: { slug },
+      where: {
+        slug,
+        ...where,
+      },
       include: {
         CategoryOnPorfolio: {
           include: {

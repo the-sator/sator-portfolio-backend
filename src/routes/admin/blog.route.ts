@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { BlogController } from "../@/api/controllers/blog.controller";
+import { BlogController } from "@/api/controllers/blog.controller";
 import protectedRoute from "@/core/authentication/protected-route";
 
 const router = Router();

@@ -1,6 +1,6 @@
 import { validateData } from "@/utils/validator";
 import { Router } from "express";
-import { AdminController } from "../../../modules/admin/admin.controller";
+import { AdminController } from "@/modules/admin/admin.controller";
 import { AssignAdminRoleSchema } from "@/types/admin.type";
 import protectedRoute from "@/core/authentication/protected-route";
 import { LoginSchema, SignUpSchema } from "@/types/auth.type";

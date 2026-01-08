@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ChatMessageController } from "../@/api/controllers/chat-message.controller";
+import { ChatMessageController } from "@/api/controllers/chat-message.controller";
 import protectedRoute from "@/core/authentication/protected-route";
 
 const router = Router();

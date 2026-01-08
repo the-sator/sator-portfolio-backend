@@ -10,7 +10,7 @@ import {
   // adminRouteResource,
   // adminRouteUser,
   // adminUnreadMessage,
-  adminRouteAdmin,
+  adminRouteBlog,
   adminRouteRole,
   adminSiteUser,
 } from "./admin";
@@ -70,9 +70,9 @@ export default () => {
 
   // Admin routes group
   const adminRouter = Router();
-  adminRouteAdmin(adminRouter);
+  // adminRouteAdmin(adminRouter);
   adminRouteRole(adminRouter);
-  // adminRouteBlog(adminRouter);
+  adminRouteBlog(adminRouter);
   // adminRouteUser(adminRouter);
   // adminRouteResource(adminRouter);
   // adminRoutePortfolio(adminRouter);

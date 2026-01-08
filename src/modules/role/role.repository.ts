@@ -2,7 +2,7 @@ import { db, type DrizzleTransaction } from "@/db";
 import { roles } from "@/db/schema";
 import type { CreateRole } from "@/types/role.type";
 import { eq } from "drizzle-orm";
-import { AdminRoleEnum } from "./model/role.enum";
+import { RoleEnum } from "./model/role.enum";
 
 export class RoleRepository {
   public async findAll() {
@@ -27,9 +27,9 @@ export class RoleRepository {
     });
   }
 
-  public async getAdminRole() {
+  public async getRole(role: RoleEnum) {
     return db.query.roles.findFirst({
-      where: eq(roles.name, AdminRoleEnum.ADMIN),
+      where: eq(roles.name, role),
     });
   }
 

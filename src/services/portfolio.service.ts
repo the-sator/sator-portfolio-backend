@@ -8,10 +8,8 @@ import { SiteUserService } from "../modules/site-user/site-user.service";
 import { SiteUserRepository } from "@/modules/site-user/site-user.repository";
 import { PortfolioMetricRepository } from "@/repositories/portfolio-metric.repository";
 import { IdentityRole, type Identity } from "@/core/types/base.type";
-import { AdminService } from "../modules/admin/admin.service";
 import { ContentStatus } from "@/enum/content.enum";
 import {
-  InternalServerException,
   NotFoundException,
   UnauthorizedException,
 } from "@/core/response/error/exception";
@@ -22,14 +20,12 @@ export class PortfolioService {
   private categoryOnPortfolioRepository: CategoryOnPortfolioRepository;
   private siteUserRepository: SiteUserRepository;
   private siteUserService: SiteUserService;
-  private adminService: AdminService;
   private portfolioMetricRepository: PortfolioMetricRepository;
 
   constructor() {
     this.portfolioRepository = new PortfolioRepository();
     this.categoryOnPortfolioRepository = new CategoryOnPortfolioRepository();
     this.siteUserService = new SiteUserService();
-    this.adminService = new AdminService();
     this.siteUserRepository = new SiteUserRepository();
     this.portfolioMetricRepository = new PortfolioMetricRepository();
   }
@@ -113,27 +109,13 @@ export class PortfolioService {
     );
   }
 
-  public async create(
-    token: string,
-    payload: CreatePortfolio,
-    role: IdentityRole
-  ) {
-    let identity: Identity;
-    if (role === IdentityRole.ADMIN) {
-      const admin = await this.adminService.getMe(token);
-      identity = {
-        id: admin.id as string,
-        role: IdentityRole.ADMIN,
-      };
-    } else if (role === IdentityRole.SITE_USER) {
-      const siteUser = await this.siteUserService.getMe(token);
-      identity = {
-        id: siteUser.id as string,
-        role: IdentityRole.SITE_USER,
-      };
-    } else {
-      throw new InternalServerException();
-    }
+  public async create(token: string, payload: CreatePortfolio) {
+    const siteUser = await this.siteUserService.getMe(token);
+    const identity: Identity = {
+      id: siteUser.id as string,
+      role: IdentityRole.SITE_USER,
+    };
+
     // if (!payload.admin_id && !payload.site_user_id) return ThrowForbidden();
     if (payload.categories) {
       return await prisma.$transaction(async (tx) => {
@@ -161,28 +143,13 @@ export class PortfolioService {
     return portfolio;
   }
 
-  public async update(
-    token: string,
-    id: string,
-    payload: CreatePortfolio,
-    role: IdentityRole
-  ) {
-    let identity: Identity;
-    if (role === IdentityRole.ADMIN) {
-      const admin = await this.adminService.getMe(token);
-      identity = {
-        id: admin.id as string,
-        role: IdentityRole.ADMIN,
-      };
-    } else if (role === IdentityRole.SITE_USER) {
-      const siteUser = await this.siteUserService.getMe(token);
-      identity = {
-        id: siteUser.id as string,
-        role: IdentityRole.SITE_USER,
-      };
-    } else {
-      throw new InternalServerException();
-    }
+  public async update(token: string, id: string, payload: CreatePortfolio) {
+    const siteUser = await this.siteUserService.getMe(token);
+    const identity: Identity = {
+      id: siteUser.id as string,
+      role: IdentityRole.SITE_USER,
+    };
+
     return await prisma.$transaction(async (tx) => {
       await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
       const portfolio = await this.portfolioRepository.update(

@@ -24,7 +24,6 @@ export class ChatMessageRepository {
       include: {
         chat_member: {
           include: {
-            admin: true,
             user: true,
           },
         },
@@ -38,7 +37,6 @@ export class ChatMessageRepository {
       include: {
         chat_member: {
           include: {
-            admin: true,
             user: true,
           },
         },
@@ -77,7 +75,6 @@ export class ChatMessageRepository {
       include: {
         chat_member: {
           include: {
-            admin: true,
             user: true,
           },
         },

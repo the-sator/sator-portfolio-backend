@@ -10,7 +10,6 @@ export class AuthRepository {
     return db.query.auths.findFirst({
       where: eq(auths.email, email),
       with: {
-        admin: true,
         user: true,
         site_user: true,
       },

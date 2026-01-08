@@ -1,7 +1,8 @@
 import { authUtil } from "@/modules/auth/auth.util";
 import { db } from ".";
 import { users, auths, roles } from "./schema";
-import { AdminRoleEnum } from "@/modules/role/model/role.enum";
+import { RoleEnum } from "@/modules/role/model/role.enum";
+import { eq } from "drizzle-orm";
 type SeedOptions = {
   user?: boolean;
   settings?: boolean;
@@ -55,7 +56,7 @@ async function seedDatabase(options: SeedOptions) {
   await db.transaction(async (tx) => {
     if (options.user) {
       await Promise.all(
-        Object.keys(AdminRoleEnum).map((name) =>
+        Object.keys(RoleEnum).map((name) =>
           tx
             .insert(roles)
             .values({ name })
@@ -69,8 +70,18 @@ async function seedDatabase(options: SeedOptions) {
 
       console.log(
         "✅ Roles created successfully:",
-        Object.keys(AdminRoleEnum).map((name) => name)
+        Object.keys(RoleEnum).map((name) => name)
       );
+
+      // Get the USER role
+      const [userRole] = await tx
+        .select()
+        .from(roles)
+        .where(eq(roles.name, RoleEnum.USER))
+        .limit(1);
+
+      if (!userRole) return console.log("Failed to find USER role");
+
       const userPassword = await authUtil.hashPassword("12345678");
       const [userAuth] = await tx
         .insert(auths)
@@ -86,15 +97,16 @@ async function seedDatabase(options: SeedOptions) {
           },
         })
         .returning();
-      if (!userAuth) return console.log("Failed to create User");
+      if (!userAuth) return console.log("Failed to create test user");
       const [user] = await tx
         .insert(users)
         .values({
           auth_id: userAuth.id,
+          role_id: userRole.id,
           username: "user",
         })
         .returning();
-      if (!users) return console.log("Failed to create Admin");
+      if (!user) return console.log("Failed to create test user");
       console.log("✅ Admin user created successfully:", {
         email: userAuth.email,
         username: user.username,

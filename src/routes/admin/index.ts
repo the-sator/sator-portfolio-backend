@@ -1,4 +1,3 @@
-export { default as adminRouteAdmin } from "./admin.route";
 export { default as adminRouteRole } from "./role.route";
 export { default as adminRouteResource } from "./resource.route";
 export { default as adminRoutePortfolio } from "./portfolio.route";

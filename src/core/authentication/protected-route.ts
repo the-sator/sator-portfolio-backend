@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { RoleRepository } from "@/modules/role/role.repository";
 import { ResourceRepository } from "@/repositories/resource.repository";
-import { AdminService } from "@/modules/admin/admin.service";
 import { UserService } from "@/modules/users/user.service";
 import { env } from "@/libs";
 import {
@@ -24,7 +23,6 @@ function protectedRoute(
   }
 ) {
   const userService = new UserService(); // Instantiate AdminAuth
-  const adminService = new AdminService(); // Instantiate AdminAuth
   const roleRepository = new RoleRepository(); // Instantiate AdminAuth
   const resourceRepository = new ResourceRepository(); // Instantiate AdminAuth
 
@@ -44,9 +42,7 @@ function protectedRoute(
       if (!sessionToken) {
         throw new UnauthorizedException(); // Handle unauthorized access
       }
-      const auth = isAdminRoute
-        ? await adminService.getMe(sessionToken)
-        : await userService.getMe(sessionToken);
+      const auth = await userService.getMe(sessionToken);
       if (!auth) {
         throw new UnauthorizedException(); // Handle unauthorized access
       }

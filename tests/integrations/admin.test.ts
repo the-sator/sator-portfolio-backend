@@ -2,7 +2,7 @@ import { startServer, closeServer, app } from "@/index";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { env } from "@/libs";
 import request from "supertest";
-import type { Login } from "@/types/auth.type";
+import type { SignIn } from "@/modules/auth/dto/sign-in.dto";
 
 describe("Admin", () => {
   const prefix = env.API_PREFIX;
@@ -17,7 +17,7 @@ describe("Admin", () => {
   });
 
   it("Admin Sign in with Incorrect Email Should Return 404", async () => {
-    const data: Login = {
+    const data: SignIn = {
       email: "admin@gmail.com", // Incorrect Email
       password: "12345678",
       otp: 666666,
@@ -31,7 +31,7 @@ describe("Admin", () => {
   });
 
   it("Admin Sign in with Incorrect Password Should Return 401", async () => {
-    const data: Login = {
+    const data: SignIn = {
       email: "admin@test.com",
       password: "invalid",
       otp: 666666,
@@ -45,7 +45,7 @@ describe("Admin", () => {
   });
 
   it("Admin Sign in Correctly Should Return 200", async () => {
-    const data: Login = {
+    const data: SignIn = {
       email: "admin@test.com",
       password: "12345678",
       otp: 666666,

@@ -14,17 +14,12 @@ export class CategoryRepository {
     });
   }
 
-  public async create(
-    auth_id: string,
-    isAdmin: boolean,
-    payload: CreateCategory
-  ) {
+  public async create(auth_id: string, payload: CreateCategory) {
     return await prisma.category.create({
       data: {
         name: payload.name,
         color: payload.color,
-        admin_id: isAdmin ? auth_id : null,
-        site_user_id: !isAdmin ? auth_id : null,
+        site_user_id: auth_id
       },
     });
   }

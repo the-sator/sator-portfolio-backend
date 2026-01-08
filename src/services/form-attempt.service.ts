@@ -8,7 +8,6 @@ import prisma from "@/core/loaders/prisma";
 import { UserService } from "../modules/users/user.service";
 import { sumArray } from "@/utils/string";
 import { getPaginationMetadata } from "@/utils/pagination";
-import { AdminService } from "../modules/admin/admin.service";
 import { ChatRoomService } from "./chat-room.service";
 import { ChatMessageService } from "./chat-message.service";
 import { UserRepository } from "@/modules/users/user.repository";
@@ -25,7 +24,6 @@ export class FormAttemptService {
   private userRepository: UserRepository;
   private chatMemberRepository: ChatMemberRepository;
   private userService: UserService;
-  private adminService: AdminService;
   private chatRoomService: ChatRoomService;
   private chatMessageService: ChatMessageService;
 
@@ -34,7 +32,6 @@ export class FormAttemptService {
     this.formResponseRepository = new FormResponseRepository();
     this.chatMemberRepository = new ChatMemberRepository();
     this.userService = new UserService();
-    this.adminService = new AdminService();
     this.chatRoomService = new ChatRoomService();
     this.chatMessageService = new ChatMessageService();
     this.userRepository = new UserRepository();

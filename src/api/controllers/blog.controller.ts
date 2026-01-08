@@ -9,18 +9,14 @@ import {
 import { BlogFilterSchema, CreateBlogSchema } from "@/types/blog.type";
 import { cookie, COOKIE_ENTITY } from "@/libs/cookie";
 import type { NextFunction, Request, Response } from "express";
-import { env } from "@/libs";
-import { AdminService } from "@/modules/admin/admin.service";
 import { UnauthorizedException } from "@/core/response/error/exception";
 
 export class BlogController {
   private blogService: BlogService;
   private siteUserService: SiteUserService;
-  private adminService: AdminService;
   constructor() {
     this.blogService = new BlogService();
     this.siteUserService = new SiteUserService();
-    this.adminService = new AdminService();
   }
   public getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -142,23 +138,14 @@ export class BlogController {
 
   public create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const isAdmin = req.originalUrl.startsWith(`${env.API_PREFIX}/admin`);
-      let identity: Identity;
-      if (isAdmin) {
-        const token = cookie.get(req, COOKIE_ENTITY.ADMIN);
-        const admin = await this.adminService.getMe(token);
-        identity = {
-          id: admin.id as string,
-          role: IdentityRole.ADMIN,
-        };
-      } else {
-        const token = cookie.get(req, COOKIE_ENTITY.SITE_USER);
-        const siteUser = await this.siteUserService.getMe(token);
-        identity = {
-          id: siteUser.id as string,
-          role: IdentityRole.SITE_USER,
-        };
-      }
+      const token = cookie.get(req, COOKIE_ENTITY.SITE_USER);
+      const siteUser = await this.siteUserService.getMe(token);
+
+      const identity: Identity = {
+        id: siteUser.id as string,
+        role: IdentityRole.SITE_USER,
+      };
+
       const validated = CreateBlogSchema.parse(req.body);
       const blog = await this.blogService.create(identity, validated);
       res.json({ data: blog });
@@ -168,23 +155,12 @@ export class BlogController {
   };
   public update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const isAdmin = req.originalUrl.startsWith(`${env.API_PREFIX}/admin`);
-      let identity: Identity;
-      if (isAdmin) {
-        const token = cookie.get(req, COOKIE_ENTITY.ADMIN)(req);
-        const admin = await this.adminService.getMe(token);
-        identity = {
-          id: admin.id as string,
-          role: IdentityRole.ADMIN,
-        };
-      } else {
-        const token = cookie.get(req, COOKIE_ENTITY.SITE_USER);
-        const siteUser = await this.siteUserService.getMe(token);
-        identity = {
-          id: siteUser.id as string,
-          role: IdentityRole.SITE_USER,
-        };
-      }
+      const token = cookie.get(req, COOKIE_ENTITY.SITE_USER);
+      const siteUser = await this.siteUserService.getMe(token);
+      const identity: Identity = {
+        id: siteUser.id as string,
+        role: IdentityRole.SITE_USER,
+      };
       const params = BaseModelSchema.parse({ id: req.params.id });
       const validated = CreateBlogSchema.parse(req.body);
       const blog = await this.blogService.update(

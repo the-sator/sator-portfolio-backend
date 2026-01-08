@@ -1,8 +1,8 @@
 import { cookie, COOKIE_ENTITY } from "@/libs/cookie";
 import { UserService } from "@/modules/users/user.service";
-import { LoginSchema, SignUpSchema } from "@/types/auth.type";
-import { UserFilterSchema } from "@/types/user.type";
 import type { Request, Response, NextFunction } from "express";
+import { SignUpSchema, SignInSchema } from "../auth/dto";
+import { UserFilterSchema, AssignRoleSchema } from "./dto";
 
 export class UserController {
   private userService: UserService;
@@ -14,7 +14,7 @@ export class UserController {
   public getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await this.userService.getUsers();
-      res.json({ data: users });
+      res.success(users);
     } catch (error) {
       next(error);
     }
@@ -28,7 +28,7 @@ export class UserController {
     try {
       const filter = UserFilterSchema.parse(req.query);
       const users = await this.userService.paginateUsers(filter);
-      res.json({ data: users });
+      res.success(users);
     } catch (error) {
       next(error);
     }
@@ -37,8 +37,18 @@ export class UserController {
   public signup = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = SignUpSchema.parse(req.body);
-      const user = await this.userService.signup(validated);
-      res.json({ data: user });
+      const user = await this.userService.signUp(validated);
+      res.success(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public signout = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const token = cookie.get(req, COOKIE_ENTITY.USER);
+      await this.userService.signout(token);
+      res.simpleSuccess("Successfully Sign Out");
     } catch (error) {
       next(error);
     }
@@ -48,22 +58,32 @@ export class UserController {
     try {
       const token = cookie.get(req, COOKIE_ENTITY.USER);
       const auth = await this.userService.getMe(token);
-      res.json({ data: auth });
+      res.success(auth);
     } catch (error) {
       next(error);
     }
   };
 
-  public userLogin = async (
+  public login = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = SignInSchema.parse(req.body);
+      const user = await this.userService.signin(validated);
+      cookie.set(res, COOKIE_ENTITY.USER, user.token);
+      res.success(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public assignRole = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      const validated = LoginSchema.parse(req.body);
-      const user = await this.userService.signin(validated);
-      cookie.set(res, COOKIE_ENTITY.USER, user.token);
-      res.json({ data: user });
+      const validated = AssignRoleSchema.parse(req.body);
+      const user = await this.userService.assignRole(validated);
+      res.success(user);
     } catch (error) {
       next(error);
     }

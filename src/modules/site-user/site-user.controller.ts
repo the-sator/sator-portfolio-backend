@@ -1,5 +1,4 @@
 import { SiteUserService } from "@/modules/site-user/site-user.service";
-import { UpdateTotpSchema } from "@/types/auth.type";
 import { cookie, COOKIE_ENTITY } from "@/libs/cookie";
 import type { NextFunction, Request, Response } from "express";
 import { SiteUserFilterSchema } from "./dto/site-user-filter.dto";
@@ -11,6 +10,7 @@ import {
   UnauthorizedException,
 } from "@/core/response/error/exception";
 import { OnboardingSchema } from "./dto/onboarding.dto";
+import { UpdateTotpSchema } from "../auth/dto/update-totp.dto";
 
 export class SiteUserController {
   private _siteUserService: SiteUserService;

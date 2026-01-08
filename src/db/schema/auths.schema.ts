@@ -2,7 +2,6 @@ import { pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { bytea, timestamps } from "../common";
 import { relations } from "drizzle-orm";
 import { users, sessions, siteUsers } from ".";
-import { admins } from "./admins.schema";
 
 export const auths = pgTable("auths", {
   id: uuid().defaultRandom().notNull().primaryKey(),
@@ -21,10 +20,6 @@ export const authsRelations = relations(auths, ({ one, many }) => ({
   site_user: one(siteUsers, {
     fields: [auths.id],
     references: [siteUsers.auth_id],
-  }),
-  admin: one(admins, {
-    fields: [auths.id],
-    references: [admins.auth_id],
   }),
   sessions: many(sessions),
 }));

@@ -12,7 +12,6 @@ export class SessionRepository {
           with: {
             user: true,
             site_user: true,
-            admin: true,
           },
         },
       },

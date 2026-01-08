@@ -14,9 +14,9 @@ import {
   UnauthorizedException,
 } from "@/core/response/error/exception";
 import type { CreateAuth } from "./dto/create-auth.dto";
-import type { Signin } from "./dto/sign-in.dto";
-import type { UpdateTotp } from "@/types/auth.type";
+import type { SignIn } from "./dto/sign-in.dto";
 import { decodeBase64 } from "@oslojs/encoding";
+import type { UpdateTotp } from "./dto/update-totp.dto";
 
 export class AuthService {
   private readonly authRepository: AuthRepository;
@@ -40,12 +40,10 @@ export class AuthService {
     );
   }
 
-  public async signin(payload: Signin): Promise<SessionResponse> {
-    console.log("payload:", payload);
+  public async signin(payload: SignIn): Promise<SessionResponse> {
     const auth = await this.findByEmail(payload.email);
-    console.log("auth:", auth);
     if (!auth) {
-      throw new NotFoundException({ message: "Admin not found" });
+      throw new NotFoundException({ message: "User not found" });
     }
 
     const isPasswordValid = await authUtil.verifyPassword(
@@ -98,8 +96,8 @@ export class AuthService {
   public async getMe(token: string): Promise<Auth> {
     const sessionId = authUtil.decodeToSessionId(token);
     const result = await this.sessionService.findById(sessionId);
-    if (!result) throw new ForbiddenException();
-    if (!result.auth.admin) throw new UnauthorizedException();
+    if (!result) throw new UnauthorizedException();
+    // if (!result.auth.admin) throw new UnauthorizedException();
     const time = result.expires_at.getTime();
     await this.sessionService.checkAndExtendSession(sessionId, time);
     return result.auth;

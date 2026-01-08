@@ -41,7 +41,6 @@ export class ChatRoomRepository {
             chat_member: {
               include: {
                 user: true,
-                admin: true,
               },
             },
           },
@@ -72,7 +71,6 @@ export class ChatRoomRepository {
             chat_member: {
               include: {
                 user: true,
-                admin: true,
               },
             },
           },
@@ -106,7 +104,6 @@ export class ChatRoomRepository {
             chat_member: {
               include: {
                 user: true,
-                admin: true,
               },
             },
           },
@@ -119,7 +116,6 @@ export class ChatRoomRepository {
             role: "asc",
           },
           include: {
-            admin: true,
             user: true,
           },
         },
@@ -218,7 +214,6 @@ export class ChatRoomRepository {
             chat_member: {
               include: {
                 user: true,
-                admin: true,
               },
             },
           },

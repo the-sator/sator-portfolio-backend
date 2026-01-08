@@ -118,7 +118,6 @@ export class ChatMemberRepository {
         role: payload.role,
       },
       include: {
-        admin: true,
         user: true,
       },
     });
@@ -140,7 +139,6 @@ export class ChatMemberRepository {
         id,
       },
       include: {
-        admin: true,
         user: true,
       },
       data: {
@@ -156,7 +154,6 @@ export class ChatMemberRepository {
         id,
       },
       include: {
-        admin: true,
         user: true,
       },
       data: {

@@ -6,7 +6,6 @@ import { decrypt, decryptApiKey, encryptApiKey } from "@/utils/encryption";
 import { generateRandomUsername, getRandomString } from "@/utils/string";
 import { SessionService } from "../session/session.service";
 import { SiteMetricRepository } from "@/modules/site-metric/site-metric-repository";
-import type { UpdateTotp } from "@/types/auth.type";
 import { authUtil } from "@/modules/auth/auth.util";
 import { db } from "@/db";
 import { AuthService } from "@/modules/auth/auth.service";
@@ -22,6 +21,7 @@ import type { Auth } from "../auth/model/auth.model";
 import type { SiteUserSignin } from "./dto/site-user-signin.dto";
 import type { Onboarding } from "./dto/onboarding.dto";
 import type { SiteUserFilter } from "./dto/site-user-filter.dto";
+import type { UpdateTotp } from "../auth/dto/update-totp.dto";
 export class SiteUserService {
   private readonly siteUserRepository: SiteUserRepository;
   private sessionService: SessionService;

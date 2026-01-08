@@ -1,9 +1,8 @@
 import { LIMIT } from "@/constant/base";
 import { db, type DrizzleTransaction } from "@/db";
 import { users } from "@/db/schema";
-import { type CreateUser, type UserFilter } from "@/types/user.type";
 import { eq, and, asc, count } from "drizzle-orm";
-
+import type { UserFilter, CreateUser, AssignRole } from "./dto";
 export class UserRepository {
   public buildFilter(filter: UserFilter) {
     const conds = [];
@@ -53,7 +52,19 @@ export class UserRepository {
     const client = tx ? tx : db;
     return client.insert(users).values({
       username: payload.username,
+      role_id: payload.role_id,
       auth_id,
     });
+  }
+
+  public async assignRole(id: string, payload: AssignRole) {
+    const [result] = await db
+      .update(users)
+      .set({
+        role_id: payload.role_id,
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return result;
   }
 }

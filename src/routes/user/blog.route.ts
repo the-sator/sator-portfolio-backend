@@ -1,10 +1,10 @@
-import { BlogController } from "@/api/controllers/blog.controller";
+import { BlogController } from "@/modules/blog/blog.controller";
 import { Router } from "express";
 
-const router = Router();
-const blogController = new BlogController();
-
 export default (app: Router) => {
+  const router = Router();
+  const blogController = new BlogController();
+
   app.use("/blog", router);
   router.get("/", blogController.getAll);
   router.get("/:slug", blogController.getBlogBySlug);

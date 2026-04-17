@@ -7,12 +7,12 @@ WORKDIR /usr/src/app
 # this will cache them and speed up future builds
 FROM base AS install
 RUN mkdir -p /temp/dev
-COPY ../package.json ../bun.lockb /temp/dev/
+COPY ../package.json ../bun.lock /temp/dev/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
-COPY ../package.json ../bun.lockb /temp/prod/
+COPY ../package.json ../bun.lock /temp/prod/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
@@ -20,7 +20,6 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
-COPY prisma ./prisma/
 
 
 # copy production dependencies and source code into final image
@@ -34,10 +33,7 @@ COPY ./entrypoint.sh .
 
 
 # Fix permissions 
-RUN chmod +x entrypoint.sh && \
-    mkdir -p node_modules/.prisma && \
-    mkdir -p generated && \
-    chmod -R 777 node_modules/.prisma node_modules/@prisma node_modules/prisma generated
+RUN chmod +x entrypoint.sh
 
 
 # run the app

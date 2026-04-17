@@ -20,11 +20,11 @@ export class SiteUserController {
   public paginateSiteUsers = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const filter = SiteUserFilterSchema.parse(req.query);
-      const siteUsers = await this._siteUserService.paginateSiteUsers(filter);
+      const siteUsers = await this._siteUserService.paginate(filter);
       res.success(siteUsers);
     } catch (error) {
       next(error);
@@ -44,7 +44,7 @@ export class SiteUserController {
   public createSiteUsers = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const validated = CreateSiteUserSchema.parse(req.body);
@@ -58,14 +58,14 @@ export class SiteUserController {
   public siteUserLogin = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const params = BaseModelSchema.parse(req.params);
       const validated = SiteUserSigninSchema.parse(req.body);
       const siteUser = await this._siteUserService.signin(
         params.id as string,
-        validated
+        validated,
       );
       cookie.set(res, COOKIE_ENTITY.SITE_USER, siteUser.token);
       res.success(siteUser);
@@ -77,7 +77,7 @@ export class SiteUserController {
   public siteUserSignout = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const token = cookie.get(req, COOKIE_ENTITY.SITE_USER);
@@ -92,12 +92,12 @@ export class SiteUserController {
   public checkIsRegistered = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const params = BaseModelSchema.parse(req.params);
       const isRegistered = await this._siteUserService.checkIsRegistered(
-        params.id as string
+        params.id as string,
       );
       if (isRegistered) {
         throw new ForbiddenException({ message: "User is already registered" });
@@ -132,7 +132,7 @@ export class SiteUserController {
   public updateAuth = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const params = BaseModelSchema.parse(req.params);
@@ -141,7 +141,7 @@ export class SiteUserController {
       const siteUser = await this._siteUserService.updateAuth(
         params.id as string,
         token,
-        payload
+        payload,
       );
       res.success(siteUser);
     } catch (error) {
@@ -152,7 +152,7 @@ export class SiteUserController {
   public increaseView = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const key = req.headers.authorization?.split(" ")[1];
@@ -167,7 +167,7 @@ export class SiteUserController {
   public updateTotp = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const validated = UpdateTotpSchema.parse(req.body);
@@ -176,7 +176,7 @@ export class SiteUserController {
         throw new UnauthorizedException({ message: "No Token Found" });
       const admin = await this._siteUserService.updateSiteUserTotp(
         token,
-        validated
+        validated,
       );
       res.success(admin);
     } catch (error) {

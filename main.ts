@@ -1,6 +1,6 @@
 import express from "express";
 import { env } from "@/libs";
-import { loadEnv } from "@/libs/env";
+import { loadEnv } from "@/core/utils/loadEnv";
 
 // Export the app and startServer function
 export const app = express();

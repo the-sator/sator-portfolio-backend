@@ -1,0 +1,3 @@
+export const SESSION_EXPIRES_DATE_MS = 1000 * 60 * 60 * 24 * 15;
+export const SESSION_EXTENDS_EXPIRES_DATE_MS = 1000 * 60 * 60 * 24 * 1;
+export const PAGINATION_LIMIT = 10;

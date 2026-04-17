@@ -1,8 +1,8 @@
-import prisma from "@/core/loaders/prisma";
+import { db } from "@/db";
 import { CategoryOnPortfolioRepository } from "@/repositories/category-on-portfolio.repository";
 import { PortfolioRepository } from "@/repositories/portfolio.repository";
 import type { CreatePortfolio, PortfolioFilter } from "@/types/portfolio.type";
-import { getPaginationMetadata } from "@/utils/pagination";
+import { getPaginationMeta } from "@/utils/pagination";
 import type { Request } from "express";
 import { SiteUserService } from "../modules/site-user/site-user.service";
 import { SiteUserRepository } from "@/modules/site-user/site-user.repository";
@@ -45,7 +45,7 @@ export class PortfolioService {
 
   public async paginateByAdmin(filter: PortfolioFilter) {
     const count = await this.portfolioRepository.count(filter);
-    const meta = getPaginationMetadata(filter, count);
+    const meta = getPaginationMeta(filter, count);
     const portfolios = await this.portfolioRepository.paginateAdmin(filter);
     return {
       data: portfolios,
@@ -60,12 +60,12 @@ export class PortfolioService {
     const siteUser = await this.siteUserService.getMe(sessionToken);
     if (!siteUser) throw new UnauthorizedException();
     const count = await this.portfolioRepository.count(filter, {
-      site_user_id: siteUser.id,
+      site_user_id: siteUser.id as string,
     });
-    const meta = getPaginationMetadata(filter, count);
+    const meta = getPaginationMeta(filter, count);
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
       siteUser.id as string,
-      filter
+      filter,
     );
 
     return {
@@ -80,7 +80,7 @@ export class PortfolioService {
     const count = await this.portfolioRepository.count(filter, {
       site_user_id: siteUser.id,
     });
-    const meta = getPaginationMetadata(filter, count);
+    const meta = getPaginationMeta(filter, count);
     const publishedFilter = {
       ...filter,
       published_at: {
@@ -90,7 +90,7 @@ export class PortfolioService {
     const portfolios = await this.portfolioRepository.paginateBySiteUserId(
       siteUser.id,
       publishedFilter,
-      ContentStatus.PUBLISHED
+      ContentStatus.PUBLISHED,
     );
     return {
       data: portfolios,
@@ -105,11 +105,16 @@ export class PortfolioService {
   public async getPublishedBySlug(slug: string) {
     return await this.portfolioRepository.findBySlug(
       slug,
-      ContentStatus.PUBLISHED
+      ContentStatus.PUBLISHED,
     );
   }
 
-  public async create(token: string, payload: CreatePortfolio) {
+  public async create(
+    token: string,
+    payload: CreatePortfolio,
+    role: IdentityRole = IdentityRole.SITE_USER,
+  ) {
+    void role;
     const siteUser = await this.siteUserService.getMe(token);
     const identity: Identity = {
       id: siteUser.id as string,
@@ -118,11 +123,11 @@ export class PortfolioService {
 
     // if (!payload.admin_id && !payload.site_user_id) return ThrowForbidden();
     if (payload.categories) {
-      return await prisma.$transaction(async (tx) => {
+      return await db.transaction(async (tx) => {
         const portfolio = await this.portfolioRepository.create(
           payload,
           identity,
-          tx
+          tx,
         );
 
         for (const category of payload.categories!) {
@@ -133,7 +138,7 @@ export class PortfolioService {
               portfolio_id: portfolio.id,
               assignedBy,
             },
-            tx
+            tx,
           );
         }
         return portfolio;
@@ -143,20 +148,26 @@ export class PortfolioService {
     return portfolio;
   }
 
-  public async update(token: string, id: string, payload: CreatePortfolio) {
+  public async update(
+    token: string,
+    id: string,
+    payload: CreatePortfolio,
+    role: IdentityRole = IdentityRole.SITE_USER,
+  ) {
+    void role;
     const siteUser = await this.siteUserService.getMe(token);
     const identity: Identity = {
       id: siteUser.id as string,
       role: IdentityRole.SITE_USER,
     };
 
-    return await prisma.$transaction(async (tx) => {
-      await this.categoryOnPortfolioRepository.deleteByPortfolioId(id);
+    return await db.transaction(async (tx) => {
+      await this.categoryOnPortfolioRepository.deleteByPortfolioId(id, tx);
       const portfolio = await this.portfolioRepository.update(
         id,
         payload,
         identity,
-        tx
+        tx,
       );
       if (payload.categories) {
         for (const category of payload.categories) {
@@ -167,7 +178,7 @@ export class PortfolioService {
               portfolio_id: portfolio.id,
               assignedBy,
             },
-            tx
+            tx,
           );
         }
       }
@@ -180,10 +191,10 @@ export class PortfolioService {
     if (!siteUser) throw new UnauthorizedException();
     const portfolio = await this.portfolioRepository.findBySlug(slug);
     if (!portfolio) throw new NotFoundException();
-    return await prisma.$transaction(async (tx) => {
+    return await db.transaction(async (tx) => {
       const portfolioMetric = await this.portfolioMetricRepository.findByToday(
         portfolio.id,
-        tx
+        tx,
       );
       //If not found, then create new portfolio metric
       if (!portfolioMetric) {

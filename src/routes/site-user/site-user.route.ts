@@ -5,16 +5,16 @@ import { Router } from "express";
 import { SiteUserSigninSchema } from "@/modules/site-user/dto/site-user-signin.dto";
 import { OnboardingSchema } from "@/modules/site-user/dto/onboarding.dto";
 
-const router = Router();
-const siteUserController = new SiteUserController();
-
 export default (app: Router) => {
+  const router = Router();
+  const siteUserController = new SiteUserController();
+
   app.use("/", router);
   router.get("/me", siteUserController.getMe);
   router.post(
     "/:id/login",
     validateData(SiteUserSigninSchema),
-    siteUserController.siteUserLogin
+    siteUserController.siteUserLogin,
   );
   router.get("/:id/check-registration", siteUserController.checkIsRegistered);
   // router.post(
@@ -28,6 +28,6 @@ export default (app: Router) => {
   router.put(
     "/:id/auth",
     validateData(OnboardingSchema),
-    siteUserController.updateAuth
+    siteUserController.updateAuth,
   );
 };

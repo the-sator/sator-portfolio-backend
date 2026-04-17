@@ -1,4 +1,3 @@
-import { LIMIT } from "@/constant/base";
 import { db, type DrizzleTransaction } from "@/db";
 import { siteUsers } from "@/db/schema";
 import type { SiteUser } from "@/modules/site-user/model/site-user.model";
@@ -14,24 +13,24 @@ export class SiteUserRepository {
     }
     return conditions;
   };
+
   public async paginate(filter: SiteUserFilter): Promise<SiteUser[]> {
     const conds = this.buildFilter(filter);
-    const page = filter.page ? Number(filter.page) : 1;
-    const limit = filter.limit ? Number(filter.limit) : LIMIT;
-    const offset = page - 1 * +limit;
     return await db
       .select()
       .from(siteUsers)
       .where(and(...conds))
-      .limit(limit)
+      .limit(filter.page_size)
       .orderBy(asc(siteUsers.created_at))
-      .offset(offset);
+      .offset((filter.page - 1) * filter.page_size);
   }
+
   public async findById(id: string): Promise<SiteUser | undefined> {
     return await db.query.siteUsers.findFirst({
       where: eq(siteUsers.id, id),
     });
   }
+
   public async findByUsername(username: string): Promise<SiteUser | undefined> {
     return await db.query.siteUsers.findFirst({
       where: eq(siteUsers.username, username),
@@ -68,7 +67,7 @@ export class SiteUserRepository {
     payload: CreateSiteUser,
     auth_id: string,
     apiKey: string,
-    tx: DrizzleTransaction
+    tx: DrizzleTransaction,
   ): Promise<SiteUser> {
     const client = tx ? tx : db;
     const [result] = await client
@@ -85,7 +84,7 @@ export class SiteUserRepository {
 
   public async updateRegisteredAt(
     id: string,
-    tx?: DrizzleTransaction
+    tx?: DrizzleTransaction,
   ): Promise<SiteUser | undefined> {
     const client = tx ? tx : db;
     const [result] = await client
@@ -101,7 +100,7 @@ export class SiteUserRepository {
   public async updateUsername(
     id: string,
     username: string,
-    tx?: DrizzleTransaction
+    tx?: DrizzleTransaction,
   ) {
     const client = tx ? tx : db;
     const [result] = await client

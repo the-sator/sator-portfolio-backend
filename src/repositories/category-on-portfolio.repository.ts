@@ -1,27 +1,30 @@
-import prisma from "@/core/loaders/prisma";
+import { db, type DrizzleTransaction } from "@/db";
+import { categoryOnPortfolios } from "@/db/schema";
 import type { AssignCategory } from "@/types/category.type";
-import type { Prisma } from "@prisma/client";
+import { eq } from "drizzle-orm";
 
 export class CategoryOnPortfolioRepository {
   public async findAll() {
-    return prisma.categoryOnPorfolio.findMany();
+    return db.select().from(categoryOnPortfolios);
   }
 
-  public async create(payload: AssignCategory, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return client.categoryOnPorfolio.create({
-      data: {
+  public async create(payload: AssignCategory, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .insert(categoryOnPortfolios)
+      .values({
         portfolio_id: payload.portfolio_id,
         category_id: payload.category_id,
-        assignedBy: payload.assignedBy,
-      },
-    });
+        created_by: payload.assignedBy,
+      })
+      .returning();
+    return result;
   }
 
-  public async deleteByPortfolioId(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.categoryOnPorfolio.deleteMany({
-      where: { portfolio_id: id },
-    });
+  public async deleteByPortfolioId(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    return client
+      .delete(categoryOnPortfolios)
+      .where(eq(categoryOnPortfolios.portfolio_id, id));
   }
 }

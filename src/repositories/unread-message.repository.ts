@@ -2,6 +2,7 @@ import type { CreateUnreadMessage } from "@/types/unread-message.type";
 import { type DrizzleTransaction, db } from "@/db";
 import { unreadMessages } from "../db/schema/unread-messages.schema";
 import { eq, and } from "drizzle-orm";
+import { chatMembers } from "@/db/schema";
 
 export class UnreadMessageRepository {
   public async findAll(tx?: DrizzleTransaction) {
@@ -15,32 +16,28 @@ export class UnreadMessageRepository {
     tx?: DrizzleTransaction
   ) {
     const client = tx ? tx : db;
-    const { chatMembers } = await import("../db/schema/chat-members.schema");
-    const { or } = await import("drizzle-orm");
-
-    return await client
-      .select()
+    const [result] = await client
+      .select({ unread_message: unreadMessages })
       .from(unreadMessages)
       .innerJoin(chatMembers, eq(unreadMessages.chat_member_id, chatMembers.id))
       .where(
         and(
           eq(unreadMessages.chat_room_id, chat_room_id),
-          or(eq(chatMembers.user_id, auth_id))
+          eq(chatMembers.user_id, auth_id)
         )
       )
       .limit(1);
+    return result?.unread_message || null;
   }
 
   public async findByAuthId(auth_id: string, tx?: DrizzleTransaction) {
     const client = tx ? tx : db;
-    const { chatMembers } = await import("../db/schema/chat-members.schema");
-    const { or } = await import("drizzle-orm");
 
     return await client
-      .select()
+      .select({ unread_message: unreadMessages, chat_member: chatMembers })
       .from(unreadMessages)
       .innerJoin(chatMembers, eq(unreadMessages.chat_member_id, chatMembers.id))
-      .where(or(eq(chatMembers.user_id, auth_id)));
+      .where(eq(chatMembers.user_id, auth_id));
   }
 
   public async checkIfExist(
@@ -49,7 +46,6 @@ export class UnreadMessageRepository {
     tx?: DrizzleTransaction
   ) {
     const client = tx ? tx : db;
-    const { and } = await import("drizzle-orm");
 
     const [result] = await client
       .select()

@@ -1,21 +1,9 @@
 import { z } from "zod";
-
-enum Color {
-  BLUE = "BLUE",
-  RED = "RED",
-  VIOLET = "VIOLET",
-  PURPLE = "PURPLE",
-  GREEN = "GREEN",
-  YELLOW = "YELLOW",
-  ORANGE = "ORANGE",
-  GRAY = "GRAY",
-  TEAL = "TEAL",
-  INDIGO = "INDIGO",
-}
+import { CategoryColorEnum } from "@/modules/category/model/category.enum";
 
 export const CreateCategorySchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
-  color: z.nativeEnum(Color).optional(),
+  color: z.nativeEnum(CategoryColorEnum).optional(),
 });
 
 export const AssignCategorySchema = z.object({

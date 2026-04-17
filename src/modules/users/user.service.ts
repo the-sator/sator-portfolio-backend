@@ -1,5 +1,5 @@
 import { UserRepository } from "./user.repository";
-import { getPaginationMetadata } from "@/utils/pagination";
+import { getPaginationMeta } from "@/utils/pagination";
 import { CacheService } from "@/services/cache.service";
 import { db } from "@/db";
 import type { SessionResponse } from "@/modules/auth/dto/session-response.dto";
@@ -34,10 +34,10 @@ export class UserService {
   }
 
   public async paginateUsers(
-    filter: UserFilter
+    filter: UserFilter,
   ): Promise<PaginationResult<User>> {
     const count = await this.userRepository.count(filter);
-    const meta = getPaginationMetadata(filter, count);
+    const meta = getPaginationMeta(filter, count);
     const users = await this.userRepository.paginate(filter);
     return { data: users, meta };
   }
@@ -54,7 +54,7 @@ export class UserService {
           role_id: role.id,
         },
         auth.id as string,
-        tx
+        tx,
       );
       return admin;
     });

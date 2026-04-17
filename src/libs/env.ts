@@ -32,7 +32,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   PASSWORD_SALT: z.coerce.number().default(10),
   API_PREFIX: z.string(),
-  API_KEY_ALGO: z.string().default("H256"),
+  API_KEY_ALGO: z.string().default("aes-256-cbc"),
   API_KEY_SECRET: z.string(),
   ENCRYPTION_KEY: z.string(),
   DEFAULT_PASSWORD: z.string(),

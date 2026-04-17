@@ -6,9 +6,9 @@ import { relations } from "drizzle-orm";
 export const formResponses = pgTable('form_responses', {
     id: uuid().defaultRandom().notNull().primaryKey(),
     metadata: json(),
-    question_id: uuid().references(() => formQuestions.id),
-    option_id: uuid().references(() => formOptions.id),
-    attempt_id: uuid().references(() => formAttempts.id),
+    question_id: uuid().references(() => formQuestions.id, { onDelete: "cascade" }).notNull(),
+    option_id: uuid().references(() => formOptions.id, { onDelete: "cascade" }).notNull(),
+    attempt_id: uuid().references(() => formAttempts.id, { onDelete: "cascade" }).notNull(),
     ...timestamps,
 })
 
@@ -18,11 +18,11 @@ export const formResponseRelations = relations(formResponses, ({ one }) => ({
         references: [formAttempts.id]
     }),
     form_question: one(formQuestions, {
-        fields: [formResponses.attempt_id],
+        fields: [formResponses.question_id],
         references: [formQuestions.id]
     }),
     form_option: one(formOptions, {
-        fields: [formResponses.attempt_id],
+        fields: [formResponses.option_id],
         references: [formOptions.id]
     })
 }))

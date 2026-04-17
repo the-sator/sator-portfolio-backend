@@ -1,6 +1,7 @@
 import { CategoryService } from "@/services/category.service";
 import { BaseModelSchema } from "@/core/types/base.type";
 import { CreateCategorySchema } from "@/types/category.type";
+import Logger from "@/libs/logger";
 import type { NextFunction, Response, Request } from "express";
 export class CategoryController {
   private categoryService: CategoryService;

@@ -6,7 +6,7 @@ export const UpdateTotpSchema = z.object({
 });
 
 export type DecryptedTotp = {
-  key: Uint8Array<ArrayBufferLike>;
+  key: Uint8Array;
   code: string;
 };
 export type UpdateTotp = z.infer<typeof UpdateTotpSchema>;

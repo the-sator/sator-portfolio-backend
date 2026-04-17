@@ -1,11 +1,12 @@
-import { LIMIT } from "@/constant/base";
+import { PAGINATION_LIMIT } from "@/constant/app";
 
-export const getPaginationMetadata = (
-  filter: Record<string, unknown>,
-  count: number
-) => {
-  const page_size = filter.limit ? Number(filter.limit) : LIMIT;
-  const page_count = Math.ceil(count / page_size);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getPaginationMeta = (filter: any, count: number) => {
   const page = filter.page ? Number(filter.page) : 1;
-  return { total_count: count, page_size, page_count, page };
+  const page_size = filter.page_size
+    ? Number(filter.page_size)
+    : PAGINATION_LIMIT;
+  const page_count = Math.ceil(count / page_size);
+  const total_count = count;
+  return { page, page_count, page_size, total_count };
 };

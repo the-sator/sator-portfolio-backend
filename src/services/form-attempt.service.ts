@@ -4,10 +4,10 @@ import type {
   CreateFormAttempt,
   FormAttemptFilter,
 } from "@/types/portfolio-form.type";
-import prisma from "@/core/loaders/prisma";
+import { db } from "@/db";
 import { UserService } from "../modules/users/user.service";
 import { sumArray } from "@/utils/string";
-import { getPaginationMetadata } from "@/utils/pagination";
+import { getPaginationMeta } from "@/utils/pagination";
 import { ChatRoomService } from "./chat-room.service";
 import { ChatMessageService } from "./chat-message.service";
 import { UserRepository } from "@/modules/users/user.repository";
@@ -45,13 +45,13 @@ export class FormAttemptService {
   public async paginateByUser(token: string, filter: FormAttemptFilter) {
     const user = await this.userService.getMe(token);
     if (!user) throw new UnauthorizedException();
-    const countAsync = this.formAttemptRepository.count(filter);
+    const countAsync = this.formAttemptRepository.count(filter, user.id as string);
     const attemptsAsync = this.formAttemptRepository.paginateByUser(
       user.id as string,
-      filter
+      filter,
     );
     const [count, attempts] = await Promise.all([countAsync, attemptsAsync]);
-    const meta = getPaginationMetadata(filter, count);
+    const meta = getPaginationMeta(filter, count);
     return {
       data: attempts,
       meta,
@@ -71,26 +71,26 @@ export class FormAttemptService {
   public async create(token: string, payload: CreateFormAttempt) {
     const user = await this.userService.getMe(token);
     if (!user) throw new UnauthorizedException();
-    return prisma.$transaction(async (tx) => {
+    return db.transaction(async (tx) => {
       const attempt = await this.formAttemptRepository.create(
         user.id as string,
-        tx
+        tx,
       );
       const responses = await Promise.all(
         payload.responses.map((res) =>
-          this.formResponseRepository.create(res, attempt.id, tx)
-        )
+          this.formResponseRepository.create(res, attempt.id, tx),
+        ),
       );
       const price = responses.reduce(
         (prev, curr) => {
           return sumArray(prev, curr.form_option.price);
         },
-        [0, 0]
+        [0, 0],
       );
       const updatedPriceAttempt = await this.formAttemptRepository.updatePrice(
         attempt.id,
         price,
-        tx
+        tx,
       );
       return updatedPriceAttempt;
     });

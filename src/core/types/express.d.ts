@@ -16,7 +16,7 @@ declare global {
       success<T = unknown>(
         data?: T | null,
         message?: string,
-        statusCode?: number
+        statusCode?: number,
       ): Response;
       simpleSuccess(message?: string, statusCode?: number): Response;
       error(message?: string, statusCode?: number, data?: unknown): Response;

@@ -1,4 +1,3 @@
-import { BlogService } from "@/services/blog.service";
 import { SiteUserService } from "@/modules/site-user/site-user.service";
 import {
   BaseModelSchema,
@@ -10,6 +9,7 @@ import { BlogFilterSchema, CreateBlogSchema } from "@/types/blog.type";
 import { cookie, COOKIE_ENTITY } from "@/libs/cookie";
 import type { NextFunction, Request, Response } from "express";
 import { UnauthorizedException } from "@/core/response/error/exception";
+import { BlogService } from "./blog.service";
 
 export class BlogController {
   private blogService: BlogService;
@@ -30,7 +30,7 @@ export class BlogController {
   public getAllPublishedSlug = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const key = req.headers.authorization?.split(" ")[1];
@@ -45,7 +45,7 @@ export class BlogController {
   public getBlogBySlug = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const validatedSlug = ValidatedSlugSchema.parse({
@@ -61,14 +61,14 @@ export class BlogController {
   public getPublishedBlogBySlug = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const validatedSlug = ValidatedSlugSchema.parse({
         slug: req.params.slug,
       });
       const blog = await this.blogService.getPublishedBlogBySlug(
-        validatedSlug.slug
+        validatedSlug.slug,
       );
       res.json({ data: blog });
     } catch (error) {
@@ -79,7 +79,7 @@ export class BlogController {
   public paginateBySiteUserApiKey = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const key = req.headers.authorization?.split(" ")[1];
@@ -87,7 +87,7 @@ export class BlogController {
       const filter = BlogFilterSchema.parse(req.query);
       const portfolios = await this.blogService.paginateBySiteUserApiKey(
         key,
-        filter
+        filter,
       );
       res.json({
         data: portfolios,
@@ -100,7 +100,7 @@ export class BlogController {
   public paginateByAdmin = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const filter = BlogFilterSchema.parse(req.query);
@@ -116,7 +116,7 @@ export class BlogController {
   public paginateBySiteUser = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const sessionToken = cookie.get(req, COOKIE_ENTITY.SITE_USER);
@@ -126,7 +126,7 @@ export class BlogController {
       const filter = BlogFilterSchema.parse(req.query);
       const blogs = await this.blogService.paginateBySiteUser(
         siteUser.id as string,
-        filter
+        filter,
       );
       res.json({
         data: blogs,
@@ -166,7 +166,7 @@ export class BlogController {
       const blog = await this.blogService.update(
         params.id as string,
         identity,
-        validated
+        validated,
       );
       res.json({ data: blog });
     } catch (error) {
@@ -194,7 +194,7 @@ export class BlogController {
   public unpublish = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const params = BaseModelSchema.parse({ id: req.params.id });
@@ -208,7 +208,7 @@ export class BlogController {
   public increaseView = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ) => {
     try {
       const key = req.headers.authorization?.split(" ")[1];

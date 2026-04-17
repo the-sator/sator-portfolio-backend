@@ -22,15 +22,10 @@
     "test:coverage": "vitest run --coverage",
     "prepare": "husky"
   },
-  "prisma": {
-    "seed": "npx tsx prisma/seed.ts",
-    "purge": "node --loader ts-node/esm ./prisma/purge.ts"
-  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/pg": "^8.15.5",
     "drizzle-kit": "^0.31.4",
-    "prisma": "^6.13.0",
     "supertest": "^7.0.0"
   },
   "peerDependencies": {
@@ -40,7 +35,6 @@
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
     "@oslojs/otp": "^1.0.0",
-    "@prisma/client": "^6.4.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",

@@ -1,164 +1,193 @@
-import prisma from "@/core/loaders/prisma";
+import { db, type DrizzleTransaction } from "@/db";
+import { chatMembers, users } from "@/db/schema";
 import type { CreateChatMember } from "@/types/chat-member.type";
-import type { Prisma } from "@prisma/client";
+import { and, eq, isNull, or } from "drizzle-orm";
 
 export class ChatMemberRepository {
   public async findAll() {
-    return await prisma.chatMember.findMany({
-      where: {
-        left_at: null,
-      },
-    });
+    return db
+      .select()
+      .from(chatMembers)
+      .where(isNull(chatMembers.left_at));
   }
-  public async findById(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findUnique({
-      where: {
-        id,
-        left_at: null,
-      },
-    });
+
+  public async findById(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .select()
+      .from(chatMembers)
+      .where(and(eq(chatMembers.id, id), isNull(chatMembers.left_at)))
+      .limit(1);
+    return result || null;
   }
 
   public async findByUser(
     user_id: string,
     chat_room_id: string,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findFirst({
-      where: {
-        user_id,
-        chat_room_id,
-        left_at: null,
-      },
-    });
+    const client = tx ? tx : db;
+    const [result] = await client
+      .select()
+      .from(chatMembers)
+      .where(
+        and(
+          eq(chatMembers.user_id, user_id),
+          eq(chatMembers.chat_room_id, chat_room_id),
+          isNull(chatMembers.left_at),
+        ),
+      )
+      .limit(1);
+    return result || null;
   }
 
   public async findByAdmin(
     admin_id: string,
     chat_room_id: string,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findFirst({
-      where: {
-        admin_id,
-        chat_room_id,
-        left_at: null,
-      },
-    });
-  }
-  public async findByAuthId(auth_id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findFirst({
-      where: {
-        OR: [{ admin_id: auth_id }, { user_id: auth_id }],
-      },
-    });
+    void admin_id;
+    void chat_room_id;
+    void tx;
+    return null;
   }
 
-  public async findByRoomId(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findMany({
-      where: {
-        chat_room_id: id,
-        left_at: null,
-      },
-    });
+  public async findByAuthId(auth_id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .select()
+      .from(chatMembers)
+      .where(eq(chatMembers.user_id, auth_id))
+      .limit(1);
+    return result || null;
+  }
+
+  public async findByRoomId(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    return client
+      .select()
+      .from(chatMembers)
+      .where(and(eq(chatMembers.chat_room_id, id), isNull(chatMembers.left_at)));
   }
 
   public async isMemberActive(
     id: string,
     roomId: string,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findFirst({
-      where: {
-        OR: [{ admin_id: id }, { user_id: id }],
-        AND: [
-          {
-            chat_room_id: roomId,
-            left_at: null,
-          },
-        ],
-      },
-    });
+    const client = tx ? tx : db;
+    const [result] = await client
+      .select()
+      .from(chatMembers)
+      .where(
+        and(
+          or(eq(chatMembers.user_id, id)),
+          eq(chatMembers.chat_room_id, roomId),
+          isNull(chatMembers.left_at),
+        ),
+      )
+      .limit(1);
+    return result || null;
   }
 
   public async isMember(
     id: string,
     roomId: string,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.findFirst({
-      where: {
-        OR: [{ admin_id: id }, { user_id: id }],
-        AND: [
-          {
-            chat_room_id: roomId,
-          },
-        ],
-      },
-    });
+    const client = tx ? tx : db;
+    const [result] = await client
+      .select()
+      .from(chatMembers)
+      .where(
+        and(or(eq(chatMembers.user_id, id)), eq(chatMembers.chat_room_id, roomId)),
+      )
+      .limit(1);
+    return result || null;
   }
 
   public async create(
     payload: CreateChatMember,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.create({
-      data: {
-        admin_id: payload.admin_id,
+    const client = tx ? tx : db;
+    const [member] = await client
+      .insert(chatMembers)
+      .values({
         user_id: payload.user_id,
         chat_room_id: payload.chat_room_id,
         role: payload.role,
-      },
-      include: {
-        user: true,
-      },
-    });
+      })
+      .returning();
+
+    const [user] = member.user_id
+      ? await client
+          .select()
+          .from(users)
+          .where(eq(users.id, member.user_id))
+          .limit(1)
+      : [];
+
+    return {
+      ...member,
+      user,
+    };
   }
 
-  public async remove(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.delete({
-      where: {
-        id,
-      },
-    });
+  public async remove(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .delete(chatMembers)
+      .where(eq(chatMembers.id, id))
+      .returning();
+    return result;
   }
 
-  public async softDelete(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.update({
-      where: {
-        id,
-      },
-      include: {
-        user: true,
-      },
-      data: {
+  public async softDelete(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [member] = await client
+      .update(chatMembers)
+      .set({
         left_at: new Date(),
-      },
-    });
+      })
+      .where(eq(chatMembers.id, id))
+      .returning();
+
+    const [user] = member.user_id
+      ? await client
+          .select()
+          .from(users)
+          .where(eq(users.id, member.user_id))
+          .limit(1)
+      : [];
+
+    return {
+      ...member,
+      user,
+    };
   }
 
-  public async restore(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.chatMember.update({
-      where: {
-        id,
-      },
-      include: {
-        user: true,
-      },
-      data: {
+  public async restore(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [member] = await client
+      .update(chatMembers)
+      .set({
         left_at: null,
-      },
-    });
+      })
+      .where(eq(chatMembers.id, id))
+      .returning();
+
+    const [user] = member.user_id
+      ? await client
+          .select()
+          .from(users)
+          .where(eq(users.id, member.user_id))
+          .limit(1)
+      : [];
+
+    return {
+      ...member,
+      user,
+    };
   }
 }

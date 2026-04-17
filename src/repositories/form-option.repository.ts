@@ -1,31 +1,33 @@
-import prisma from "@/core/loaders/prisma";
+import { db, type DrizzleTransaction } from "@/db";
+import { formOptions } from "@/db/schema";
 import type { CreateFormOption } from "@/types/portfolio-form.type";
-import type { Prisma } from "@prisma/client";
+import { eq } from "drizzle-orm";
 
 export class FormOptionRepository {
   public async findAll() {
-    return await prisma.formOption.findMany();
+    return db.select().from(formOptions);
   }
 
   public async create(
     question_id: string,
     payload: CreateFormOption,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.formOption.create({
-      data: {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .insert(formOptions)
+      .values({
         option_text: payload.option_text,
-        question_id: question_id,
+        question_id,
         price: payload.price,
-      },
-    });
+      })
+      .returning();
+
+    return result;
   }
 
-  public async deleteByQuestionId(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.formOption.deleteMany({
-      where: { question_id: id },
-    });
+  public async deleteByQuestionId(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    return client.delete(formOptions).where(eq(formOptions.question_id, id));
   }
 }

@@ -28,9 +28,9 @@ export function encryptToBuffer(data: Uint8Array): Buffer {
   const encrypted = new DynamicBuffer(0);
 
   encrypted.write(iv);
-  encrypted.write(cipher.update(data));
-  encrypted.write(cipher.final());
-  encrypted.write(cipher.getAuthTag());
+  encrypted.write(Uint8Array.from(cipher.update(data)));
+  encrypted.write(Uint8Array.from(cipher.final()));
+  encrypted.write(Uint8Array.from(cipher.getAuthTag()));
 
   return Buffer.from(encrypted.bytes()); // Convert to Buffer
 }
@@ -51,9 +51,9 @@ export function decrypt(encrypted: Uint8Array): Uint8Array {
 
   const decrypted = new DynamicBuffer(0);
   decrypted.write(
-    decipher.update(encrypted.slice(16, encrypted.byteLength - 16))
+    Uint8Array.from(decipher.update(encrypted.slice(16, encrypted.byteLength - 16)))
   );
-  decrypted.write(decipher.final());
+  decrypted.write(Uint8Array.from(decipher.final()));
   return decrypted.bytes();
 }
 
@@ -62,8 +62,8 @@ export function decryptToString(data: Uint8Array): string {
 }
 
 export function encryptApiKey(text: string): string {
-  const secretKey = Buffer.from(env.API_KEY_SECRET, "hex");
-  const iv = crypto.randomBytes(16);
+  const secretKey = Uint8Array.from(Buffer.from(env.API_KEY_SECRET, "hex"));
+  const iv = Uint8Array.from(crypto.randomBytes(16));
   const cipher = createCipheriv(env.API_KEY_ALGO, secretKey, iv);
   let encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
@@ -71,8 +71,8 @@ export function encryptApiKey(text: string): string {
 }
 
 export function decryptApiKey(key: string): string {
-  const secretKey = Buffer.from(env.API_KEY_SECRET, "hex");
-  const iv = crypto.randomBytes(16);
+  const secretKey = Uint8Array.from(Buffer.from(env.API_KEY_SECRET, "hex"));
+  const iv = Uint8Array.from(crypto.randomBytes(16));
   const decipher = createDecipheriv(env.API_KEY_ALGO, secretKey, iv);
   let decrypted = decipher.update(key, "hex", "utf8");
   decrypted += decipher.final("utf8");

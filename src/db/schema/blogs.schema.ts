@@ -7,6 +7,7 @@ export const blogs = pgTable("blogs", {
   id: uuid().defaultRandom().notNull().primaryKey(),
   published_at: timestamp(),
   slug: text().unique().notNull(),
+  title: text().notNull(),
   content: json(),
   cover_url: text(),
   description: text().notNull(),

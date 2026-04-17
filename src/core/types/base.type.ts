@@ -1,3 +1,4 @@
+import { PAGINATION_LIMIT } from "@/constant/app";
 import { z } from "zod";
 
 export type Identity = {
@@ -29,8 +30,8 @@ export const ValidatedSlugSchema = z.object({
 });
 
 export const BaseFilterSchema = z.object({
-  page: z.string().min(1).optional(),
-  limit: z.string().min(1).optional(),
+  page: z.coerce.number().default(1),
+  page_size: z.coerce.number().default(PAGINATION_LIMIT),
 });
 
 export type BaseFilter = z.infer<typeof BaseFilterSchema>;

@@ -55,7 +55,7 @@ export class ChatMessageController {
   ) => {
     try {
       const params = RoomIdSchema.parse(req.params);
-      const token = cookie.get(req, COOKIE_ENTITY.ADMIN)(req);
+      const token = cookie.get(req, COOKIE_ENTITY.USER);
       const messages = await this.chatMessageService.findByRoomId(
         token,
         params.roomId as string

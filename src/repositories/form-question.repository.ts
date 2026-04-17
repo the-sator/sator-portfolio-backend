@@ -1,67 +1,83 @@
 import { LIMIT } from "@/constant/base";
-import prisma from "@/core/loaders/prisma";
+import { db, type DrizzleTransaction } from "@/db";
+import { formOptions, formQuestions } from "@/db/schema";
 import type {
   CreateFormQuestion,
   PortfolioFormFilter,
 } from "@/types/portfolio-form.type";
-import type { Prisma } from "@prisma/client";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  ilike,
+  lt,
+  type SQL,
+} from "drizzle-orm";
 
 export class FormQuestionRepository {
+  private async withOptions(question: typeof formQuestions.$inferSelect) {
+    const options = await db
+      .select()
+      .from(formOptions)
+      .where(eq(formOptions.question_id, question.id));
+
+    return {
+      ...question,
+      form_option: options,
+    };
+  }
+
   public async findAll() {
-    return await prisma.formQuestion.findMany({
-      include: {
-        form_option: true,
-      },
-      orderBy: {
-        order: "asc",
-      },
-    });
+    const questions = await db
+      .select()
+      .from(formQuestions)
+      .orderBy(asc(formQuestions.order));
+    return Promise.all(questions.map((question) => this.withOptions(question)));
   }
+
   public async findById(id: string) {
-    return await prisma.formQuestion.findUnique({
-      where: { id },
-      include: {
-        form_option: true,
-      },
-    });
+    const [question] = await db
+      .select()
+      .from(formQuestions)
+      .where(eq(formQuestions.id, id))
+      .limit(1);
+
+    return question ? this.withOptions(question) : null;
   }
+
   public async findFirstEntry() {
-    return await prisma.formQuestion.findFirst({
-      orderBy: {
-        order: "asc",
-      },
-      include: {
-        form_option: true,
-      },
-    });
+    const [question] = await db
+      .select()
+      .from(formQuestions)
+      .orderBy(asc(formQuestions.order))
+      .limit(1);
+
+    return question ? this.withOptions(question) : null;
   }
 
   public async findNextPreviousQuestionIds(order: number) {
-    const nextQuestionAsync = prisma.formQuestion.findFirst({
-      where: {
-        order: {
-          gt: order,
-        },
-      },
-      orderBy: {
-        order: "asc",
-      },
-    });
+    const nextQuestionAsync = db
+      .select()
+      .from(formQuestions)
+      .where(gt(formQuestions.order, order))
+      .orderBy(asc(formQuestions.order))
+      .limit(1);
 
-    const previousQuestionAsync = prisma.formQuestion.findFirst({
-      where: {
-        order: {
-          lt: order,
-        },
-      },
-      orderBy: {
-        order: "desc",
-      },
-    });
-    const [nextQuestion, previousQuestion] = await Promise.all([
+    const previousQuestionAsync = db
+      .select()
+      .from(formQuestions)
+      .where(lt(formQuestions.order, order))
+      .orderBy(desc(formQuestions.order))
+      .limit(1);
+
+    const [[nextQuestion], [previousQuestion]] = await Promise.all([
       nextQuestionAsync,
       previousQuestionAsync,
     ]);
+
     return {
       next: nextQuestion ? nextQuestion.id : null,
       previous: previousQuestion ? previousQuestion.id : null,
@@ -69,74 +85,85 @@ export class FormQuestionRepository {
   }
 
   public buildFilter(filter: PortfolioFormFilter) {
-    const where: Record<string, unknown> = {};
+    const conditions: SQL[] = [];
 
     if (filter.order) {
-      where.order = Number(filter.order);
+      conditions.push(eq(formQuestions.order, Number(filter.order)));
     }
 
     if (filter.id) {
-      where.id = { startsWith: filter.id };
+      conditions.push(ilike(formQuestions.id, `${filter.id}%`));
     }
 
-    return where;
+    return conditions;
   }
 
   public async paginate(filter: PortfolioFormFilter) {
     const page = filter.page ? Number(filter.page) : 1;
-    const limit = filter.limit ? Number(filter.limit) : LIMIT;
-    const where = this.buildFilter(filter);
-    return await prisma.formQuestion.findMany({
-      take: limit,
-      skip: (page - 1) * limit,
-      where,
-      orderBy: {
-        order: "asc",
-      },
-      include: {
-        form_option: true,
-      },
-    });
+    const limit = filter.page_size ? Number(filter.page_size) : LIMIT;
+    const conditions = this.buildFilter(filter);
+    const whereClause = conditions.length ? and(...conditions) : undefined;
+
+    const questions = await db
+      .select()
+      .from(formQuestions)
+      .where(whereClause)
+      .orderBy(asc(formQuestions.order))
+      .limit(limit)
+      .offset((page - 1) * limit);
+
+    return Promise.all(questions.map((question) => this.withOptions(question)));
   }
+
   public async count(filter: PortfolioFormFilter) {
-    const where = this.buildFilter(filter);
-    return await prisma.formQuestion.count({
-      where,
-    });
+    const conditions = this.buildFilter(filter);
+    const whereClause = conditions.length ? and(...conditions) : undefined;
+    const [result] = await db
+      .select({ count: count() })
+      .from(formQuestions)
+      .where(whereClause);
+
+    return result.count;
   }
 
   public async create(
     payload: CreateFormQuestion,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.formQuestion.create({
-      data: {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .insert(formQuestions)
+      .values({
         order: payload.order,
         form_text: payload.form_text,
-      },
-    });
+      })
+      .returning();
+    return result;
   }
 
-  public async delete(id: string, tx?: Prisma.TransactionClient) {
-    const client = tx ? tx : prisma;
-    return await client.formQuestion.delete({
-      where: { id },
-    });
+  public async delete(id: string, tx?: DrizzleTransaction) {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .delete(formQuestions)
+      .where(eq(formQuestions.id, id))
+      .returning();
+    return result;
   }
 
   public async update(
     id: string,
     payload: CreateFormQuestion,
-    tx?: Prisma.TransactionClient
+    tx?: DrizzleTransaction,
   ) {
-    const client = tx ? tx : prisma;
-    return await client.formQuestion.update({
-      where: { id },
-      data: {
+    const client = tx ? tx : db;
+    const [result] = await client
+      .update(formQuestions)
+      .set({
         form_text: payload.form_text,
         order: payload.order,
-      },
-    });
+      })
+      .where(eq(formQuestions.id, id))
+      .returning();
+    return result;
   }
 }

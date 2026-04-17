@@ -1,11 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgTable, uuid, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text } from "drizzle-orm/pg-core";
 import { permissionFlags } from ".";
+import { timestamps } from "../common";
 
 export const resources = pgTable("resources", {
   id: uuid().defaultRandom().notNull().primaryKey(),
   name: text().unique().notNull(),
-  ...timestamp,
+  ...timestamps,
 });
 
 export const resourceRelation = relations(resources, ({ many }) => ({

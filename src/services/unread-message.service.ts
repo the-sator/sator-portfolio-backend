@@ -24,8 +24,12 @@ export class UnreadMessageService {
     return this.unreadMessageRepository.findAll();
   }
 
-  public async findByMember(chat_room_id: string, auth_id: string) {
-    return this.unreadMessageRepository.findByMember(chat_room_id, auth_id);
+  public async findByMember(
+    chat_room_id: string,
+    auth_id: string,
+    tx?: DrizzleTransaction,
+  ) {
+    return this.unreadMessageRepository.findByMember(chat_room_id, auth_id, tx);
   }
 
   public async findByAuth(req: Request) {
@@ -44,14 +48,15 @@ export class UnreadMessageService {
   public async create(payload: CreateUnreadMessage, tx?: DrizzleTransaction) {
     const unreadRecord = await this.unreadMessageRepository.checkIfExist(
       payload.chat_room_id,
-      payload.chat_member_id
+      payload.chat_member_id,
+      tx,
     );
     if (unreadRecord)
       throw new InternalServerException({ message: "Record Already Exist" });
     return this.unreadMessageRepository.create(payload, tx);
   }
 
-  public async updateUnread(id: string, count: number) {
-    return this.unreadMessageRepository.update(id, count);
+  public async updateUnread(id: string, count: number, tx?: DrizzleTransaction) {
+    return this.unreadMessageRepository.update(id, count, tx);
   }
 }

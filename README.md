@@ -1,5 +1,5 @@
 # Sator Portfolio Backend
-Sator backend utilize Express in concord with Prisma. Please refer to [Prisma Docs](https://www.prisma.io/docs/orm/overview/introduction/what-is-prisma) for further detail on how it work.
+Sator backend uses Express, TypeScript, Bun, Postgres, and Drizzle ORM.
 
 
 # Postgres Setup
@@ -21,15 +21,13 @@ To get started, run:
 ```bash
 bun install
 ```
-Then, you will need to populate the table with Prisma migration via:
+Then, apply the database schema with Drizzle:
 ```bash
-bun migrate
-or
-bunx prisma migrate dev
+bun run db:push
 ```
-And then, seed the neccessary data into the db:
+And then, seed the necessary data into the db:
 ```bash
-bunx prisma db seed
+bun run db:seed
 ```
 Then, it is done. You can now run the backend with:
 ```bash
@@ -38,24 +36,18 @@ bun dev
 
 
 # Data Migration
-Migration is a way for us to easily track our DB configuration (Read/Write). So each time we want to add new table or alter the table, we will need to make change to the `prisma.schema` file. Then run:
+Migration is a way for us to track DB configuration changes. When you add or alter tables, update the Drizzle schema in `src/db/schema`, then generate and apply a migration:
 ```bash
-bun migrate --name {MIGRATION_NAME}
-or
-bunx prisma migrate dev e --name {MIGRATION_NAME}
-```
-(Optional) Once you run the migrate command, it should regenerate the prisma client and provide a type for us to use in the component and such, but if somehow the prisma client did not auto generate then you can run:
-```bash
-bunx prisma generate 
+bun run db:gen
+bun run db:migrate
 ```
 
 # Extra
-Once you run the app, Prisma also provide a studio for you to easier view and edit the data. You can access that by running: 
+You can inspect and edit the database with Drizzle Studio:
 ```bash
-bun studio
+bun run studio
 ```
 
 
 # Pledge
 Please do not try to push any JavaScript code into the repo. We are a strictly Typesrcipt family. Any JS code pushed into the repo will be automatically rejected. Yes, I am talking about you [Vesondor](https://github.com/Vesondor)
-

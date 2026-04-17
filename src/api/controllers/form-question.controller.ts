@@ -4,9 +4,14 @@ import {
   CreateFormQuestionSchema,
   PortfolioFormFilterSchema,
 } from "@/types/portfolio-form.type";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { NextFunction, Request, Response } from "express";
 import { ForbiddenException } from "@/core/response/error/exception";
+
+const isUniqueViolation = (err: unknown) =>
+  typeof err === "object" &&
+  err !== null &&
+  "code" in err &&
+  err.code === "23505";
 
 export class FormQuestionController {
   private formQuestionService: FormQuestionService;
@@ -60,10 +65,7 @@ export class FormQuestionController {
       const question = await this.formQuestionService.create(validated);
       res.json({ data: question });
     } catch (err) {
-      if (
-        err instanceof PrismaClientKnownRequestError &&
-        err.code === "P2002"
-      ) {
+      if (isUniqueViolation(err)) {
         throw new ForbiddenException({ message: "Order must be unique" });
       }
       next(err);

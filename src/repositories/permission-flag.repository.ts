@@ -6,7 +6,7 @@ export class PermissionFlagRepository {
   public async create(
     role_id: string,
     payload: CreatePermission,
-    tx?: DrizzleTransaction
+    tx?: DrizzleTransaction,
   ) {
     const client = tx ? tx : db;
     return await client.insert(permissionFlags).values({
@@ -21,7 +21,7 @@ export class PermissionFlagRepository {
   public async upsert(
     role_id: string,
     payload: CreatePermission,
-    tx: DrizzleTransaction
+    tx: DrizzleTransaction,
   ) {
     const client = tx ? tx : db;
 

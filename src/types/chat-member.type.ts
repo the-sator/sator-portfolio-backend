@@ -1,10 +1,10 @@
-import { ChatMemberRole } from "@prisma/client";
+import { ChatMemberRoleEnum } from "@/modules/chat-member/model/chat-member.enum";
 import { z } from "zod";
 
 export const CreateChatMemberSchema = z.object({
   user_id: z.string().optional(),
   admin_id: z.string().optional(),
-  role: z.nativeEnum(ChatMemberRole),
+  role: z.nativeEnum(ChatMemberRoleEnum),
   chat_room_id: z.string({ message: "Chat Room ID is Required" }),
 });
 

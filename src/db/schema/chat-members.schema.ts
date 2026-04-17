@@ -13,7 +13,9 @@ export const chatMembers = pgTable("chat_members", {
   joined_at: timestamp().defaultNow(),
   left_at: timestamp(),
   user_id: uuid().references(() => users.id),
-  chat_room_id: uuid().references(() => chatRooms.id),
+  chat_room_id: uuid()
+    .references(() => chatRooms.id, { onDelete: "cascade" })
+    .notNull(),
 });
 
 export const chatMemberRelation = relations(chatMembers, ({ one, many }) => ({

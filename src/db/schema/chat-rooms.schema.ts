@@ -7,7 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { timestamps } from "../common";
 import { relations } from "drizzle-orm";
-import { chatMembers, chatMessages } from ".";
+import { chatMembers, chatMessages, unreadMessages } from ".";
 
 export const chatRooms = pgTable("chat_rooms", {
   id: uuid().defaultRandom().notNull().primaryKey(),
@@ -20,6 +20,7 @@ export const chatRooms = pgTable("chat_rooms", {
 export const chatRoomRelation = relations(chatRooms, ({ one, many }) => ({
   chat_members: many(chatMembers),
   chat_messages: many(chatMessages),
+  unread_messages: many(unreadMessages),
   last_message: one(chatMessages, {
     fields: [chatRooms.last_message_id],
     references: [chatMessages.id],

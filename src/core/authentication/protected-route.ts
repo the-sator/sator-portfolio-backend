@@ -12,7 +12,7 @@ import { cookie, COOKIE_ENTITY } from "@/libs/cookie";
 type ProtectedRouteHandler = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => void | Promise<void>;
 
 function protectedRoute(
@@ -20,7 +20,7 @@ function protectedRoute(
   options?: {
     resource: string;
     action: "read" | "write" | "delete";
-  }
+  },
 ) {
   const userService = new UserService(); // Instantiate AdminAuth
   const roleRepository = new RoleRepository(); // Instantiate AdminAuth
@@ -29,26 +29,25 @@ function protectedRoute(
   return async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
-      const isAdminRoute = req.originalUrl.startsWith(
-        `${env.API_PREFIX}/admin`
-      );
-      const sessionToken = isAdminRoute
-        ? cookie.get(req, COOKIE_ENTITY.ADMIN)
-        : cookie.get(req, COOKIE_ENTITY.USER);
+      const isUserRoute = req.originalUrl.startsWith(`${env.API_PREFIX}/users`);
+      const sessionToken = isUserRoute
+        ? cookie.get(req, COOKIE_ENTITY.USER)
+        : cookie.get(req, COOKIE_ENTITY.SITE_USER);
 
       if (!sessionToken) {
         throw new UnauthorizedException(); // Handle unauthorized access
       }
-      const auth = await userService.getMe(sessionToken);
-      if (!auth) {
+      const user = await userService.getMe(sessionToken);
+      if (!user) {
         throw new UnauthorizedException(); // Handle unauthorized access
       }
 
-      if (options && isAdminRoute) {
-        const role = await roleRepository.findById(auth.admin!.role_id);
+      if (options && isUserRoute) {
+        const role = await roleRepository.findById(user.role_id);
+
         if (!role) {
           throw new ForbiddenException(); // Handle unauthorized access
         }
@@ -56,7 +55,7 @@ function protectedRoute(
         const resource = await resourceRepository.findByName(options.resource);
 
         const permission = role.permission_flags.find(
-          (p) => p.resource_id === resource?.id
+          (p) => p.resource_id === resource?.id,
         );
 
         if (!permission) {

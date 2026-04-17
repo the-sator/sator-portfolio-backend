@@ -24,8 +24,8 @@ export class UserRepository {
   public async paginate(filter: UserFilter) {
     const conds = this.buildFilter(filter);
     const page = filter.page ? Number(filter.page) : 1;
-    const limit = filter.limit ? Number(filter.limit) : LIMIT;
-    const offset = page - 1 * +limit;
+    const limit = filter.page_size ? Number(filter.page_size) : LIMIT;
+    const offset = (page - 1) * limit;
     return await db
       .select()
       .from(users)

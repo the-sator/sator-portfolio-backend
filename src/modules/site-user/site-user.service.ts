@@ -1,5 +1,5 @@
 import { SiteUserRepository } from "@/modules/site-user/site-user.repository";
-import { getPaginationMetadata } from "@/utils/pagination";
+import { getPaginationMeta } from "@/utils/pagination";
 import { env } from "@/libs";
 import { verifyTOTP } from "@oslojs/otp";
 import { decrypt, decryptApiKey, encryptApiKey } from "@/utils/encryption";
@@ -33,21 +33,20 @@ export class SiteUserService {
     this.authService = new AuthService();
     this.siteMetricRepository = new SiteMetricRepository();
   }
-  public async paginateSiteUsers(
-    filter: SiteUserFilter
-  ): Promise<PaginationResult<SiteUser>> {
-    const count = await this.siteUserRepository.count(filter);
-    const meta = getPaginationMetadata(filter, count);
-    const siteUsers = await this.siteUserRepository.paginate(filter);
-    const decryptedSiteUsers = siteUsers.map((user) => ({
+
+  async paginate(filter: SiteUserFilter): Promise<PaginationResult<SiteUser>> {
+    const [data, count] = await Promise.all([
+      this.siteUserRepository.paginate(filter),
+      this.siteUserRepository.count(filter),
+    ]);
+    const decryptedSiteUsers = data.map((user) => ({
       ...user,
       api_key: decryptApiKey(user.api_key),
     }));
-    return {
-      data: decryptedSiteUsers,
-      meta,
-    };
+    const meta = getPaginationMeta(filter, count);
+    return { data: decryptedSiteUsers, meta };
   }
+
   public async create(payload: CreateSiteUser) {
     const passwordHash = await authUtil.hashPassword(env.DEFAULT_PASSWORD);
     return db.transaction(async (tx) => {
@@ -62,7 +61,7 @@ export class SiteUserService {
           email: uniqueEmail,
           password: passwordHash,
         },
-        tx
+        tx,
       );
       // Create the site record
       return this.siteUserRepository.create(
@@ -74,14 +73,14 @@ export class SiteUserService {
         },
         auth.id as string,
         encryptedKey,
-        tx
+        tx,
       );
     });
   }
   // TODO: Solve Username Uniqueness Problem
   public async signin(id: string, payload: SiteUserSignin) {
     const siteUser = await this.siteUserRepository.findByUsername(
-      payload.username
+      payload.username,
     );
     if (!siteUser) {
       throw new UnauthorizedException();
@@ -103,7 +102,7 @@ export class SiteUserService {
 
     const isPasswordValid = authUtil.verifyPassword(
       payload.password,
-      auth.password
+      auth.password,
     );
     if (!isPasswordValid) {
       throw new UnauthorizedException();
@@ -149,7 +148,7 @@ export class SiteUserService {
   public async updateAuth(
     id: string,
     token: string,
-    payload: Onboarding
+    payload: Onboarding,
   ): Promise<Auth> {
     const sessionId = authUtil.decodeToSessionId(token);
 
@@ -172,7 +171,7 @@ export class SiteUserService {
       const auth = await this.authService.updatePassword(
         result.auth.id,
         hashedPassword,
-        tx
+        tx,
       );
       await Promise.all([
         this.siteUserRepository.updateRegisteredAt(id, tx),
@@ -188,7 +187,7 @@ export class SiteUserService {
     return await db.transaction(async (tx) => {
       const siteMetric = await this.siteMetricRepository.findByToday(
         site.id,
-        tx
+        tx,
       );
       //If not found, then create new site metric
       if (!siteMetric) {

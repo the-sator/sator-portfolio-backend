@@ -2,40 +2,41 @@ import { PortfolioController } from "@/api/controllers/portfolio.controller";
 import protectedSiteUserRoute from "@/core/authentication/protected-site-user-route";
 import { Router } from "express";
 
-const router = Router();
-const portfolioController = new PortfolioController();
 export default (app: Router) => {
+  const router = Router();
+  const portfolioController = new PortfolioController();
+
   app.use("/portfolio", router);
   router.get(
     "/",
-    protectedSiteUserRoute(portfolioController.paginateBySiteUser)
+    protectedSiteUserRoute(portfolioController.paginateBySiteUser),
   );
   router.get("/published", portfolioController.paginateBySiteUserApiKey);
   router.get("/all/published", portfolioController.getAllPublishedSlug);
   router.get(
     "/:slug",
-    protectedSiteUserRoute(portfolioController.getPortfolioBySlug)
+    protectedSiteUserRoute(portfolioController.getPortfolioBySlug),
   );
   router.get(
     "/:slug/published",
-    portfolioController.getPublishedPortfolioBySlug
+    portfolioController.getPublishedPortfolioBySlug,
   );
   router.post("/", protectedSiteUserRoute(portfolioController.createPortfolio));
   router.post(
     "/:id/publish",
-    protectedSiteUserRoute(portfolioController.publishPortfolio)
+    protectedSiteUserRoute(portfolioController.publishPortfolio),
   );
   router.post(
     "/:id/unpublish",
-    protectedSiteUserRoute(portfolioController.unpublishPortfolio)
+    protectedSiteUserRoute(portfolioController.unpublishPortfolio),
   );
   router.post("/:slug/view", portfolioController.increaseView);
   router.put(
     "/:id",
-    protectedSiteUserRoute(portfolioController.updatePortfolio)
+    protectedSiteUserRoute(portfolioController.updatePortfolio),
   );
   router.delete(
     "/:id",
-    protectedSiteUserRoute(portfolioController.deletePortfolio)
+    protectedSiteUserRoute(portfolioController.deletePortfolio),
   );
 };
